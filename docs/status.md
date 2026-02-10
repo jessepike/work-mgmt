@@ -8,8 +8,8 @@ updated: "2026-02-10"
 
 ## Current State
 
-- **Phase:** Technical Design (draft complete) → Review Loop (next)
-- **Focus:** Design spec v0.1 drafted (4 documents). All Discover-era open questions resolved. Ready for internal review.
+- **Phase:** Review Loop (internal complete → external next)
+- **Focus:** Design spec v0.3 — internal review complete (3 cycles, 5 High resolved). Ready for external review.
 
 ## Discover → Design Handoff
 
@@ -59,7 +59,7 @@ updated: "2026-02-10"
 - [x] Database schema design
 - [x] API contract specification
 - [x] Dashboard component design
-- [ ] Internal review (Ralph Loop) of design spec
+- [x] Internal review (Ralph Loop) of design spec
 - [ ] External review of design spec
 - [ ] Finalization and Develop stage transition
 
@@ -78,3 +78,4 @@ updated: "2026-02-10"
 | 2026-02-10 | **Discover → Design transition.** Archived working artifacts, updated handoff. All prerequisites met: intent clear, brief reviewed (internal + external), 0 Critical/High open. |
 | 2026-02-10 | **Design Intake & Clarification.** Resolved all 10 open items: Supabase (existing project) + Vercel hosting, Supabase Auth (JWT), API-level activity logging, query-time health computation, source_id required for synced, WM MCP sync_project tool, sequential display IDs, keep "Work Management" name. 15 decisions logged. |
 | 2026-02-10 | **Design spec v0.1 drafted.** 4 documents: design.md (parent), design-architecture.md (system components, auth, project structure), design-data-model.md (Supabase schema, indexes, RLS, triggers), design-interface.md (REST API contracts, MCP tools, dashboard views). Ready for review. |
+| 2026-02-10 | **Internal review complete.** 3 cycles. 5 High issues resolved: circular FK (connector_id removed), Plan/Phase MCP tools added, one-active-plan constraint, FTS indexing, project detail connector info. 2 Low open. Design at v0.3. |
