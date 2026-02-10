@@ -1,8 +1,8 @@
 ---
 type: "design"
 project: "Work Management"
-version: "0.1"
-status: "draft"
+version: "0.3"
+status: "internal-review-complete"
 created: "2026-02-10"
 updated: "2026-02-10"
 brief_ref: "./discover-brief.md"
@@ -109,7 +109,15 @@ _None — all questions resolved during Discover review and Design intake._
 
 | # | Issue | Source | Severity | Status | Resolution |
 |---|-------|--------|----------|--------|------------|
-| — | No issues yet | — | — | — | — |
+| 1 | Circular FK: project.connector_id ↔ connector.project_id — migration ordering conflict and redundant relationship | Ralph-Design | High | Resolved | Removed connector_id from project table. Connector lookup via connector.project_id (1:1). |
+| 2 | MCP adapter missing Plan and Phase tools — contradicts stated 1:1 REST mapping | Ralph-Design | High | Resolved | Added Plan and Phase CRUD tools to MCP adapter table. |
+| 3 | One-active-plan-per-project constraint not enforced — Brief requires it, no schema or API validation | Ralph-Design | High | Resolved | Added API validation rule: reject plan creation when project already has non-completed plan. |
+| 4 | Full-text search approach unspecified — /api/search references Postgres FTS but no tsvector/GIN index defined | Ralph-Design | High | Resolved | Added FTS section to data model: generated tsvector column + GIN index on task and backlog_item. |
+| 5 | updated_at auto-update mechanism unspecified | Ralph-Design | Low | Open | Recommend DB trigger for consistency. Implementation detail for Develop. |
+| 6 | entity_type in activity_log is text, Brief defines as enum | Ralph-Design | Low | Open | Text is more flexible; acceptable deviation. |
+| 7 | project.current_phase_id missing FK to phase table | Ralph-Design | Low | Resolved | Added REFERENCES phase(id) constraint. |
+| 8 | GET /api/projects/:id response missing connector info — dashboard needs sync status | Ralph-Design | High | Resolved | Added connector info (connector_id, type, status, last_sync_at) to project detail response. |
+| 9 | No MCP tools for connector management (list, create) | Ralph-Design | Low | Open | MVP connectors set up via seed/dashboard. Acceptable for MVP scope. |
 
 ## Develop Handoff
 
@@ -117,10 +125,38 @@ _To be completed at Design finalization._
 
 ## Review Log
 
-_To be populated during review phase._
+### Phase 1: Internal Review (Ralph Loop)
+
+**Cycle 1 — 2026-02-10**
+**Issues Found:** 0 Critical, 4 High, 3 Low
+**Actions Taken:**
+- **#1 (High):** Removed `connector_id` from project table — circular FK with connector.project_id. Connector lookup via `connector.project_id`.
+- **#2 (High):** Added Plan and Phase CRUD tools to MCP adapter — was contradicting stated 1:1 REST mapping.
+- **#3 (High):** Added one-active-plan validation rule — reject plan creation when non-completed plan exists (409).
+- **#4 (High):** Added Full-Text Search section to data model — generated tsvector columns + GIN indexes on task and backlog_item.
+- **#7 (Low):** Added FK constraint on `project.current_phase_id → phase(id)`, deferred in migration ordering.
+**Outcome:** All High issues resolved. Proceeding to Cycle 2.
+
+**Cycle 2 — 2026-02-10**
+**Issues Found:** 0 Critical, 1 High, 1 Low
+**Actions Taken:**
+- **#8 (High):** Added connector info to GET /api/projects/:id response — needed for dashboard sync status indicator.
+**Outcome:** High issue resolved. Proceeding to Cycle 3.
+
+**Cycle 3 — 2026-02-10**
+**Issues Found:** 0 Critical, 0 High, 0 Low
+**Outcome:** Stop conditions met. Internal review complete.
+
+**Internal Review Summary:**
+- **Cycles:** 3
+- **Total Issues:** 5 High, 4 Low
+- **Resolved:** 5 High, 2 Low
+- **Open (Low):** 2 (#5 updated_at mechanism, #9 connector MCP tools)
 
 ## Revision History
 
 | Version | Date | Changes |
 |---------|------|---------|
 | 0.1 | 2026-02-10 | Initial draft — parent design doc with tech stack, decisions, capabilities |
+| 0.2 | 2026-02-10 | Internal review cycle 1 — fixed circular FK (connector_id), added Plan/Phase MCP tools, added one-active-plan validation, added FTS indexing, fixed current_phase_id FK |
+| 0.3 | 2026-02-10 | Internal review cycles 2-3 — added connector info to project detail API response. 3 cycles, 0 Critical/High remaining. Internal review complete. |

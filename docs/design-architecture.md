@@ -222,6 +222,7 @@ work-management/
 │   │   │   ├── phases/
 │   │   │   ├── tasks/
 │   │   │   ├── backlog/
+│   │   │   ├── plans/
 │   │   │   ├── connectors/
 │   │   │   ├── activity/
 │   │   │   ├── status/

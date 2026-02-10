@@ -42,6 +42,9 @@ These rules are enforced server-side on every mutation:
 - `workflow_type = flat`: Tasks must have `plan_id = null` AND `phase_id = null`. Reject with 400 otherwise.
 - `workflow_type = planned`: Tasks must have `plan_id` set (non-null). `phase_id` is optional. Reject with 400 if `plan_id` is null.
 
+**One-active-plan constraint:**
+- Creating a plan (`POST /api/projects/:id/plans`) is rejected with 409 if the project already has a plan with `status` not in (`completed`). One non-completed plan per project at a time. Completed plans are retained as history.
+
 **Data origin enforcement:**
 - Mutations (POST, PATCH, DELETE) on entities with `data_origin = 'synced'` return `403` with error code `SYNCED_ENTITY_READONLY`.
 - Exception: project-level annotations (health_override, tags, categories) can be modified for connected projects.
@@ -65,6 +68,7 @@ Returns: Full project detail with:
 - Task counts by status (`{ pending: 3, in_progress: 2, blocked: 1, done: 8 }`)
 - Active blockers
 - Current plan (if planned workflow)
+- Connector info for connected projects: `{ connector_id, connector_type, status, last_sync_at }` (null for native projects)
 
 **POST /api/projects**
 Body: `{ name, project_type, categories, workflow_type, owner_id, ...optional fields }`
@@ -216,6 +220,13 @@ Tools map 1:1 to REST endpoints. Each tool documents its parameters and return s
 | `get_project` | GET /api/projects/:id | project_id |
 | `create_project` | POST /api/projects | name, project_type, categories, workflow_type, owner_id |
 | `update_project` | PATCH /api/projects/:id | project_id, ...fields |
+| `list_plans` | GET /api/projects/:id/plans | project_id |
+| `create_plan` | POST /api/projects/:id/plans | project_id, name, description? |
+| `update_plan` | PATCH /api/plans/:id | plan_id, ...fields |
+| `approve_plan` | POST /api/plans/:id/approve | plan_id, approved_by |
+| `list_phases` | GET /api/plans/:id/phases | plan_id |
+| `create_phase` | POST /api/plans/:id/phases | plan_id, name, sort_order, description?, deadline_at? |
+| `update_phase` | PATCH /api/phases/:id | phase_id, ...fields |
 | `list_tasks` | GET /api/tasks | project_id?, status?, priority? |
 | `get_task` | GET /api/tasks/:id | task_id |
 | `create_task` | POST /api/tasks | project_id, title, plan_id?, phase_id? |

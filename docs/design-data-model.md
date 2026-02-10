@@ -82,9 +82,8 @@ CREATE TABLE project (
   status            project_status NOT NULL DEFAULT 'active',
   focus             text,
   workflow_type     workflow_type NOT NULL,
-  connector_id      uuid REFERENCES connector(id),
   current_stage     text,
-  current_phase_id  uuid,
+  current_phase_id  uuid REFERENCES phase(id),
   blockers          text[],
   pending_decisions text[],
   owner_id          text NOT NULL REFERENCES actor_registry(id),
@@ -94,6 +93,8 @@ CREATE TABLE project (
 ```
 
 **Note:** `health_override` replaces the Brief's `health` field. Computed health is query-time (see Health Computation below). The override lets the user force a health status. If null, computed health is used.
+
+**Note:** `connector_id` from the Brief's entity model is not on this table. The relationship is modeled via `connector.project_id` (1:1). To find a project's connector: `SELECT * FROM connector WHERE project_id = ?`. This avoids a circular FK dependency between project and connector tables.
 
 ### plan
 
@@ -280,6 +281,32 @@ CREATE INDEX idx_activity_time ON activity_log(created_at DESC);
 CREATE INDEX idx_activity_project_time ON activity_log(entity_type, entity_id, created_at DESC);
 ```
 
+## Full-Text Search
+
+The `/api/search` endpoint uses Postgres full-text search. Generated `tsvector` columns with GIN indexes on task and backlog_item for fast keyword search across title and description.
+
+```sql
+-- Add generated tsvector column to task
+ALTER TABLE task ADD COLUMN search_vector tsvector
+  GENERATED ALWAYS AS (
+    setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
+    setweight(to_tsvector('english', coalesce(description, '')), 'B')
+  ) STORED;
+
+CREATE INDEX idx_task_search ON task USING GIN(search_vector);
+
+-- Add generated tsvector column to backlog_item
+ALTER TABLE backlog_item ADD COLUMN search_vector tsvector
+  GENERATED ALWAYS AS (
+    setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
+    setweight(to_tsvector('english', coalesce(description, '')), 'B')
+  ) STORED;
+
+CREATE INDEX idx_backlog_search ON backlog_item USING GIN(search_vector);
+```
+
+**Query pattern:** `SELECT * FROM task WHERE search_vector @@ plainto_tsquery('english', $1)` with `ts_rank` for relevance ordering. Results from task and backlog_item are combined via UNION ALL with entity type tag.
+
 ## Row Level Security (RLS)
 
 Single-user MVP: all authenticated users have full access. RLS exists as a security baseline — tightened when multi-user is added.
@@ -441,14 +468,16 @@ supabase db push
 **Migration ordering:**
 1. Enum types
 2. actor_registry (no FKs)
-3. project (references actor_registry)
-4. connector (references project)
-5. plan (references project)
-6. phase (references plan, project)
-7. task (references project, plan, phase, actor_registry)
-8. backlog_item (references project, task)
-9. activity_log (references actor_registry)
-10. project_display_id_seq + trigger
-11. Indexes
-12. RLS policies
-13. Seed data
+3. project (references actor_registry — current_phase_id FK deferred)
+4. plan (references project)
+5. phase (references plan, project)
+6. ALTER project ADD CONSTRAINT fk_current_phase REFERENCES phase(id) (deferred FK)
+7. connector (references project)
+8. task (references project, plan, phase, actor_registry)
+9. backlog_item (references project, task)
+10. activity_log (references actor_registry)
+11. project_display_id_seq + trigger
+12. Full-text search columns + GIN indexes
+13. Indexes
+14. RLS policies
+15. Seed data
