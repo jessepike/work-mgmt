@@ -1,9 +1,9 @@
 ---
 type: "brief"
 project: "Work Management"
-version: "0.2"
-status: "in-review"
-review_cycle: 1
+version: "0.3"
+status: "internal-review-complete"
+review_cycle: 2
 created: "2026-02-10"
 updated: "2026-02-10"
 intent_ref: "./intent.md"
@@ -632,6 +632,7 @@ These were flagged as needing work and should be addressed in Design:
 | 3 | Task status lifecycle diagram conflates status and validation_status | Ralph-Internal | High | High | Resolved | Split into two separate lifecycle diagrams with clear orthogonality |
 | 4 | Plan entity lacks usage guidance — when required vs skipped? | Ralph-Internal | High | High | Resolved | Added Plan usage rules: flat vs planned projects, one active plan per project, connector behavior |
 | 5 | Open Questions references digest schedule — premature for post-MVP | Ralph-Internal | Low | Low | Resolved | Removed digest schedule question |
+| 6 | Digest engine not explicitly in Out of Scope list | Ralph-Internal | Low | Low | Open | Post-MVP designation clear in Digest Engine section; not blocking |
 
 ## Review Log
 
@@ -642,6 +643,18 @@ These were flagged as needing work and should be addressed in Design:
 **Actions Taken:**
 - **Fixed (5 issues):** Removed digest from scope/criteria, replaced has_phases with workflow_type, split status/validation lifecycles, added Plan usage rules, removed premature digest question
 **Outcome:** All High issues resolved. Proceeding to Cycle 2 re-review.
+
+**Cycle 2 — 2026-02-10**
+**Issues Found:** 0 Critical, 0 High, 1 Low
+**Actions Taken:**
+- **Logged only (1 issue):** Digest not in Out of Scope list (Low — clear in Digest Engine section)
+**Outcome:** Stop conditions met. 0 Critical, 0 High. Brief ready for external review.
+
+**Internal Review Summary:**
+- **Cycles:** 2
+- **Total Issues:** 4 High, 2 Low
+- **Resolved:** 4 High, 1 Low
+- **Open (Low):** 1
 
 ### Phase 2: External Review
 
@@ -663,3 +676,4 @@ _Not yet started._
 |---------|------|---------|
 | 0.1 | 2026-02-10 | Initial draft — crystallized from v5 brief + architecture sessions + exploration |
 | 0.2 | 2026-02-10 | Internal review cycle 1 — fixed digest scope inconsistency, replaced has_phases with workflow_type, split status/validation lifecycles, added Plan usage rules |
+| 0.3 | 2026-02-10 | Internal review cycle 2 — 0 Critical/High found. Internal review complete. |
