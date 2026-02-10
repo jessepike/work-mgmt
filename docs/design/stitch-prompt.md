@@ -350,6 +350,90 @@ personal  •  5 tasks  •  0 blocked  •  40% complete
 
 ---
 
+### Screen 6: Blockers View — "What's Stuck?"
+
+This is the app's differentiator view. A dedicated cross-project surface for everything that's stuck, why, and how long it's been stuck. This view turns blockers from hidden metadata into a first-class object.
+
+**Layout:**
+- Left sidebar (Blockers is active under VIEWS, count badge in `status-red`)
+- Main content: flat list of blocked items, grouped by blocker reason
+- Filter bar: project filter, priority filter, age filter ("All", ">3 days", ">1 week")
+- No detail panel by default — clicking a blocker opens it
+
+**Content structure — grouped by blocker reason:**
+```
+WAITING ON EXTERNAL (2)                                          oldest: 5 days
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │ ● Resolve dependency conflicts          ADF Framework   P1   5 days │
+  │   Blocked by: Waiting on plugin-api package extraction               │
+  │   Impact: Blocks 4 downstream tasks in Phase 2                       │
+  ├──────────────────────────────────────────────────────────────────────┤
+  │ ● Plugin API extraction                 SaaS Product    P1   3 days │
+  │   Blocked by: Upstream team reviewing breaking changes               │
+  │   Impact: Blocks auth migration completion                           │
+  └──────────────────────────────────────────────────────────────────────┘
+
+DEPENDENCY CHAIN (1)                                             oldest: 2 days
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │ ● Board review prep                     Board Governance P2   2 days │
+  │   Blocked by: Quarterly financials not yet available                  │
+  │   Impact: Delays board meeting prep                                  │
+  └──────────────────────────────────────────────────────────────────────┘
+```
+
+**Blocker row anatomy:**
+- Priority dot (6px) + task title + project chip + priority label + age ("5 days" — escalates color with age)
+- Second line: "Blocked by:" reason in `text-secondary`
+- Third line: "Impact:" downstream effect in `text-muted`
+- Age coloring: <3 days = `text-secondary`, 3-7 days = `status-yellow`, >7 days = `status-red`
+
+**Visual details:**
+- Blocker groups use section headers with reason category + count + "oldest: X days"
+- Each blocker is a mini-card (bg-surface, border-subtle) — slightly more visual weight than a task row because blockers deserve attention
+- Hover reveals actions: "Resolve" (marks as unblocked), "Reassign", "Add note"
+- Empty state: "Nothing blocked. Nice." in `text-muted`, centered
+- Summary bar at bottom: "3 blockers across 3 projects · oldest: 5 days"
+
+---
+
+### Screen 7: Deadlines View — "What's Coming?"
+
+A chronological view of upcoming due dates across all projects. Time-pressure at a glance.
+
+**Layout:**
+- Left sidebar (Deadlines is active under VIEWS)
+- Main content: flat list grouped by time horizon
+- Filter bar: project filter, priority filter
+
+**Content structure — grouped by time bucket:**
+```
+OVERDUE (2)
+  ● Fix auth token refresh          ADF Framework     P1   due Feb 8  (2 days overdue)
+  ● Update connector error handling Work Management   P2   due Feb 9  (1 day overdue)
+
+THIS WEEK — Feb 10-14 (3)
+  ● Review design brief feedback    Consulting: Acme  P1   due Feb 11
+  ● Schedule CPA appointment        Personal          P2   due Feb 14
+  ● Draft quarterly board update    Board             P2   due Feb 14
+
+NEXT WEEK — Feb 17-21 (2)
+  ● Client presentation prep        Consulting: Acme  P2   due Feb 18
+  ● Integration test suite          ADF Framework     P2   due Feb 20
+
+LATER (1)
+  ● Quarterly board meeting         Board Governance  P1   due Mar 1
+```
+
+**Visual details:**
+- Identical row style to Today View — checkbox, title, project chip, priority dot, due date
+- "OVERDUE" header in `status-red` with count. Each overdue task shows "(X days overdue)" in `status-red`
+- "THIS WEEK" in `text-primary` (most important non-overdue bucket)
+- "NEXT WEEK" and "LATER" in `text-secondary`
+- Tasks without due dates don't appear in this view
+- Due date right-aligned in `text-secondary`, shifts to `status-yellow` within 2 days, `status-red` when overdue
+
+---
+
 ## Global UI Elements
 
 **Top bar (persistent across all views):**
@@ -422,6 +506,139 @@ These patterns were validated in the first Stitch prototype round and should be 
 **Flat vs. planned visual contrast:** Flat projects (Personal) are noticeably simpler — no phase headers, no sync icons, just section dividers and an "+ Add task" affordance. The visual simplicity itself communicates the workflow type.
 
 **Done de-emphasis:** Completed kanban cards use reduced opacity (0.7) + small checkmark. Completed task rows use strikethrough in `text-muted` with filled checkbox in `status-green`.
+
+---
+
+## Interaction Model
+
+How the UI responds to user actions. These are the core interaction decisions.
+
+### Task Selection → Detail Panel
+
+Clicking any task row slides the detail panel in from the right (~320px). The main content area compresses to accommodate — it does not overlay. Clicking away or pressing `Esc` closes the panel. This is the Todoist model: list stays visible while detail is open.
+
+- Task rows are the primary click target. The entire row is clickable, not just the title.
+- Clicking a different task while the panel is open swaps the panel content (no close/reopen animation).
+- The checkbox is a separate click target — clicking it toggles completion without opening the panel.
+
+### Inline Editing vs. Detail Panel
+
+**Inline (directly in the list):**
+- Checkbox toggle (done/undone)
+- Task title — double-click to edit in place, Enter to save, Esc to cancel
+- Drag reorder (flat projects only, grip handle on hover)
+
+**Detail panel (everything else):**
+- Description, status, priority, size, due date, owner, tags
+- Activity log / comments
+- "Blocked by" reason
+
+Rationale: the list is for scanning and quick triage. The panel is for deeper work. Todoist draws the same line.
+
+### Quick-Add Flow
+
+`Cmd+K` or clicking "+" opens the quick-add modal (centered floating). Type a task title, optionally set project/priority/date in the attribute row below, hit Enter. The modal closes and the task appears in the appropriate view. If no project is selected, it goes to an inbox/unsorted state.
+
+### Hover-to-Reveal Actions
+
+Task rows at rest show: checkbox + title + project chip + priority dot. On hover, the right side reveals action icons:
+- Schedule (calendar icon)
+- Priority (flag icon)
+- More (three-dot menu → edit, move, delete)
+
+These icons use `text-muted` and shift to `text-secondary` on their own hover. They never appear on touch/mobile — those contexts use swipe gestures or long-press.
+
+### Keyboard Navigation
+
+- `↑`/`↓` — move selection through task list
+- `Enter` — open detail panel for selected task
+- `Esc` — close detail panel, deselect
+- `Space` — toggle checkbox on selected task
+- `Cmd+K` — quick-add
+- `1`/`2`/`3` — set priority P1/P2/P3 on selected task
+- `/` — focus search
+
+### Sync Status Communication
+
+Connected projects show sync state in the project header:
+- "Last synced: 2 hours ago" in `text-muted` — normal
+- "Last synced: 1 day ago" in `status-yellow` — stale warning
+- "Sync error" in `status-red` — needs attention
+
+Individual synced tasks show a small lock icon (🔒 in `text-muted`) indicating they're read-only. Attempting to edit a synced task shows a tooltip: "This task is managed by ADF. Edit it in the source project."
+
+---
+
+## Component Palette
+
+The minimal set of UI components needed, all styled in the Zed aesthetic.
+
+### Buttons
+
+| Variant | Background | Text | Border | Usage |
+|---------|-----------|------|--------|-------|
+| Primary | `accent-brand` #084CCF | white | none | One per screen max. "Add Task", "Save". |
+| Secondary | transparent | `accent-blue` | 1px `border-subtle` | "Cancel", "New Project", filter actions. |
+| Ghost | transparent | `text-secondary` | none | Toolbar actions, icon buttons. Hover → `bg-hover`. |
+| Destructive | transparent | `status-red` | none | "Delete", "Remove". Only in confirmation contexts. |
+
+All buttons: 4px radius, 32px height, IBM Plex Sans 13px weight 500. No shadows, no gradients.
+
+### Text Inputs
+
+```
+┌──────────────────────────────────────┐
+│  Placeholder text                    │
+└──────────────────────────────────────┘
+```
+- Background: `bg-deep` (#1A1D23)
+- Border: 1px `border-subtle`, shifts to `border-focus` on focus
+- Text: `text-primary` for value, `text-muted` for placeholder
+- Height: 36px, 4px radius
+- No label above — use placeholder text. Labels only when the field is part of a form group.
+
+### Dropdowns / Selects
+
+Same visual treatment as text inputs. Chevron icon (▾) right-aligned in `text-muted`. Dropdown menu uses `bg-surface` with `border-subtle`, items highlight with `bg-hover` on hover. Selected item shows small `accent-blue` dot left of text.
+
+### Chips / Tags
+
+```
+[dev]  [P1]  [blocked]  [connected]
+```
+- Background: `bg-chrome` (#212429)
+- Text: `text-secondary` (#7D8490)
+- Border: none (background differentiation is enough)
+- Height: 20px, 4px radius, 10px horizontal padding
+- Semantic chips override text color: priority chips use priority color for the dot only (not the background), "blocked" uses `status-red` text, category chips are neutral.
+
+### Modals
+
+- Centered, max-width 480px
+- Background: `bg-surface`
+- Border: 1px `border-subtle`
+- Radius: 8px
+- Backdrop: `bg-deep` at 60% opacity
+- No close button in corner — Esc to dismiss
+- Title in `text-primary` 16px weight 600, content in `text-secondary`
+
+### Toasts / Notifications
+
+Appear bottom-right, auto-dismiss after 4 seconds.
+- Background: `bg-chrome`
+- Border: 1px `border-subtle`
+- Text: `text-secondary`
+- Success: left border 2px `status-green`
+- Error: left border 2px `status-red`
+- Radius: 6px, max-width 360px
+
+### Empty States
+
+Centered in main content area. Single line of text in `text-muted`, 14px. No illustrations, no icons — just text.
+- No tasks: "No tasks yet. Press Cmd+K to add one."
+- No blockers: "Nothing blocked. Nice."
+- No results: "No matches."
+- New project: "Empty project. Add a task to get started."
 
 ---
 
