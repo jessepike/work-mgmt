@@ -1,0 +1,21 @@
+# Common
+.DS_Store
+*.log
+.env
+.env.local
+
+# App: Node.js / Python
+node_modules/
+__pycache__/
+.venv/
+dist/
+build/
+.next/
+.turbo/
+coverage/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

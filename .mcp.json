@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "adf": {
+      "command": "node",
+      "args": [
+        "/Users/jessepike/code/_shared/adf/adf-server/build/index.js"
+      ],
+      "env": {
+        "ADF_ROOT": "/Users/jessepike/code/_shared/adf"
+      }
+    }
+  }
+}
