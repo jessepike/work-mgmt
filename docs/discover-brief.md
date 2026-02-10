@@ -1,9 +1,9 @@
 ---
 type: "brief"
 project: "Work Management"
-version: "0.3"
-status: "internal-review-complete"
-review_cycle: 2
+version: "0.4"
+status: "external-review-complete"
+review_cycle: 3
 created: "2026-02-10"
 updated: "2026-02-10"
 intent_ref: "./intent.md"
@@ -173,6 +173,11 @@ REST API (business logic, validation, auth)
 - **One active plan per project at a time.** Completed plans are archived. A new plan can be created for the next body of work.
 - **Connected projects:** The connector creates/updates the plan structure based on the source system's organization (e.g., ADF stages → phases).
 
+**API validation rules (enforced server-side):**
+- `workflow_type = flat`: Tasks must have `plan_id = null` and `phase_id = null`. Reject task creation with plan/phase references.
+- `workflow_type = planned`: Tasks must have `plan_id` set (non-null). `phase_id` is optional (plan may not use phases). Reject task creation without `plan_id`.
+- Backlog promotion (`POST /api/backlog/:id/promote`): For planned projects, request body must include `plan_id` (and optionally `phase_id`). For flat projects, no plan/phase params needed.
+
 #### Phase (optional, belongs to Plan)
 
 | Field | Type | Required | Notes |
@@ -215,6 +220,7 @@ REST API (business logic, validation, auth)
 | depends_on | uuid[] | No | Linked task IDs |
 | acceptance_criteria | text | No | What "done" looks like |
 | outcome | text | No | What actually happened (filled at completion) |
+| sort_order | int | No | Position within status column. Enables drag-and-drop reordering. |
 | notes | text | No | |
 | data_origin | enum | Yes | `synced` / `native` |
 | completed_at | timestamp | No | |
@@ -382,6 +388,12 @@ Validation is a **separate dimension** from task status. A task's validation_sta
 | GET | `/api/connectors` | List connectors |
 | POST | `/api/connectors` | Register connector |
 | POST | `/api/connectors/:id/sync` | Trigger sync |
+
+### Data Origin Enforcement (API-level)
+
+Entities with `data_origin = synced` are read-only through the REST API. Mutating requests (POST, PATCH, DELETE) targeting synced entities must return `403 Forbidden` with an error indicating the entity is managed by its source system. Only the connector can create/update synced entities. This is enforced at the API layer, not just the UI.
+
+**Exception:** Work Management annotations (project-level metadata like health, tags, categories) can be modified for connected projects. Only source-system-owned fields (task status, title, description, etc.) are protected.
 
 ### MCP Adapter
 
@@ -633,6 +645,15 @@ These were flagged as needing work and should be addressed in Design:
 | 4 | Plan entity lacks usage guidance — when required vs skipped? | Ralph-Internal | High | High | Resolved | Added Plan usage rules: flat vs planned projects, one active plan per project, connector behavior |
 | 5 | Open Questions references digest schedule — premature for post-MVP | Ralph-Internal | Low | Low | Resolved | Removed digest schedule question |
 | 6 | Digest engine not explicitly in Out of Scope list | Ralph-Internal | Low | Low | Open | Post-MVP designation clear in Digest Engine section; not blocking |
+| 7 | workflow_type / plan_id / phase_id validation rules missing | Gemini + GPT + Kimi (3/3) | High | P1 | Resolved | Added API validation rules enforcing workflow_type constraints on task creation and backlog promotion |
+| 8 | Task entity lacks sort_order for drag-and-drop | Kimi | High | P1 | Resolved | Added sort_order field to Task entity |
+| 9 | Synced entity write protection rule undefined | GPT | High | P1 | Resolved | Added Data Origin Enforcement section — API-level 403 for mutating synced entities |
+| 10 | Backlog promotion needs plan_id/phase_id params | Kimi | High | P1 | Resolved | Addressed in API validation rules (Fix #7) |
+| 11 | Auth approach undefined — blocks MCP + actor attribution | GPT | High | P2 | Deferred | Already in Open Questions. Design to resolve. |
+| 12 | Health computation signals imprecise | GPT + Kimi | Medium | P2 | Deferred | Design to specify canonical events and time windows |
+| 13 | ActivityLog capture mechanism unspecified | GPT | Medium | P2 | Deferred | Design to choose API-level vs DB trigger |
+| 14 | source_id handling for synced items unclear | Gemini | Medium | P2 | Deferred | Design to specify required vs optional for synced items |
+| 15 | Supabase free tier constraints + ActivityLog growth | GPT | Medium | P2 | Deferred | Design/operational concern — validate scale with seeded data |
 
 ## Review Log
 
@@ -658,7 +679,30 @@ These were flagged as needing work and should be addressed in Design:
 
 ### Phase 2: External Review
 
-_Not yet started._
+**Cycle 1 — 2026-02-10**
+**Models:** Gemini, GPT, Kimi (3 reviewers via external-review MCP)
+**Issues Found:** 4 P1 (High), 5 P2 (Medium — deferred to Design)
+
+**P1 Issues (resolved):**
+- **#7** workflow_type / plan_id / phase_id validation rules missing (consensus 3/3) → Added API validation rules
+- **#8** Task lacks sort_order for drag-and-drop (Kimi) → Added sort_order field
+- **#9** Synced entity write protection undefined (GPT) → Added Data Origin Enforcement section
+- **#10** Backlog promotion needs plan_id/phase_id params (Kimi) → Addressed in API validation rules
+
+**P2 Issues (deferred to Design):**
+- **#11** Auth approach undefined (GPT) — already in Open Questions
+- **#12** Health computation signals imprecise (GPT + Kimi)
+- **#13** ActivityLog capture mechanism unspecified (GPT)
+- **#14** source_id handling for synced items unclear (Gemini)
+- **#15** Supabase free tier constraints + ActivityLog growth (GPT)
+
+**Outcome:** All P1 issues resolved. P2 issues logged and deferred to Design. No re-submission needed — consensus issues addressed, remaining items are implementation-level concerns appropriate for Design stage.
+
+**External Review Summary:**
+- **Cycles:** 1
+- **Total Issues:** 4 P1, 5 P2
+- **Resolved:** 4 P1
+- **Deferred to Design:** 5 P2
 
 ## Decision Log
 
@@ -677,3 +721,4 @@ _Not yet started._
 | 0.1 | 2026-02-10 | Initial draft — crystallized from v5 brief + architecture sessions + exploration |
 | 0.2 | 2026-02-10 | Internal review cycle 1 — fixed digest scope inconsistency, replaced has_phases with workflow_type, split status/validation lifecycles, added Plan usage rules |
 | 0.3 | 2026-02-10 | Internal review cycle 2 — 0 Critical/High found. Internal review complete. |
+| 0.4 | 2026-02-10 | External review — 4 P1 resolved (API validation rules, sort_order, data origin enforcement, backlog promotion params). 5 P2 deferred to Design. |

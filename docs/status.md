@@ -8,16 +8,16 @@ updated: "2026-02-10"
 
 ## Current State
 
-- **Phase:** Crystallization (complete) → Review Loop (next)
-- **Focus:** Brief v0.1 drafted, ready for internal review
+- **Phase:** Review Loop (complete) → Finalization (next)
+- **Focus:** Brief v0.4 — internal + external review complete
 
 ## Next Steps
 
 - [x] Define intent (docs/intent.md)
 - [x] Draft initial brief (docs/discover-brief.md)
 - [x] Exploration — aligned on purpose, MVP scope, architecture context
-- [ ] Internal review (Ralph Loop) of brief
-- [ ] External review of brief
+- [x] Internal review (Ralph Loop) of brief — 2 cycles, 4 High resolved
+- [x] External review of brief — 3 models, 4 P1 resolved, 5 P2 deferred to Design
 - [ ] Finalization and Design handoff
 
 ## Pending Decisions
@@ -38,3 +38,4 @@ updated: "2026-02-10"
 |------|---------|
 | 2026-02-10 | Project initialized |
 | 2026-02-10 | Exploration complete. Read architecture docs (TAXONOMY.md, AGENTIC-WORK-SYSTEM-ARCHITECTURE.md) and v5 brief. Aligned on: two-component model (store + agent), MVP scope (store + API + MCP + connector + dashboard), inbound-only sync, single user. Crystallized intent.md and discover-brief.md v0.1. |
+| 2026-02-10 | Internal review (Ralph Loop): 2 cycles, 4 High issues resolved (digest scope, workflow_type, status/validation split, Plan usage rules). External review (Gemini/GPT/Kimi): 4 P1 resolved (API validation rules, sort_order, data origin enforcement, backlog promotion). 5 P2 deferred to Design. Brief at v0.4, ready for finalization. |
