@@ -8,8 +8,8 @@ updated: "2026-02-10"
 
 ## Current State
 
-- **Phase:** Review Loop (internal complete → external next)
-- **Focus:** Design spec v0.3 — internal review complete (3 cycles, 5 High resolved). Ready for external review.
+- **Phase:** Review Loop complete → Finalization next
+- **Focus:** Design spec v0.4 — both internal and external reviews complete. Ready for finalization and Develop transition.
 
 ## Discover → Design Handoff
 
@@ -60,7 +60,7 @@ updated: "2026-02-10"
 - [x] API contract specification
 - [x] Dashboard component design
 - [x] Internal review (Ralph Loop) of design spec
-- [ ] External review of design spec
+- [x] External review of design spec
 - [ ] Finalization and Develop stage transition
 
 ## Blockers
@@ -79,3 +79,4 @@ updated: "2026-02-10"
 | 2026-02-10 | **Design Intake & Clarification.** Resolved all 10 open items: Supabase (existing project) + Vercel hosting, Supabase Auth (JWT), API-level activity logging, query-time health computation, source_id required for synced, WM MCP sync_project tool, sequential display IDs, keep "Work Management" name. 15 decisions logged. |
 | 2026-02-10 | **Design spec v0.1 drafted.** 4 documents: design.md (parent), design-architecture.md (system components, auth, project structure), design-data-model.md (Supabase schema, indexes, RLS, triggers), design-interface.md (REST API contracts, MCP tools, dashboard views). Ready for review. |
 | 2026-02-10 | **Internal review complete.** 3 cycles. 5 High issues resolved: circular FK (connector_id removed), Plan/Phase MCP tools added, one-active-plan constraint, FTS indexing, project detail connector info. 2 Low open. Design at v0.3. |
+| 2026-02-10 | **External review complete.** Gemini + GPT (Kimi timed out). 3 High resolved: DB-level one-active-plan index, RLS/service role pattern clarified, pgcrypto extension added. 1 High dismissed (false positive). 3 Medium deferred. Design at v0.4. |
