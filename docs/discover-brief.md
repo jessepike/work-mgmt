@@ -1,9 +1,9 @@
 ---
 type: "brief"
 project: "Work Management"
-version: "0.1"
-status: "draft"
-review_cycle: 0
+version: "0.2"
+status: "in-review"
+review_cycle: 1
 created: "2026-02-10"
 updated: "2026-02-10"
 intent_ref: "./intent.md"
@@ -141,7 +141,7 @@ REST API (business logic, validation, auth)
 | health_reason | text | No | Auto-populated or manual |
 | status | enum | Yes | `active` / `paused` / `completed` / `archived` |
 | focus | text | No | Current focus area |
-| has_phases | boolean | Yes | Whether this project uses phase grouping |
+| workflow_type | enum | Yes | `flat` (project → tasks) / `planned` (project → plan → phases → tasks) |
 | connector_id | uuid | No | FK to Connector if connected |
 | current_stage | string | No | Connected dev projects only (discover/design/develop/deliver) |
 | current_phase_id | uuid | No | Active phase if phases exist |
@@ -165,7 +165,13 @@ REST API (business logic, validation, auth)
 | created_at | timestamp | Yes | |
 | updated_at | timestamp | Yes | |
 
-**Decision rationale:** Plan is a first-class entity rather than implicit in phase/task structure. Plans represent approved implementation approaches — they have their own lifecycle (draft → approved → in_progress → completed) and are the boundary between "what we might do" (backlog) and "what we're committed to doing" (tasks). Not all projects need plans — simple projects go straight from backlog to tasks.
+**Decision rationale:** Plan is a first-class entity rather than implicit in phase/task structure. Plans represent approved implementation approaches — they have their own lifecycle (draft → approved → in_progress → completed) and are the boundary between "what we might do" (backlog) and "what we're committed to doing" (tasks).
+
+**Plan usage rules:**
+- **Flat projects** (`workflow_type = flat`): No plan needed. Tasks belong directly to the project. Suitable for simple, ongoing work (e.g., personal tasks, single-domain consulting).
+- **Planned projects** (`workflow_type = planned`): Plan required. Tasks belong to phases within a plan. Suitable for complex, multi-phase work (e.g., ADF dev projects, large initiatives).
+- **One active plan per project at a time.** Completed plans are archived. A new plan can be created for the next body of work.
+- **Connected projects:** The connector creates/updates the plan structure based on the source system's organization (e.g., ADF stages → phases).
 
 #### Phase (optional, belongs to Plan)
 
@@ -282,22 +288,29 @@ REST API (business logic, validation, auth)
 
 ## Status Values and Health Model
 
-### Task Status Lifecycle
+### Task Status Lifecycle (status field)
 
 ```
-pending ──▶ in_progress ──▶ done ──▶ validated
-   │             │                      │
-   │             ▼                      ▼
-   └────▶   blocked ───▶ pending    failed (re-open)
+pending ──▶ in_progress ──▶ done
+   │             │
+   │             ▼
+   └────▶   blocked ───▶ pending (unblocked)
 ```
 
-### Validation Status
+### Validation Lifecycle (validation_status field — orthogonal to status)
+
+Validation is a **separate dimension** from task status. A task's validation_status is only relevant once status = `done`.
+
+```
+(status = done) ──▶ not_validated ──▶ passed
+                                  ──▶ failed ──▶ (status reopened to in_progress for rework)
+```
 
 | Value | Meaning |
 |-------|---------|
-| `not_validated` | Default. Task done but not yet checked against criteria. |
-| `passed` | Acceptance criteria confirmed met. |
-| `failed` | Acceptance criteria not met. Task may need rework. |
+| `not_validated` | Default. Task done but not yet checked against acceptance criteria. |
+| `passed` | Acceptance criteria confirmed met. Task is truly complete. |
+| `failed` | Acceptance criteria not met. Task should be reopened for rework. |
 
 ### Project Health (auto-computed with manual override)
 
@@ -363,12 +376,6 @@ pending ──▶ in_progress ──▶ done ──▶ validated
 | GET | `/api/search` | Freeform search across entities |
 | GET | `/api/activity` | Activity log (filter by entity, actor, date range) |
 
-#### Digest
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/digest/daily` | Daily digest data |
-| GET | `/api/digest/weekly` | Weekly digest data |
-
 #### Connectors
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -420,12 +427,24 @@ Thin layer mapping MCP tool calls 1:1 to REST endpoints. Provider-agnostic — a
 
 | View | Slice By | Shows |
 |------|----------|-------|
-| **Today** | Cross-project priorities + deadlines | "What should I work on?" — deadline buckets, priority sort |
+| **Today** | Cross-project priorities + deadlines | "What should I work on?" — ranked by algorithm below |
 | **Portfolio** | All projects | Project cards: name, health, categories, task summary, blockers |
 | **Project Detail** | Single project | Tasks (kanban or list), backlog, phases if applicable |
 | **Status Kanban** | Task status | To Do / Doing / Blocked / Done |
 | **Priority Board** | Priority level | P1 / P2 / P3 |
 | **Deadline View** | Time pressure | Overdue / Today / This Week / Next Week / Later |
+
+### "What's Next" Prioritization Algorithm
+
+The Today view and `/api/whats-next` endpoint use the same ranking logic:
+
+1. **Filter:** Active tasks only (`in_progress` or `pending`). Exclude blocked.
+2. **Partition by deadline bucket:** Overdue → Today → This Week → Next Week → No Deadline
+3. **Within each bucket:** Sort by priority (P1 → P2 → P3 → unset)
+4. **Within same priority:** Sort by project health (red → yellow → green) — troubled projects surface first
+5. **Cap:** Return top 8-12 items across all projects
+
+Blocked tasks are excluded from "what's next" but appear in the dedicated Blockers query. This is operational sorting only — no strategic reasoning about "what matters most." That intelligence comes from the Work Manager agent (post-MVP) and eventually Krypton.
 
 ### MVP Screens
 
@@ -447,11 +466,11 @@ Thin layer mapping MCP tool calls 1:1 to REST endpoints. Provider-agnostic — a
 - Advanced charts / reporting
 - Native mobile app
 
-## Digest Engine
+## Digest Engine (Post-MVP)
 
-The digest engine queries the SoR and produces structured data. **Delivery** is a future Krypton responsibility — Work Management generates the content.
+The digest engine is deferred to post-MVP. The Today view and cross-cutting query endpoints (`/api/whats-next`, `/api/blockers`, `/api/deadlines`) provide the core "what should I work on?" capability. Digest generation (daily/weekly summaries for async consumption) becomes valuable when Krypton exists to deliver them via channels (Discord, Telegram, etc.). Documented here for architectural reference.
 
-### Daily Digest
+### Daily Digest (post-MVP)
 
 | Section | Logic |
 |---------|-------|
@@ -460,7 +479,7 @@ The digest engine queries the SoR and produces structured data. **Delivery** is 
 | Blockers needing decision | Blocked tasks + pending decisions |
 | Notable updates | Completions, status changes since last digest |
 
-### Weekly Digest
+### Weekly Digest (post-MVP)
 
 | Section | Logic |
 |---------|-------|
@@ -468,12 +487,6 @@ The digest engine queries the SoR and produces structured data. **Delivery** is 
 | This week's priorities | Upcoming deadlines + active high-priority |
 | Decisions needed | Pending decisions + blocked items |
 | At-risk projects | Health yellow/red |
-
-### Output Format
-
-- Structured JSON (for programmatic consumers)
-- Pre-rendered Markdown (for display/copy)
-- Scoped: portfolio or filtered by project/category
 
 ## Implementation Sequencing
 
@@ -501,11 +514,7 @@ The digest engine queries the SoR and produces structured data. **Delivery** is 
 - Push-based sync script
 - Test against real project repos
 
-### Phase 5: Digest Engine
-- Daily/weekly digest generators
-- On-demand trigger via API
-
-### Phase 6: Dashboard
+### Phase 5: Dashboard
 - Portfolio view + project detail + today view
 - Task kanban with drag-and-drop
 - View switching (dropdown)
@@ -534,7 +543,6 @@ The digest engine queries the SoR and produces structured data. **Delivery** is 
 - ADF markdown connector (inbound-only)
 - Dashboard with view switching (Today, Portfolio, Project Detail, Status Kanban, Priority Board, Deadline)
 - Drag-and-drop for native projects
-- Daily/weekly digest generation
 - Health auto-computation
 - Single-user auth (simplified)
 - 5-8 seeded real projects
@@ -563,7 +571,6 @@ The digest engine queries the SoR and produces structured data. **Delivery** is 
 - [ ] Native project CRUD works end-to-end (dashboard → API → database)
 - [ ] Connected projects display as read-only with sync status
 - [ ] Health auto-computes correctly for all projects
-- [ ] Daily/weekly digest generates accurate cross-project summary
 - [ ] Activity log captures all state changes with actor attribution
 
 ## Constraints
@@ -606,8 +613,7 @@ Ratios are an autonomy escalation roadmap — shift as trust builds.
 - [ ] **REST API auth:** Supabase auth, API keys, or JWT for single-user MVP?
 - [ ] **ADF sync trigger:** Git hook vs agent session-end script vs manual
 - [ ] **Task ID display format:** UUID internal, human-readable display (e.g., PROJECT-NNN)?
-- [ ] **Default digest schedule:** Nightly time, weekly day/time
-- [ ] **Plan entity granularity:** How detailed does the Plan entity need to be vs. letting phases/tasks carry the structure?
+- [ ] **Plan entity granularity:** How detailed does the Plan entity need to be vs. letting phases/tasks carry the structure? (Partially addressed with usage rules — Design to refine.)
 
 ## Open Items from Architecture Sessions
 
@@ -621,13 +627,21 @@ These were flagged as needing work and should be addressed in Design:
 
 | # | Issue | Source | Impact | Priority | Status | Resolution |
 |---|-------|--------|--------|----------|--------|------------|
-| - | - | - | - | - | - | - |
+| 1 | Digest in scope/success criteria but Digest Engine section says post-MVP | Ralph-Internal | High | High | Resolved | Removed digest from In Scope and Success Criteria. Digest Engine section already marked post-MVP. |
+| 2 | `has_phases` on Project stale — phases belong to Plans now | Ralph-Internal | High | High | Resolved | Replaced with `workflow_type` enum (`flat` / `planned`) |
+| 3 | Task status lifecycle diagram conflates status and validation_status | Ralph-Internal | High | High | Resolved | Split into two separate lifecycle diagrams with clear orthogonality |
+| 4 | Plan entity lacks usage guidance — when required vs skipped? | Ralph-Internal | High | High | Resolved | Added Plan usage rules: flat vs planned projects, one active plan per project, connector behavior |
+| 5 | Open Questions references digest schedule — premature for post-MVP | Ralph-Internal | Low | Low | Resolved | Removed digest schedule question |
 
 ## Review Log
 
 ### Phase 1: Internal Review
 
-_Not yet started._
+**Cycle 1 — 2026-02-10**
+**Issues Found:** 0 Critical, 4 High, 1 Low
+**Actions Taken:**
+- **Fixed (5 issues):** Removed digest from scope/criteria, replaced has_phases with workflow_type, split status/validation lifecycles, added Plan usage rules, removed premature digest question
+**Outcome:** All High issues resolved. Proceeding to Cycle 2 re-review.
 
 ### Phase 2: External Review
 
@@ -648,3 +662,4 @@ _Not yet started._
 | Version | Date | Changes |
 |---------|------|---------|
 | 0.1 | 2026-02-10 | Initial draft — crystallized from v5 brief + architecture sessions + exploration |
+| 0.2 | 2026-02-10 | Internal review cycle 1 — fixed digest scope inconsistency, replaced has_phases with workflow_type, split status/validation lifecycles, added Plan usage rules |
