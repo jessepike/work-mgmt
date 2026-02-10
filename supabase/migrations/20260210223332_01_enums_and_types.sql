@@ -1,0 +1,16 @@
+CREATE TYPE project_type AS ENUM ('connected', 'native');
+CREATE TYPE project_status AS ENUM ('active', 'paused', 'completed', 'archived');
+CREATE TYPE project_health AS ENUM ('green', 'yellow', 'red');
+CREATE TYPE workflow_type AS ENUM ('flat', 'planned');
+CREATE TYPE plan_status AS ENUM ('draft', 'approved', 'in_progress', 'completed');
+CREATE TYPE phase_status AS ENUM ('pending', 'active', 'completed');
+CREATE TYPE task_status AS ENUM ('pending', 'in_progress', 'blocked', 'done');
+CREATE TYPE validation_status AS ENUM ('not_validated', 'passed', 'failed');
+CREATE TYPE priority_level AS ENUM ('P1', 'P2', 'P3');
+CREATE TYPE size_estimate AS ENUM ('S', 'M', 'L');
+CREATE TYPE owner_type AS ENUM ('human', 'agent');
+CREATE TYPE actor_type AS ENUM ('human', 'agent', 'system', 'connector');
+CREATE TYPE data_origin AS ENUM ('synced', 'native');
+CREATE TYPE backlog_status AS ENUM ('captured', 'triaged', 'prioritized', 'promoted', 'archived');
+CREATE TYPE connector_status AS ENUM ('active', 'paused', 'error');
+CREATE TYPE sync_frequency AS ENUM ('on_demand', 'on_commit', 'hourly', 'daily');
