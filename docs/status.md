@@ -9,7 +9,7 @@ updated: "2026-02-10"
 ## Current State
 
 - **Phase:** Review Loop (complete) → Finalization (next)
-- **Focus:** Brief v0.4 reviewed. Dashboard UX design prompt created for Google Stitch prototyping.
+- **Focus:** Stitch prototyping — 2 rounds complete. Color system revised to match Zed IDE. Validated UI patterns captured.
 
 ## Next Steps
 
@@ -19,7 +19,8 @@ updated: "2026-02-10"
 - [x] Internal review (Ralph Loop) of brief — 2 cycles, 4 High resolved
 - [x] External review of brief — 3 models, 4 P1 resolved, 5 P2 deferred to Design
 - [x] Dashboard UX design prompt for Google Stitch (docs/design/stitch-prompt.md)
-- [ ] Generate Stitch prototypes and iterate on screens
+- [x] Generate Stitch prototypes — Round 1 (5 screens) and Round 2 (Zed-accurate colors)
+- [ ] Fix sidebar consistency across screens (R3 if needed)
 - [ ] Finalization and Design handoff
 
 ## Pending Decisions
@@ -44,3 +45,5 @@ updated: "2026-02-10"
 | 2026-02-10 | Design research: Zed IDE visual design language analysis for Google Stitch UI prototyping. Cataloged color palette, typography, spacing, component styling, brand identity. |
 | 2026-02-10 | Todoist UX/design pattern research for dashboard design prompt. Analyzed layout patterns, information hierarchy, interaction patterns (quick-add, inline editing, keyboard shortcuts, command menu), Today/Upcoming views, project views (list/board/calendar), visual design (color, spacing, density), and simplicity principles. |
 | 2026-02-10 | Created Google Stitch design prompt (docs/design/stitch-prompt.md). 5 screens: Today view, Portfolio, Project Detail (planned), Project Detail (flat), Status Kanban. Design system merges Todoist UX clarity with Zed IDE dark-mode aesthetic. Includes color tokens, typography, layout patterns, sample data. |
+| 2026-02-10 | Stitch Round 1: Generated 5 screens in project 11425175161412331782. Reviewed via MCP — identified color/contrast gaps vs actual Zed IDE (backgrounds too separated, colors too saturated, borders too visible, text too bright). Captured validated patterns (card anatomy, detail panel, phase dividers, filter bar, blocked badge, done de-emphasis). |
+| 2026-02-10 | Stitch Round 2: Revised color tokens (tighter bg tiers 3-4 hex steps apart, desaturated status colors to brick/olive/ochre/terracotta, warmer text). Generated 5 new screens in project 17566192446092172330. Significant improvement — backgrounds nearly merge, color whispers. Persistent issue: sidebar nav inconsistency across screens. |
