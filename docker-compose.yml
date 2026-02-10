@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  mcp-server:
+    build: ./mcp-server
+    container_name: work-management-mcp
+    ports:
+      - "3002:3002"
+    environment:
+      - API_URL=http://host.docker.internal:3000/api
+      - MCP_PORT=3002
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    networks:
+      - work-management-net
+
+networks:
+  work-management-net:
+    driver: bridge
