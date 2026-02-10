@@ -6,31 +6,33 @@ Create a task/project management dashboard that merges **Todoist's UX clarity** 
 
 ### Visual Identity: Zed IDE-Inspired
 
-**Color System — Dark Mode First**
+**Color System — Dark Mode First (Zed-Accurate)**
+
+CRITICAL: The three background tiers must be nearly indistinguishable — only 3-4 hex steps apart. In Zed, you can barely tell where the sidebar ends and the content begins. The entire UI reads as one dark surface with whisper-thin structural hints.
 
 | Token | Hex | Usage |
 |-------|-----|-------|
 | `bg-deep` | `#1A1D23` | Main content area background (deepest layer) |
-| `bg-surface` | `#22252B` | Cards, panels, sidebar background (mid layer) |
-| `bg-chrome` | `#2A2D35` | Top bar, status bar, toolbar (lightest layer) |
-| `bg-hover` | `#2F333B` | Hover states on rows and cards |
-| `bg-active` | `#363A44` | Active/selected states |
-| `border-subtle` | `#363A44` | Panel dividers, card borders — felt more than seen |
-| `border-focus` | `#47679E` | Focus rings, active element borders |
-| `text-primary` | `#DCE0E5` | Primary text — warm off-white, not pure white |
-| `text-secondary` | `#A9AFBC` | Metadata, labels, secondary information |
-| `text-muted` | `#6B7280` | Placeholder text, disabled states |
-| `accent-blue` | `#74ADE8` | Links, focus states, interactive highlights, info indicators |
+| `bg-surface` | `#1E2127` | Cards, panels, sidebar background — barely distinguishable from deep |
+| `bg-chrome` | `#212429` | Top bar, status bar, toolbar — barely distinguishable from surface |
+| `bg-hover` | `#262930` | Hover states on rows and cards — subtle shift |
+| `bg-active` | `#2A2D34` | Active/selected states |
+| `border-subtle` | `#262930` | Panel dividers, card borders — nearly invisible, felt not seen |
+| `border-focus` | `#3D5A8A` | Focus rings, active element borders — desaturated blue |
+| `text-primary` | `#C8CCD2` | Primary text — warm off-white, noticeably not pure white |
+| `text-secondary` | `#7D8490` | Metadata, labels, secondary information — clearly subdued |
+| `text-muted` | `#4D525C` | Placeholder text, disabled states — barely readable |
+| `accent-blue` | `#5A93CC` | Links, focus states, interactive highlights — desaturated |
 | `accent-brand` | `#084CCF` | Logo, primary action buttons (sparingly) |
-| `status-green` | `#A1C181` | Health green, success states, completion |
-| `status-yellow` | `#DEC184` | Health yellow, warnings, approaching deadlines |
-| `status-red` | `#D07277` | Health red, errors, overdue, P1 priority |
-| `status-orange` | `#D4976A` | P2 priority |
-| `priority-p1` | `#D07277` | P1 checkbox/indicator — muted coral red |
-| `priority-p2` | `#D4976A` | P2 checkbox/indicator — muted orange |
-| `priority-p3` | `#74ADE8` | P3 checkbox/indicator — soft blue |
+| `status-green` | `#8BA876` | Health green, success states — olive-muted, not vibrant |
+| `status-yellow` | `#B8A06A` | Health yellow, warnings — ochre-muted |
+| `status-red` | `#A85D61` | Health red, errors, overdue — brick-muted, not alarming |
+| `status-orange` | `#B0825A` | P2 priority — terracotta-muted |
+| `priority-p1` | `#A85D61` | P1 checkbox/indicator — same brick-muted red |
+| `priority-p2` | `#B0825A` | P2 checkbox/indicator — same terracotta-muted |
+| `priority-p3` | `#5A93CC` | P3 checkbox/indicator — same desaturated blue |
 
-All colors use Zed's principle: muted, desaturated tones — never neon or harsh. The UI is near-monochromatic blue-gray with color only appearing for semantic meaning (priority, health, status).
+All colors use Zed's principle: aggressively muted, deeply desaturated tones — never neon, never vibrant, never attention-grabbing. The UI is near-monochromatic blue-gray. Color appears only for semantic meaning (priority, health, status) and even then it whispers, never shouts. Priority dots and health indicators should be 6-8px circles, not large badges.
 
 **Typography**
 
@@ -46,12 +48,13 @@ Golden-ratio line height (1.618) for body text. IBM Plex Sans throughout — the
 
 **Visual Rules**
 
-- **No shadows.** Depth comes from the three-tier background system (deep < surface < chrome).
-- **1px borders** in `border-subtle` — panels are separated by whisper-thin lines, not heavy dividers.
-- **Flat surfaces.** No gradients, no gloss.
+- **No shadows.** Depth comes from the three-tier background system, but the tiers are so close they read as one surface.
+- **Near-invisible borders.** 1px in `border-subtle` (#262930) — you should have to squint to see panel dividers. They're structural, not decorative.
+- **Flat surfaces.** No gradients, no gloss, no card "lift" effects.
 - **Subtle corner radius** — 6px on cards, 4px on buttons/chips, 2px on small indicators.
-- **Anti-ornamental.** Every pixel serves a function. No decorative elements.
-- **Color is signal.** If something has color, it means something (priority, health, status). The base chrome is colorless.
+- **Anti-ornamental.** Every pixel serves a function. No decorative elements. No colored backgrounds on badges — use small colored dots (6-8px) instead of pills.
+- **Color is signal, and signals are quiet.** If something has color, it means something (priority, health, status). The base chrome is entirely colorless gray. Even semantic colors are muted to the point where they blend into the UI until you specifically look for them.
+- **Monochrome dominance.** When you step back and squint at any screen, it should read as a single dark monochrome surface with text. Color should be barely perceptible at a glance.
 
 ---
 
@@ -399,6 +402,26 @@ VIEWS
 - Single-line text input as primary interaction
 - Optional attribute row below (project, priority, date)
 - Keyboard shortcut: `Q` or `Cmd+K`
+
+---
+
+## Validated Patterns (from Stitch Round 1)
+
+These patterns were validated in the first Stitch prototype round and should be preserved:
+
+**Portfolio card anatomy:** Health dot (6px) + project name / metadata line (category chip, task count, blocked count) / "Current focus:" line / thin 4px progress bar with percentage. This information density works well in a 2-column grid.
+
+**Detail panel structure:** Breadcrumb header (Project > Phase) / description block / key-value attributes table / activity log timeline at bottom. The breadcrumb navigation in the panel header aids orientation.
+
+**Phase section dividers:** "PHASE 1: CORE REFACTOR · 4/6 tasks complete" rendered as a thin horizontal rule with inline bold text and progress fraction. Clean Todoist-style section headers.
+
+**Cross-cutting filter bar:** Project dropdown + priority filter + category filter as a persistent row above kanban/board views. Enables multi-project views without sidebar changes.
+
+**Blocked badge:** Small red "BLOCKED" text badge inline with task status. Effective signal without being visually heavy.
+
+**Flat vs. planned visual contrast:** Flat projects (Personal) are noticeably simpler — no phase headers, no sync icons, just section dividers and an "+ Add task" affordance. The visual simplicity itself communicates the workflow type.
+
+**Done de-emphasis:** Completed kanban cards use reduced opacity (0.7) + small checkmark. Completed task rows use strikethrough in `text-muted` with filled checkbox in `status-green`.
 
 ---
 
