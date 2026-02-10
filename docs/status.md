@@ -1,6 +1,6 @@
 ---
 project: "work-management"
-stage: "Design"
+stage: "Develop"
 updated: "2026-02-10"
 ---
 
@@ -8,8 +8,43 @@ updated: "2026-02-10"
 
 ## Current State
 
-- **Phase:** Review Loop complete → Finalization next
-- **Focus:** Design spec v0.4 — both internal and external reviews complete. Ready for finalization and Develop transition.
+- **Phase:** Develop — implementation ready
+- **Focus:** Design complete (v0.4). BACKLOG.md created with 31 items across 5 phases. Ready for Phase 1: Data Foundation.
+
+## Design → Develop Handoff
+
+### What Was Produced
+
+- **design.md** (v0.4) — Parent design doc: tech stack, 15 decisions, capabilities, review logs
+- **design-architecture.md** — System architecture, auth (Supabase Auth JWT, service role), request flows, project structure, error handling
+- **design-data-model.md** — Full Supabase schema (8 tables, 12 enums), indexes, RLS, FTS (tsvector + GIN), display_id trigger, migration ordering (17 steps)
+- **design-interface.md** — 25 REST endpoints, 20 MCP tools, 6 dashboard views, validation rules, component inventory
+- **BACKLOG.md** — 31 prioritized implementation items across 5 phases
+
+### Key Decisions
+
+1. Supabase (existing project) + Vercel hosting
+2. Supabase Auth with JWT, service role for server DB access
+3. API-level activity logging (not DB triggers)
+4. Query-time health computation (worst-signal-wins)
+5. Sequential display IDs per project (DB trigger)
+6. One-active-plan enforced at API + DB level
+
+### Implementation Sequence
+
+1. Data Foundation → 2. REST API → 3. MCP Adapter → 4. ADF Connector → 5. Dashboard
+
+### Deferred to Develop (from review)
+
+- Activity log atomicity for critical mutations (#13)
+- current_phase_id cleanup on deletion (#14)
+- connector.config JSONB schema (#15)
+
+### Read Order for Develop
+
+1. `intent.md` → 2. `discover-brief.md` → 3. `design.md` → 4. `design-architecture.md` → 5. `design-data-model.md` → 6. `design-interface.md` → 7. `BACKLOG.md`
+
+---
 
 ## Discover → Design Handoff
 
@@ -61,7 +96,12 @@ updated: "2026-02-10"
 - [x] Dashboard component design
 - [x] Internal review (Ralph Loop) of design spec
 - [x] External review of design spec
-- [ ] Finalization and Develop stage transition
+- [x] Finalization and Develop stage transition
+- [ ] **Phase 1: Data Foundation** — scaffold, migrations, seed
+- [ ] Phase 2: REST API — endpoints, validation, activity logging, health
+- [ ] Phase 3: MCP Adapter — server, tools, Claude Desktop config
+- [ ] Phase 4: ADF Connector — parser, sync_project tool
+- [ ] Phase 5: Dashboard — views, components, auth, deploy
 
 ## Blockers
 
@@ -80,3 +120,4 @@ updated: "2026-02-10"
 | 2026-02-10 | **Design spec v0.1 drafted.** 4 documents: design.md (parent), design-architecture.md (system components, auth, project structure), design-data-model.md (Supabase schema, indexes, RLS, triggers), design-interface.md (REST API contracts, MCP tools, dashboard views). Ready for review. |
 | 2026-02-10 | **Internal review complete.** 3 cycles. 5 High issues resolved: circular FK (connector_id removed), Plan/Phase MCP tools added, one-active-plan constraint, FTS indexing, project detail connector info. 2 Low open. Design at v0.3. |
 | 2026-02-10 | **External review complete.** Gemini + GPT (Kimi timed out). 3 High resolved: DB-level one-active-plan index, RLS/service role pattern clarified, pgcrypto extension added. 1 High dismissed (false positive). 3 Medium deferred. Design at v0.4. |
+| 2026-02-10 | **Design → Develop transition.** Completed Develop Handoff, created BACKLOG.md (31 items, 5 phases), updated CLAUDE.md with stack/commands. All prerequisites met: design reviewed (8 High resolved, 0 open), BACKLOG ready, no blockers. |

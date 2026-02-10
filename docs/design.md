@@ -128,7 +128,41 @@ _None — all questions resolved during Discover review and Design intake._
 
 ## Develop Handoff
 
-_To be completed at Design finalization._
+### Implementation Sequence
+
+Follows the Brief's phasing, refined with design decisions:
+
+| Phase | Scope | Key Files | Dependencies |
+|-------|-------|-----------|-------------|
+| 1. Data Foundation | Supabase schema, migrations, seed data | `supabase/migrations/`, `supabase/seed.sql` | None |
+| 2. REST API | All endpoints, validation, activity logging, health computation | `src/app/api/`, `src/lib/` | Phase 1 |
+| 3. MCP Adapter | MCP server with all tools, stdio transport | `mcp/` | Phase 2 |
+| 4. ADF Connector | Markdown parser, sync_project tool | `mcp/connector/` | Phase 2-3 |
+| 5. Dashboard | All views, components, auth UI | `src/app/(dashboard)/`, `src/components/` | Phase 2 |
+
+### Notes for Developers
+
+**Deferred issues from review (implement during relevant phase):**
+- **Activity log atomicity (#13):** Critical mutations (status changes, promotions, syncs) should write entity + activity_log in a single DB transaction. Use Supabase's `.rpc()` or raw SQL transactions.
+- **current_phase_id cleanup (#14):** When a phase is deleted or a plan completed, API should nullify `project.current_phase_id` if it references the affected phase.
+- **connector.config schema (#15):** ADF connector config shape is `{ repo_path: string }`. Validate on connector creation.
+
+**Key design decisions to respect:**
+- Route handlers use **service role key** for all DB operations (not user JWT). API is the security boundary.
+- `data_origin = 'synced'` entities are read-only except via connector. Enforce at API level.
+- Health is **computed at query time**, never stored. `health_override` takes precedence when set.
+- Display IDs are auto-assigned via DB trigger. Never set manually in API.
+- One non-completed plan per project — enforced at both API (409) and DB (partial unique index).
+
+### Read Order for Develop
+
+1. `intent.md` — North Star
+2. `discover-brief.md` — Full project contract, success criteria
+3. `design.md` — This file, decisions and overview
+4. `design-architecture.md` — System components, auth, project structure
+5. `design-data-model.md` — Schema, migrations, indexes, RLS, FTS
+6. `design-interface.md` — API contracts, MCP tools, dashboard views
+7. `BACKLOG.md` — Prioritized implementation tasks
 
 ## Review Log
 
