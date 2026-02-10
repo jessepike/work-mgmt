@@ -171,11 +171,18 @@ MCP Client calls sync_project({repo_path})
 | REST API (external) | Bearer JWT in Authorization header | Supabase Auth or service key |
 | MCP Server | Service role key or user JWT | Configured in MCP server env |
 
+### Server DB Access Pattern
+
+Route handlers use the **Supabase service role key** for all database operations. The API layer is the trusted security boundary — it validates JWTs, enforces business rules (data_origin, workflow_type, one-active-plan), and logs activity. Service role bypasses RLS intentionally; the API layer provides equivalent protection.
+
+**Rationale:** Single-user MVP with a single auth user. RLS adds no practical value when every authenticated request has full access. API-level enforcement is simpler to test and reason about. Service role is needed anyway for connector operations and activity logging.
+
 ### Row Level Security (RLS)
 
-RLS policies on all tables. For single-user MVP:
+RLS policies on all tables as a **defense-in-depth baseline** — tightened when multi-user is added. For single-user MVP:
 - All authenticated requests can read/write all rows
 - Unauthenticated requests blocked
+- RLS is not the primary security mechanism (API-level enforcement via service role is primary)
 - `data_origin = 'synced'` write protection enforced at API level (not RLS — requires business logic context)
 
 ### API Security Rules

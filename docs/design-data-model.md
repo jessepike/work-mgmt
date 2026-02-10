@@ -253,6 +253,10 @@ CREATE INDEX idx_project_tags ON project USING GIN(tags);
 CREATE INDEX idx_plan_project ON plan(project_id);
 CREATE INDEX idx_plan_status ON plan(project_id, status);
 
+-- One-active-plan constraint (DB-level enforcement alongside API validation)
+CREATE UNIQUE INDEX idx_plan_one_active ON plan(project_id)
+  WHERE status NOT IN ('completed');
+
 -- Phase lookups
 CREATE INDEX idx_phase_plan ON phase(plan_id);
 CREATE INDEX idx_phase_project ON phase(project_id);
@@ -466,18 +470,20 @@ supabase db push
 ```
 
 **Migration ordering:**
-1. Enum types
-2. actor_registry (no FKs)
-3. project (references actor_registry — current_phase_id FK deferred)
-4. plan (references project)
-5. phase (references plan, project)
-6. ALTER project ADD CONSTRAINT fk_current_phase REFERENCES phase(id) (deferred FK)
-7. connector (references project)
-8. task (references project, plan, phase, actor_registry)
-9. backlog_item (references project, task)
-10. activity_log (references actor_registry)
-11. project_display_id_seq + trigger
-12. Full-text search columns + GIN indexes
-13. Indexes
-14. RLS policies
-15. Seed data
+1. Extensions (`CREATE EXTENSION IF NOT EXISTS pgcrypto;`)
+2. Enum types
+3. actor_registry (no FKs)
+4. project (references actor_registry — current_phase_id FK deferred)
+5. plan (references project)
+6. phase (references plan, project)
+7. ALTER project ADD CONSTRAINT fk_current_phase REFERENCES phase(id) (deferred FK)
+8. connector (references project)
+9. task (references project, plan, phase, actor_registry)
+10. backlog_item (references project, task)
+11. activity_log (references actor_registry)
+12. project_display_id_seq + trigger
+13. Full-text search columns + GIN indexes
+14. Partial unique index for one-active-plan constraint
+15. Indexes
+16. RLS policies
+17. Seed data

@@ -1,8 +1,8 @@
 ---
 type: "design"
 project: "Work Management"
-version: "0.3"
-status: "internal-review-complete"
+version: "0.4"
+status: "review-complete"
 created: "2026-02-10"
 updated: "2026-02-10"
 brief_ref: "./discover-brief.md"
@@ -118,6 +118,13 @@ _None — all questions resolved during Discover review and Design intake._
 | 7 | project.current_phase_id missing FK to phase table | Ralph-Design | Low | Resolved | Added REFERENCES phase(id) constraint. |
 | 8 | GET /api/projects/:id response missing connector info — dashboard needs sync status | Ralph-Design | High | Resolved | Added connector info (connector_id, type, status, last_sync_at) to project detail response. |
 | 9 | No MCP tools for connector management (list, create) | Ralph-Design | Low | Open | MVP connectors set up via seed/dashboard. Acceptable for MVP scope. |
+| 10 | One-active-plan needs DB-level enforcement, not just API | GPT | High | Resolved | Added partial unique index: `plan(project_id) WHERE status NOT IN ('completed')`. API validation retained as user-friendly check. |
+| 11 | RLS vs service role ambiguity — developers don't know which DB access pattern to use | GPT | High | Resolved | Documented: route handlers use service role key. API is trusted security boundary. RLS is defense-in-depth baseline. |
+| 12 | Missing pgcrypto extension — gen_random_uuid() will fail on fresh DB | GPT | High | Resolved | Added extensions step as first migration. |
+| 13 | Activity log not transactional with entity mutations | GPT | Medium | Deferred | Note for Develop: critical mutations (status changes, promotions) should use DB transactions. |
+| 14 | current_phase_id may dangle when plan/phases deleted | Gemini | Medium | Deferred | Note for Develop: API should nullify current_phase_id when referenced phase is removed. |
+| 15 | connector.config JSONB schema not documented | Gemini | Medium | Deferred | Note for Develop: document ADF connector config shape `{ repo_path: string }` during implementation. |
+| 16 | display_id race condition (false positive) | Gemini | High | Dismissed | INSERT...ON CONFLICT DO UPDATE acquires exclusive row lock in Postgres. Trigger runs in same transaction. Concurrency is safe. |
 
 ## Develop Handoff
 
@@ -153,6 +160,32 @@ _To be completed at Design finalization._
 - **Resolved:** 5 High, 2 Low
 - **Open (Low):** 2 (#5 updated_at mechanism, #9 connector MCP tools)
 
+### Phase 2: External Review
+
+**Cycle 1 — 2026-02-10**
+**Models:** Gemini, GPT (Kimi timed out — 2 of 3 responded)
+**Issues Found:** 3 High (resolved), 3 Medium (deferred), 1 High (dismissed as false positive)
+
+**High Issues (resolved):**
+- **#10** One-active-plan needs DB-level constraint (GPT) → Added partial unique index
+- **#11** RLS vs service role ambiguity (GPT) → Documented server DB access pattern (service role, API as security boundary)
+- **#12** Missing pgcrypto extension (GPT) → Added to migration step 1
+
+**Medium Issues (deferred to Develop):**
+- **#13** Activity log atomicity — use DB transactions for critical mutations
+- **#14** current_phase_id cleanup on plan deletion
+- **#15** connector.config JSONB schema documentation
+
+**Dismissed:**
+- **#16** display_id race condition (Gemini) — false positive; Postgres row locking handles this
+
+**External Review Summary:**
+- **Cycles:** 1
+- **Total Issues:** 4 High, 3 Medium
+- **Resolved:** 3 High
+- **Dismissed:** 1 High (false positive)
+- **Deferred to Develop:** 3 Medium
+
 ## Revision History
 
 | Version | Date | Changes |
@@ -160,3 +193,4 @@ _To be completed at Design finalization._
 | 0.1 | 2026-02-10 | Initial draft — parent design doc with tech stack, decisions, capabilities |
 | 0.2 | 2026-02-10 | Internal review cycle 1 — fixed circular FK (connector_id), added Plan/Phase MCP tools, added one-active-plan validation, added FTS indexing, fixed current_phase_id FK |
 | 0.3 | 2026-02-10 | Internal review cycles 2-3 — added connector info to project detail API response. 3 cycles, 0 Critical/High remaining. Internal review complete. |
+| 0.4 | 2026-02-10 | External review — 3 High resolved (DB one-active-plan index, RLS/service role clarification, pgcrypto extension). 1 High dismissed (false positive). 3 Medium deferred to Develop. Review complete. |
