@@ -8,8 +8,8 @@ updated: "2026-02-10"
 
 ## Current State
 
-- **Phase:** Design stage entry
-- **Focus:** Transition from Discover complete. Design work begins.
+- **Phase:** Technical Design (draft complete) → Review Loop (next)
+- **Focus:** Design spec v0.1 drafted (4 documents). All Discover-era open questions resolved. Ready for internal review.
 
 ## Discover → Design Handoff
 
@@ -52,14 +52,16 @@ updated: "2026-02-10"
 
 ## Next Steps
 
-- [ ] Design stage planning — identify Design deliverables and approach
-- [ ] Resolve deferred P2 issues from Discover review
-- [ ] Resolve pending decisions (auth, hosting, Supabase, naming)
-- [ ] Technical design / architecture spec
-- [ ] Database schema design
-- [ ] API contract specification
-- [ ] Dashboard component design
-- [ ] Design review
+- [x] Design stage planning — identify Design deliverables and approach
+- [x] Resolve deferred P2 issues from Discover review
+- [x] Resolve pending decisions (auth, hosting, Supabase, naming)
+- [x] Technical design / architecture spec
+- [x] Database schema design
+- [x] API contract specification
+- [x] Dashboard component design
+- [ ] Internal review (Ralph Loop) of design spec
+- [ ] External review of design spec
+- [ ] Finalization and Develop stage transition
 
 ## Blockers
 
@@ -74,3 +76,5 @@ updated: "2026-02-10"
 | 2026-02-10 | Internal review (Ralph Loop): 2 cycles, 4 High issues resolved (digest scope, workflow_type, status/validation split, Plan usage rules). External review (Gemini/GPT/Kimi): 4 P1 resolved (API validation rules, sort_order, data origin enforcement, backlog promotion). 5 P2 deferred to Design. Brief at v0.4, ready for finalization. |
 | 2026-02-10 | Design research: Zed IDE visual design language + Todoist UX patterns. Created Stitch design prompt. Generated 10 screens across 2 rounds. Completed design spec (7 screens, interaction model, component palette). |
 | 2026-02-10 | **Discover → Design transition.** Archived working artifacts, updated handoff. All prerequisites met: intent clear, brief reviewed (internal + external), 0 Critical/High open. |
+| 2026-02-10 | **Design Intake & Clarification.** Resolved all 10 open items: Supabase (existing project) + Vercel hosting, Supabase Auth (JWT), API-level activity logging, query-time health computation, source_id required for synced, WM MCP sync_project tool, sequential display IDs, keep "Work Management" name. 15 decisions logged. |
+| 2026-02-10 | **Design spec v0.1 drafted.** 4 documents: design.md (parent), design-architecture.md (system components, auth, project structure), design-data-model.md (Supabase schema, indexes, RLS, triggers), design-interface.md (REST API contracts, MCP tools, dashboard views). Ready for review. |
