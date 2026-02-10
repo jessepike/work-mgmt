@@ -13,7 +13,7 @@ See `docs/intent.md`
 
 ## Current Stage
 
-Discover
+Design
 
 ## Context Map
 

@@ -2,7 +2,7 @@
 type: "brief"
 project: "Work Management"
 version: "0.4"
-status: "external-review-complete"
+status: "approved"
 review_cycle: 3
 created: "2026-02-10"
 updated: "2026-02-10"
