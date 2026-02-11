@@ -52,12 +52,12 @@ updated: "2026-02-11"
 | B39 | Calibrate project health signals for high-pending/low-flow projects | Enhancement | API | P1 | M | Done |
 | B40 | Kanban scalability pass: default project selection, empty/all-state handling, high-volume guardrails | UX | Dashboard | P2 | M | Done |
 | B41 | Improve Today prioritization quality (deadline + priority + flow signals, quick complete) | Enhancement | API/Dashboard | P2 | M | Done |
-| B42 | Task detail depth pass (due date, owner picker, comments/activity context) | Enhancement | Dashboard | P2 | L | Pending |
+| B42 | Task detail depth pass (due date, owner picker, comments/activity context) | Enhancement | Dashboard | P2 | L | Done |
 | B43 | Activity log readability pass (include entity labels/task titles in event rows) | Polish | API/Dashboard | P2 | S | Done |
 | B44 | Feedback polish pass (loading/disabled states + explicit "not implemented" affordances) | Polish | Dashboard | P2 | S | Done |
-| B45 | Search validation + dedicated search result UX for portfolio-scale datasets | Enhancement | Dashboard | P2 | M | Pending |
-| B46 | Implement Priority Board view (`/projects/:id/priority`) | Deferred scope | Dashboard | P2 | M | Pending |
-| B47 | Implement Deadline View (`/projects/:id/deadlines`) | Deferred scope | Dashboard | P2 | M | Pending |
+| B45 | Search validation + dedicated search result UX for portfolio-scale datasets | Enhancement | Dashboard | P2 | M | Done |
+| B46 | Implement Priority Board view (`/projects/:id/priority`) | Deferred scope | Dashboard | P2 | M | Done |
+| B47 | Implement Deadline View (`/projects/:id/deadlines`) | Deferred scope | Dashboard | P2 | M | Done |
 
 ## Notes
 

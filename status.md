@@ -2,7 +2,7 @@
 project: "work-management"
 stage: "Develop"
 updated: "2026-02-11"
-last_session: "2026-02-11T23:30"
+last_session: "2026-02-11T15:41"
 ---
 
 # Status
@@ -10,7 +10,7 @@ last_session: "2026-02-11T23:30"
 ## Current State
 
 - **Phase:** Develop — Phases 1-5 complete (MVP scope)
-- **Focus:** Wave closeout: trust-quality hardening + high-impact scalability/navigation polish
+- **Focus:** Wave 2 + Wave 3 closeout complete (search UX, priority/deadline views, task detail comments/context)
 - **Build:** Passing (Next.js build + TypeScript clean)
 - **API:** Core REST surface implemented (projects, plans, phases, tasks, backlog, queries, connectors)
 - **MCP:** Stdio server + tool modules wired and smoke-tested against local API
@@ -53,7 +53,7 @@ Exit criteria:
 - Portfolio-scale datasets remain navigable without overwhelm.
 - Activity feeds are interpretable without drilling into each entity.
 
-Status: High-impact subset completed (B38, B40, B41, B43, B44)
+Status: Completed (B38, B40, B41, B43, B44, B45, B46, B47)
 
 ## Implementation Progress
 
@@ -89,7 +89,7 @@ Status: High-impact subset completed (B38, B40, B41, B43, B44)
 - B27 Done — Task detail panel: slide-out with properties, activity log, read-only for synced items
 - B28 Done — Quick-add: inline within project detail for native projects
 - B20 Deferred — Auth (single-user MVP)
-- B25/B26 Deferred — Priority Board and Deadline View (P2)
+- B25/B26 Legacy deferred IDs superseded by B46/B47 (implemented)
 - Component library: HealthBadge, PriorityChip, EmptyState, Toast, Modal, ViewSwitcher, FilterBar, StatusColumn, TaskCard, SyncIndicator
 - Shared utilities: cn(), apiFetch(), API response types
 
@@ -213,3 +213,4 @@ Status: High-impact subset completed (B38, B40, B41, B43, B44)
 | 2026-02-11 | **UI/UX usability review.** Identified gaps before deploy: (1) No project selection/management UI — need settings page showing available/active projects + sync status. (2) Polling/heartbeat — currently manual only; need "Last synced" + "Sync now" button. (3) Tags not implemented (Todoist feature, P2). (4) Missing views: Search, Priority board (B25), Deadline view (B26). Next: Build settings page for project management + sync controls. |
 | 2026-02-11 | **Full browser-level review (Chrome automation).** Clicked through all 5 views (Today, Portfolio, Project Detail, Kanban, Settings). Benchmark: Todoist, equal MCP+dashboard usage. **Key findings:** (1) Dashboard is effectively read-only — task property editing, task creation (NEW TASK, quick-add, global +), and task completion checkboxes are all non-functional. This is the #1 blocker. (2) Today view groups all tasks under "LATER" — no urgency differentiation. (3) Duplicate tasks in synced projects (Krypton). (4) Kanban shows 587 pending tasks in one column — needs per-project default. (5) Health all green despite 587 pending/0 in-progress — needs calibration. (6) Smoke test data mixed with real data. **What's strong:** Portfolio cards with Focus/Next Up/sync metadata, Settings sync table, contextual breadcrumbs, synced item READ ONLY protection, dark theme. **Next steps:** Wire up task CRUD (edit properties, create, complete) as critical priority, then fix duplicates, calibrate health, add sidebar project list. |
 | 2026-02-11 | **Wave 2 + Wave 3 (high-impact) closeout pass.** Completed trust-quality backend hardening and UI wiring: sync quality endpoint + portfolio trust aggregate + MCP tools, smoke-data cleanup utility, source_id normalization and stale-row cleanup, health calibration for stalled high-volume queues. Delivered Wave 3 subset: sidebar project quick-nav, kanban default project scoping with high-volume card cap controls, improved Today scoring (blocked visibility + flow tie-breaks), and project activity readability with entity labels. Added trust drill-through filters on Portfolio (`trust=red|yellow|green`) and trust badges in Portfolio/Settings. Validation green: Next build, API contracts, MCP contract/e2e, dev server on :3005. |
+| 2026-02-11 | **Wave 3 completion pass.** Completed remaining backlog: B42 task detail depth (comments endpoint + comments UI + richer task context/activity snippets), B45 dedicated `/search` experience wired from header with enabled-scope results, B46 `/projects/:id/priority` board, and B47 `/projects/:id/deadlines` view. Validation green: Next build, API contracts, MCP contract/e2e, dev server reachable on :3005. |
