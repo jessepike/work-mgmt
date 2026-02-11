@@ -2,7 +2,7 @@
 project: "work-management"
 stage: "Develop"
 updated: "2026-02-11"
-last_session: "2026-02-11T21:00"
+last_session: "2026-02-11T23:00"
 ---
 
 # Status
@@ -10,7 +10,7 @@ last_session: "2026-02-11T21:00"
 ## Current State
 
 - **Phase:** Develop — Phases 1-5 complete (MVP scope)
-- **Focus:** UI/UX usability review & project management (pre-deployment)
+- **Focus:** Dashboard CRUD implementation (task editing, creation, completion) — top priority from browser review
 - **Build:** Passing (Next.js build + TypeScript clean)
 - **API:** Core REST surface implemented (projects, plans, phases, tasks, backlog, queries, connectors)
 - **MCP:** Stdio server + tool modules wired and smoke-tested against local API
@@ -174,3 +174,4 @@ last_session: "2026-02-11T21:00"
 | 2026-02-11 | **Chrome browser tool test.** Attempted claude-in-chrome connection after Chrome restart — extension still not connecting ("No Chrome extension connected"). Needs further debugging of extension ↔ MCP link. |
 | 2026-02-11 | **Dashboard visual testing & bug fixes.** Connected Chrome browser tools (via `/chrome` command). Fixed 4 blockers: (1) SSR fetch failure — NEXT_PUBLIC_APP_URL pointed to wrong port. (2) Auth middleware redirect disabled for MVP. (3) Project name missing from whats-next join. (4) Portfolio 500 — batched task activity queries to avoid Supabase URI length limit. All 4 views verified working: Today, Portfolio, Kanban, Project Detail. KB entry added for chrome extension troubleshooting. |
 | 2026-02-11 | **UI/UX usability review.** Identified gaps before deploy: (1) No project selection/management UI — need settings page showing available/active projects + sync status. (2) Polling/heartbeat — currently manual only; need "Last synced" + "Sync now" button. (3) Tags not implemented (Todoist feature, P2). (4) Missing views: Search, Priority board (B25), Deadline view (B26). Next: Build settings page for project management + sync controls. |
+| 2026-02-11 | **Full browser-level review (Chrome automation).** Clicked through all 5 views (Today, Portfolio, Project Detail, Kanban, Settings). Benchmark: Todoist, equal MCP+dashboard usage. **Key findings:** (1) Dashboard is effectively read-only — task property editing, task creation (NEW TASK, quick-add, global +), and task completion checkboxes are all non-functional. This is the #1 blocker. (2) Today view groups all tasks under "LATER" — no urgency differentiation. (3) Duplicate tasks in synced projects (Krypton). (4) Kanban shows 587 pending tasks in one column — needs per-project default. (5) Health all green despite 587 pending/0 in-progress — needs calibration. (6) Smoke test data mixed with real data. **What's strong:** Portfolio cards with Focus/Next Up/sync metadata, Settings sync table, contextual breadcrumbs, synced item READ ONLY protection, dark theme. **Next steps:** Wire up task CRUD (edit properties, create, complete) as critical priority, then fix duplicates, calibrate health, add sidebar project list. |
