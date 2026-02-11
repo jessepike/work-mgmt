@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { StatusColumn } from "@/components/ui/StatusColumn";
 import { TaskCard } from "@/components/ui/TaskCard";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -31,6 +32,7 @@ const columns: { status: TaskStatus; title: string }[] = [
 ];
 
 export default function KanbanPage() {
+    const router = useRouter();
     const [tasks, setTasks] = useState<KanbanTask[]>([]);
     const [projects, setProjects] = useState<ProjectOption[]>([]);
     const [selectedProject, setSelectedProject] = useState<string>("");
@@ -189,6 +191,7 @@ export default function KanbanPage() {
                                             isSynced={task.data_origin === "synced"}
                                             draggable={true}
                                             onDragStart={(e) => handleDragStart(e, task.id)}
+                                            onClick={() => router.push(`/projects/${task.project_id}?from=kanban&task=${task.id}`)}
                                         />
                                     ))}
                                 </StatusColumn>

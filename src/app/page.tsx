@@ -116,7 +116,7 @@ export default async function TodayPage() {
                                                 project={task.project?.name || "Unknown"}
                                                 priority={task.priority || "P3"}
                                                 status={task.status}
-                                                href={task.project?.id ? `/projects/${task.project.id}?from=today` : undefined}
+                                                href={task.project?.id ? `/projects/${task.project.id}?from=today&task=${task.id}` : undefined}
                                                 taskId={task.id}
                                                 isReadOnly={task.data_origin === "synced"}
                                             />

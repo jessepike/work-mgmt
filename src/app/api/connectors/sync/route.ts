@@ -31,6 +31,44 @@ function deriveStage(status: string | null | undefined): string | null {
     return null;
 }
 
+function dedupeBySourceId<T extends { source_id: string | null }>(rows: T[]): { rows: T[]; dropped: number } {
+    const seen = new Set<string>();
+    const deduped: T[] = [];
+    let dropped = 0;
+
+    for (const row of rows) {
+        if (!row.source_id) {
+            deduped.push(row);
+            continue;
+        }
+        if (seen.has(row.source_id)) {
+            dropped += 1;
+            continue;
+        }
+        seen.add(row.source_id);
+        deduped.push(row);
+    }
+
+    return { rows: deduped, dropped };
+}
+
+async function deleteByIdsInChunks(
+    supabase: any,
+    table: 'task' | 'backlog_item',
+    ids: string[]
+): Promise<number> {
+    if (ids.length === 0) return 0;
+    const chunkSize = 200;
+    let deleted = 0;
+    for (let i = 0; i < ids.length; i += chunkSize) {
+        const chunk = ids.slice(i, i + chunkSize);
+        const { error } = await supabase.from(table).delete().in('id', chunk);
+        if (error) throw error;
+        deleted += chunk.length;
+    }
+    return deleted;
+}
+
 // POST /api/connectors/sync
 export async function POST(request: NextRequest) {
     const supabase = await createServiceClient();
@@ -137,7 +175,7 @@ export async function POST(request: NextRequest) {
         }
 
         // 3. Prepare payloads for bulk upsert
-        const taskPayload = tasks.map(item => ({
+        const rawTaskPayload = tasks.map(item => ({
             project_id,
             source_id: normalizeSourceId(item.source_id, projectPath),
             title: item.title,
@@ -147,7 +185,7 @@ export async function POST(request: NextRequest) {
             updated_at: new Date().toISOString()
         } as any));
 
-        const backlogPayload = backlog.map(item => ({
+        const rawBacklogPayload = backlog.map(item => ({
             project_id,
             source_id: normalizeSourceId(item.source_id, projectPath),
             title: item.title,
@@ -158,9 +196,14 @@ export async function POST(request: NextRequest) {
             updated_at: new Date().toISOString()
         } as any));
 
+        const { rows: taskPayload, dropped: droppedTaskDuplicates } = dedupeBySourceId(rawTaskPayload);
+        const { rows: backlogPayload, dropped: droppedBacklogDuplicates } = dedupeBySourceId(rawBacklogPayload);
+
         // 4. Perform bulk upserts
         let upsertedTasks: any[] = [];
         let upsertedBacklog: any[] = [];
+        let deletedStaleTasks = 0;
+        let deletedStaleBacklog = 0;
 
         if (taskPayload.length > 0) {
             const { data, error: taskUpsertError } = await supabase
@@ -186,6 +229,41 @@ export async function POST(request: NextRequest) {
 
             if (backlogUpsertError) throw backlogUpsertError;
             upsertedBacklog = data || [];
+        }
+
+        // 4b. Remove stale synced rows so source-of-truth files do not leave ghost duplicates.
+        if (tasksFile) {
+            const { data: existingTasks, error: existingTasksError } = await supabase
+                .from('task')
+                .select('id, source_id')
+                .eq('project_id', project_id)
+                .eq('data_origin', 'synced');
+            if (existingTasksError) throw existingTasksError;
+
+            const incomingTaskSourceIds = new Set(
+                taskPayload.map((row: any) => row.source_id).filter((value: string | null) => !!value)
+            );
+            const staleTaskIds = (existingTasks || [])
+                .filter((row: any) => !row.source_id || !incomingTaskSourceIds.has(row.source_id))
+                .map((row: any) => row.id);
+            deletedStaleTasks = await deleteByIdsInChunks(supabase, 'task', staleTaskIds);
+        }
+
+        if (backlogFile) {
+            const { data: existingBacklog, error: existingBacklogError } = await supabase
+                .from('backlog_item')
+                .select('id, source_id')
+                .eq('project_id', project_id)
+                .eq('data_origin', 'synced');
+            if (existingBacklogError) throw existingBacklogError;
+
+            const incomingBacklogSourceIds = new Set(
+                backlogPayload.map((row: any) => row.source_id).filter((value: string | null) => !!value)
+            );
+            const staleBacklogIds = (existingBacklog || [])
+                .filter((row: any) => !row.source_id || !incomingBacklogSourceIds.has(row.source_id))
+                .map((row: any) => row.id);
+            deletedStaleBacklog = await deleteByIdsInChunks(supabase, 'backlog_item', staleBacklogIds);
         }
 
         if (status || intentSummary) {
@@ -228,7 +306,11 @@ export async function POST(request: NextRequest) {
                 count: totalCount,
                 tasks: tasksCount,
                 backlog: backlogCount,
-                status: !!status
+                status: !!status,
+                dedupe_dropped_tasks: droppedTaskDuplicates,
+                dedupe_dropped_backlog: droppedBacklogDuplicates,
+                deleted_stale_tasks: deletedStaleTasks,
+                deleted_stale_backlog: deletedStaleBacklog
             }
         });
 
@@ -238,6 +320,12 @@ export async function POST(request: NextRequest) {
             tasks_count: upsertedTasks.length,
             backlog_count: upsertedBacklog.length,
             status_synced: !!status,
+            cleanup: {
+                dedupe_dropped_tasks: droppedTaskDuplicates,
+                dedupe_dropped_backlog: droppedBacklogDuplicates,
+                deleted_stale_tasks: deletedStaleTasks,
+                deleted_stale_backlog: deletedStaleBacklog
+            },
             tasks: upsertedTasks,
             backlog: upsertedBacklog
         });

@@ -25,7 +25,7 @@ interface ProjectDetail {
 
 interface ProjectDetailPageProps {
     params: Promise<{ id: string }>;
-    searchParams: Promise<{ from?: string; category?: string; preset?: string }>;
+    searchParams: Promise<{ from?: string; category?: string; preset?: string; task?: string }>;
 }
 
 export default async function ProjectDetailPage({ params, searchParams }: ProjectDetailPageProps) {
@@ -61,12 +61,14 @@ export default async function ProjectDetailPage({ params, searchParams }: Projec
             tasks={tasks}
             returnHref={buildReturnHref(query)}
             returnLabel={buildReturnLabel(query)}
+            initialTaskId={query.task}
         />
     );
 }
 
 function buildReturnHref(query: { from?: string; category?: string; preset?: string }): string | undefined {
     if (query.from === "today") return "/";
+    if (query.from === "kanban") return "/tasks/kanban";
     if (query.from === "portfolio") {
         const params = new URLSearchParams();
         if (query.category) params.set("category", query.category);
@@ -79,6 +81,7 @@ function buildReturnHref(query: { from?: string; category?: string; preset?: str
 
 function buildReturnLabel(query: { from?: string }): string | undefined {
     if (query.from === "today") return "Back to Today";
+    if (query.from === "kanban") return "Back to Kanban";
     if (query.from === "portfolio") return "Back to Portfolio";
     return undefined;
 }

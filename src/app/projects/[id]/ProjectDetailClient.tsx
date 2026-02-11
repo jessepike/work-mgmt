@@ -38,6 +38,7 @@ interface ProjectDetailClientProps {
     tasks: Task[];
     returnHref?: string;
     returnLabel?: string;
+    initialTaskId?: string;
 }
 
 type ProjectTab = "active" | "backlog" | "completed";
@@ -50,7 +51,7 @@ interface ActivityItem {
     detail: Record<string, any> | null;
 }
 
-export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }: ProjectDetailClientProps) {
+export function ProjectDetailClient({ project, tasks, returnHref, returnLabel, initialTaskId }: ProjectDetailClientProps) {
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [selectedTab, setSelectedTab] = useState<ProjectTab>("active");
     const [sortMode, setSortMode] = useState<TaskSortMode>("smart");
@@ -116,6 +117,13 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
             .then((res) => setActivity(res.data || []))
             .catch(() => setActivity([]));
     }, [project.id, lastSyncAt]);
+
+    useEffect(() => {
+        if (!initialTaskId) return;
+        const task = taskRows.find((row) => row.id === initialTaskId);
+        if (!task) return;
+        setSelectedTask(task);
+    }, [initialTaskId, taskRows]);
 
     function findPhaseName(task: Task): string | undefined {
         const phase = project.phases.find((p) => p.id === task.phase_id);
