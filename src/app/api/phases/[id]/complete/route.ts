@@ -38,8 +38,6 @@ export async function POST(
     await logActivity({
         entityType: 'phase',
         entityId: id,
-        actorType: 'human',
-        actorId: 'jess',
         action: 'completed'
     });
 

@@ -29,8 +29,6 @@ export async function PATCH(
     await logActivity({
         entityType: 'phase',
         entityId: id,
-        actorType: 'human',
-        actorId: 'jess',
         action: body.status ? 'status_changed' : 'updated',
         detail: body
     });

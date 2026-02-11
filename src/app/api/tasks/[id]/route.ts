@@ -40,6 +40,28 @@ export async function PATCH(
     const supabase = await createServiceClient();
     const body = await request.json();
 
+    // 1. Fetch current task to check data_origin
+    const { data: currentTask, error: fetchError } = await supabase
+        .from('task')
+        .select('data_origin, status')
+        .eq('id', id)
+        .single();
+
+    if (fetchError) return NextResponse.json({ error: fetchError.message }, { status: 404 });
+
+    // 2. Enforce Data Origin Protection (BUG-3)
+    if (currentTask.data_origin === 'synced') {
+        const allowedFields = ['status'];
+        const updateFields = Object.keys(body);
+        const forbiddenFields = updateFields.filter(f => !allowedFields.includes(f));
+
+        if (forbiddenFields.length > 0) {
+            return NextResponse.json({
+                error: `This task is synced from an external source. You can only update: ${allowedFields.join(', ')}. Forbidden fields: ${forbiddenFields.join(', ')}`
+            }, { status: 403 });
+        }
+    }
+
     const { data, error } = await supabase
         .from('task')
         .update(body)

@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
         entityType: 'task',
         entityId: data.id,
         actorType: 'human',
-        actorId: body.owner_id || 'jess', // Placeholder
+        actorId: body.owner_id, // If undefined, logActivity will fall back to 'jess' for now
         action: 'created',
         detail: { title: body.title }
     });
