@@ -101,4 +101,18 @@ function registerQueryTools(server) {
             content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };
     });
+    server.tool("get_portfolio_trust", "Get merged portfolio status + sync quality trust metrics in a single response", {
+        scope: zod_1.z.enum(['enabled']).optional(),
+        stale_hours: zod_1.z.number().int().positive().max(24 * 30).optional()
+    }, async ({ scope, stale_hours }) => {
+        const params = {};
+        if (scope)
+            params.scope = scope;
+        if (stale_hours)
+            params.stale_hours = stale_hours;
+        const response = await axios_1.default.get(`${API_BASE_URL}/portfolio-trust`, { params });
+        return {
+            content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
+        };
+    });
 }

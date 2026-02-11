@@ -29,7 +29,8 @@ const EXPECTED_TOOLS = [
   'get_deadlines',
   'search',
   'get_activity',
-  'get_sync_quality'
+  'get_sync_quality',
+  'get_portfolio_trust'
 ];
 
 async function main() {

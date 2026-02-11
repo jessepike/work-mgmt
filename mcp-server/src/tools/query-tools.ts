@@ -148,4 +148,22 @@ export function registerQueryTools(server: McpServer) {
             };
         }
     );
+
+    server.tool(
+        "get_portfolio_trust",
+        "Get merged portfolio status + sync quality trust metrics in a single response",
+        {
+            scope: z.enum(['enabled']).optional(),
+            stale_hours: z.number().int().positive().max(24 * 30).optional()
+        },
+        async ({ scope, stale_hours }): Promise<any> => {
+            const params: Record<string, string | number> = {};
+            if (scope) params.scope = scope;
+            if (stale_hours) params.stale_hours = stale_hours;
+            const response = await axios.get(`${API_BASE_URL}/portfolio-trust`, { params });
+            return {
+                content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
+            };
+        }
+    );
 }

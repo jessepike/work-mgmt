@@ -77,6 +77,19 @@ async function main() {
   );
   assert.ok(Array.isArray(syncQuality.body.data.rows), 'sync-quality rows should be an array');
 
+  const portfolioTrust = await getJson('/portfolio-trust?scope=enabled');
+  assertEnvelope(portfolioTrust, '/portfolio-trust');
+  hasKeys(
+    portfolioTrust.body.data,
+    ['generated_at', 'scope', 'stale_hours_threshold', 'status', 'sync_quality', 'highlights'],
+    'portfolio-trust'
+  );
+  hasKeys(
+    portfolioTrust.body.data.highlights,
+    ['at_risk_projects', 'unhealthy_projects', 'sync_red_projects', 'sync_yellow_projects', 'needs_attention'],
+    'portfolio-trust highlights'
+  );
+
   console.log('API contract smoke test passed for critical UI endpoints.');
   console.log(`Base URL: ${BASE_URL}`);
 }

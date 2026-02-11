@@ -103,7 +103,10 @@ async function main() {
     const syncQualityRes = await callAndParse(client, 'get_sync_quality', { scope: 'enabled' });
     assert(syncQualityRes.json && typeof syncQualityRes.json === 'object', 'get_sync_quality response is not an object');
 
-    console.log('E2E smoke passed for tools: get_project, update_plan, get_task, whats_next, search, get_activity, get_sync_quality.');
+    const portfolioTrustRes = await callAndParse(client, 'get_portfolio_trust', { scope: 'enabled' });
+    assert(portfolioTrustRes.json && typeof portfolioTrustRes.json === 'object', 'get_portfolio_trust response is not an object');
+
+    console.log('E2E smoke passed for tools: get_project, update_plan, get_task, whats_next, search, get_activity, get_sync_quality, get_portfolio_trust.');
   } finally {
     await client.stop();
   }
