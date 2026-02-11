@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Zed Task Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,300,0,0" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3939c8",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#13131f",
+                        "sidebar-dark": "#1E2127",
+                        "topbar-dark": "#212429",
+                        "border-dark": "#262930",
+                        "hover-dark": "#262930",
+                        "active-dark": "#2A2D34",
+                        "text-primary": "#C8CCD2",
+                        "text-secondary": "#7D8490",
+                        "text-muted": "#4D525C",
+                        "accent-blue": "#5A93CC",
+                        "accent-red": "#A85D61",
+                        "accent-orange": "#B0825A",
+                        "status-bg": "#1E2127"
+                    },
+                    fontFamily: {
+                        "display": ["IBM Plex Sans", "sans-serif"],
+                        "plex": ["IBM Plex Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .plex-font {
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-size: 16px;
+            display: inline-block;
+            line-height: 1;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1A1D23;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #262930;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2A2D34;
+        }
+        .no-shadow {
+            box-shadow: none !important;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-primary h-screen flex flex-col overflow-hidden font-display">
+<div class="flex-1 flex overflow-hidden">
+<aside class="w-[240px] bg-sidebar-dark border-r border-border-dark flex flex-col h-full z-10">
+<div class="h-12 flex items-center px-4 border-b border-border-dark shrink-0">
+<div class="flex space-x-2">
+<div class="w-3 h-3 rounded-full bg-accent-red/40"></div>
+<div class="w-3 h-3 rounded-full bg-accent-orange/40"></div>
+<div class="w-3 h-3 rounded-full bg-accent-blue/40"></div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto py-4 space-y-6">
+<div>
+<nav class="space-y-0.5">
+<a class="flex items-center px-4 py-1.5 bg-active-dark border-l-2 border-accent-blue text-text-primary group" href="#">
+<span class="plex-font text-[13px] font-medium uppercase tracking-wider">Today</span>
+<span class="ml-auto text-[11px] text-text-secondary font-medium tracking-tighter">[9]</span>
+</a>
+<a class="flex items-center px-4 py-1.5 hover:bg-hover-dark text-text-secondary transition-none" href="#">
+<span class="plex-font text-[13px] font-medium uppercase tracking-wider">Inbox</span>
+<span class="ml-auto text-[11px] text-text-secondary font-medium tracking-tighter">[2]</span>
+</a>
+</nav>
+</div>
+<div>
+<h3 class="px-4 text-[11px] font-bold text-text-muted uppercase tracking-widest mb-2">Portfolio</h3>
+<nav class="space-y-0.5">
+<a class="flex items-center px-4 py-1 hover:bg-hover-dark text-text-secondary transition-none" href="#">
+<span class="text-xs truncate">ADF Framework</span>
+<span class="ml-auto text-[10px] text-text-muted">[12]</span>
+</a>
+<a class="flex items-center px-4 py-1 hover:bg-hover-dark text-text-secondary transition-none" href="#">
+<span class="text-xs truncate">Work Management</span>
+<span class="ml-auto text-[10px] text-text-muted">[8]</span>
+</a>
+<a class="flex items-center px-4 py-1 hover:bg-hover-dark text-text-secondary transition-none" href="#">
+<span class="text-xs truncate">SaaS Product</span>
+<span class="ml-auto text-[10px] text-text-muted">[24]</span>
+</a>
+<a class="flex items-center px-4 py-1 hover:bg-hover-dark text-text-secondary transition-none" href="#">
+<span class="text-xs truncate">Consulting: Acme</span>
+<span class="ml-auto text-[10px] text-text-muted">[6]</span>
+</a>
+<a class="flex items-center px-4 py-1 hover:bg-hover-dark text-text-secondary transition-none" href="#">
+<span class="text-xs truncate">Knowledge Base</span>
+<span class="ml-auto text-[10px] text-text-muted">[10]</span>
+</a>
+<a class="flex items-center px-4 py-1 hover:bg-hover-dark text-text-secondary transition-none" href="#">
+<span class="text-xs truncate">Board Governance</span>
+<span class="ml-auto text-[10px] text-text-muted">[4]</span>
+</a>
+<a class="flex items-center px-4 py-1 hover:bg-hover-dark text-text-secondary transition-none" href="#">
+<span class="text-xs truncate">Personal</span>
+<span class="ml-auto text-[10px] text-text-muted">[5]</span>
+</a>
+<a class="flex items-center px-4 py-1 hover:bg-hover-dark text-text-secondary transition-none" href="#">
+<span class="text-xs truncate">Capabilities Registry</span>
+<span class="ml-auto text-[10px] text-text-muted">[3]</span>
+</a>
+</nav>
+</div>
+<div>
+<h3 class="px-4 text-[11px] font-bold text-text-muted uppercase tracking-widest mb-2">Views</h3>
+<nav class="space-y-0.5">
+<a class="flex items-center px-4 py-1 hover:bg-hover-dark text-text-secondary transition-none" href="#">
+<span class="text-xs">Status Kanban</span>
+</a>
+<a class="flex items-center px-4 py-1 hover:bg-hover-dark text-text-secondary transition-none" href="#">
+<span class="text-xs">Priority Board</span>
+</a>
+<a class="flex items-center px-4 py-1 hover:bg-hover-dark text-text-secondary transition-none" href="#">
+<span class="text-xs">Deadlines</span>
+</a>
+<a class="flex items-center px-4 py-1 hover:bg-hover-dark text-text-secondary transition-none" href="#">
+<span class="text-xs">Blockers</span>
+<span class="ml-auto text-[10px] text-text-muted">[3]</span>
+</a>
+</nav>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark">
+<header class="h-12 bg-topbar-dark border-b border-border-dark flex items-center justify-between px-6 shrink-0">
+<h1 class="plex-font text-[18px] font-semibold text-text-primary tracking-tight">Work Management</h1>
+<div class="flex items-center space-x-4">
+<button class="text-text-secondary hover:text-text-primary">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined !text-[14px]">add</span>
+</button>
+<div class="w-7 h-7 rounded-lg overflow-hidden border border-border-dark">
+<img alt="Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA37kTL3uoIrbyHWttY1bp7gEcUQJDwdDo94NB4lo2H1yx_frSbENzz4Tj1CEv8XKVz_FdjaMZn1WRjIha-8vIVpP7c7hC6bEcGBl81Sz1OInDoZDJm7PYiL3nPmITr1BO2tOiqZKX6Rw8ym1RK1lcuM7N6jGiO0qx0zNMbTGWtLJ8oB6IXzSjctlm200BU-L4kdBv8L7IQIHn68Ibxcpwq9yzW-4ZiyZjTLKGQ7P7Bl75hNar87junotVACLqkCKGFTb_8MnMjHnQ"/>
+</div>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto">
+<div class="max-w-4xl mx-auto py-10 px-8">
+<div class="mb-10">
+<h2 class="plex-font text-3xl font-semibold text-text-primary mb-1">Today</h2>
+<p class="plex-font text-sm text-text-secondary">Monday, Feb 10 · 9 tasks</p>
+</div>
+<div class="mb-10">
+<div class="flex items-center space-x-3 mb-4 border-b border-border-dark pb-2">
+<span class="plex-font text-[12px] font-bold text-accent-red uppercase tracking-widest">Overdue (2)</span>
+</div>
+<div class="space-y-px">
+<div class="group flex items-center px-3 py-3 bg-transparent hover:bg-hover-dark rounded-lg border border-transparent hover:border-border-dark transition-none">
+<div class="w-4 h-4 rounded-sm border border-text-muted flex-shrink-0 mr-4 cursor-pointer"></div>
+<div class="w-2 h-2 rounded-full bg-accent-red mr-4"></div>
+<span class="plex-font text-[15px] text-text-primary flex-1">Fix auth token refresh</span>
+<span class="plex-font text-[11px] text-text-muted uppercase tracking-wider px-2">ADF Framework</span>
+<span class="plex-font text-[11px] font-bold text-accent-red ml-4 uppercase">P1</span>
+</div>
+<div class="group flex items-center px-3 py-3 bg-transparent hover:bg-hover-dark rounded-lg border border-transparent hover:border-border-dark transition-none">
+<div class="w-4 h-4 rounded-sm border border-text-muted flex-shrink-0 mr-4 cursor-pointer"></div>
+<div class="w-2 h-2 rounded-full bg-accent-orange mr-4"></div>
+<span class="plex-font text-[15px] text-text-primary flex-1">Update connector error handling</span>
+<span class="plex-font text-[11px] text-text-muted uppercase tracking-wider px-2">Work Management</span>
+<span class="plex-font text-[11px] font-bold text-accent-orange ml-4 uppercase">P2</span>
+</div>
+</div>
+</div>
+<div class="mb-10">
+<div class="flex items-center space-x-3 mb-4 border-b border-border-dark pb-2">
+<span class="plex-font text-[12px] font-bold text-text-secondary uppercase tracking-widest">Today (3)</span>
+</div>
+<div class="space-y-px">
+<div class="group flex items-center px-3 py-3 bg-transparent hover:bg-hover-dark rounded-lg border border-transparent hover:border-border-dark transition-none">
+<div class="w-4 h-4 rounded-sm border border-text-muted flex-shrink-0 mr-4 cursor-pointer"></div>
+<div class="w-2 h-2 rounded-full bg-accent-red mr-4"></div>
+<span class="plex-font text-[15px] text-text-primary flex-1">Review design brief feedback</span>
+<span class="plex-font text-[11px] text-text-muted uppercase tracking-wider px-2">Consulting: Acme</span>
+<span class="plex-font text-[11px] font-bold text-accent-red ml-4 uppercase">P1</span>
+</div>
+<div class="group flex items-center px-3 py-3 bg-transparent hover:bg-hover-dark rounded-lg border border-transparent hover:border-border-dark transition-none">
+<div class="w-4 h-4 rounded-sm border border-text-muted flex-shrink-0 mr-4 cursor-pointer"></div>
+<div class="w-2 h-2 rounded-full bg-accent-orange mr-4"></div>
+<span class="plex-font text-[15px] text-text-primary flex-1">Draft quarterly board update</span>
+<span class="plex-font text-[11px] text-text-muted uppercase tracking-wider px-2">Board</span>
+<span class="plex-font text-[11px] font-bold text-accent-orange ml-4 uppercase">P2</span>
+</div>
+<div class="group flex items-center px-3 py-3 bg-transparent hover:bg-hover-dark rounded-lg border border-transparent hover:border-border-dark transition-none">
+<div class="w-4 h-4 rounded-sm border border-text-muted flex-shrink-0 mr-4 cursor-pointer"></div>
+<div class="w-2 h-2 rounded-full bg-accent-blue mr-4"></div>
+<span class="plex-font text-[15px] text-text-primary flex-1">Migrate user settings schema</span>
+<span class="plex-font text-[11px] text-text-muted uppercase tracking-wider px-2">SaaS Product</span>
+<span class="plex-font text-[11px] font-bold text-accent-blue ml-4 uppercase">P3</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<footer class="h-8 bg-[#1E2127] border-t border-[#262930] flex items-center justify-between px-3 shrink-0 plex-font text-[12px]">
+<div class="flex items-center space-x-3 text-[#7D8490]">
+<div class="flex items-center space-x-2.5">
+<span class="material-symbols-outlined !text-[14px] cursor-pointer hover:text-[#C8CCD2]">dock_to_left</span>
+<span class="material-symbols-outlined !text-[14px] cursor-pointer hover:text-[#C8CCD2]">grid_view</span>
+<span class="material-symbols-outlined !text-[14px] cursor-pointer hover:text-[#C8CCD2]">search</span>
+<span class="material-symbols-outlined !text-[14px] cursor-pointer hover:text-[#C8CCD2]">account_tree</span>
+<span class="material-symbols-outlined !text-[14px] cursor-pointer hover:text-[#C8CCD2]">check_circle</span>
+</div>
+<span class="cursor-pointer hover:text-[#C8CCD2]">Click to restart and update Zed</span>
+</div>
+<div class="flex items-center space-x-3 text-[#7D8490]">
+<span class="material-symbols-outlined !text-[14px] cursor-pointer hover:text-[#C8CCD2]">bolt</span>
+<span class="material-symbols-outlined !text-[14px] cursor-pointer hover:text-[#C8CCD2]">terminal</span>
+<span class="material-symbols-outlined !text-[14px] cursor-pointer hover:text-[#C8CCD2]">light_mode</span>
+<span class="material-symbols-outlined !text-[14px] cursor-pointer hover:text-[#C8CCD2]">developer_board</span>
+<span class="material-symbols-outlined !text-[14px] cursor-pointer hover:text-[#C8CCD2]">notifications</span>
+</div>
+</footer>
+
+</body></html>

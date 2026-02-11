@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Project Detail - ADF Framework</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#b8a16b",
+                        "background-light": "#f7f7f6",
+                        "background-dark": "#1d1a15",
+                        "zed-sidebar": "#1E2127",
+                        "zed-main": "#1A1D23",
+                        "zed-hover": "#2A2D34",
+                        "zed-border": "#2b303b",
+                        "zed-text-dim": "#4D525C",
+                        "zed-text-muted": "#7D8490",
+                        "zed-text-bright": "#C8CCD2",
+                        "zed-danger": "#A85D61",
+                        "zed-success": "#8BA876",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .thin-border-b { border-bottom: 1px solid #2b303b; }
+        .thin-border-r { border-right: 1px solid #2b303b; }
+        .thin-border-l { border-left: 1px solid #2b303b; }
+        .task-row:hover { background-color: #2A2D34; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-zed-text-bright selection:bg-primary/30">
+<div class="flex h-screen w-full overflow-hidden bg-zed-main">
+<!-- Left Sidebar (240px) -->
+<aside class="w-[240px] flex-shrink-0 bg-zed-sidebar thin-border-r flex flex-col">
+<div class="p-4 h-14 flex items-center thin-border-b">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="text-xs font-semibold uppercase tracking-wider text-zed-text-muted">Workspace</span>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto p-2 space-y-4 no-scrollbar">
+<div>
+<div class="px-3 py-2 text-[11px] font-bold text-zed-text-dim uppercase tracking-widest">General</div>
+<div class="space-y-0.5">
+<a class="flex items-center gap-3 px-3 py-1.5 rounded-md text-sm text-zed-text-muted hover:text-zed-text-bright hover:bg-zed-hover" href="#">
+<span class="material-icons-outlined text-sm">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-1.5 rounded-md text-sm text-zed-text-muted hover:text-zed-text-bright hover:bg-zed-hover" href="#">
+<span class="material-icons-outlined text-sm">schedule</span>
+<span>Timeline</span>
+</a>
+</div>
+</div>
+<div>
+<div class="px-3 py-2 text-[11px] font-bold text-zed-text-dim uppercase tracking-widest">Projects</div>
+<div class="space-y-0.5">
+<a class="flex items-center gap-3 px-3 py-1.5 rounded-md text-sm bg-zed-hover text-zed-text-bright" href="#">
+<span class="material-icons-outlined text-sm text-primary">folder</span>
+<span>ADF Framework</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-1.5 rounded-md text-sm text-zed-text-muted hover:text-zed-text-bright hover:bg-zed-hover" href="#">
+<span class="material-icons-outlined text-sm">folder</span>
+<span>Cloud Sync API</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-1.5 rounded-md text-sm text-zed-text-muted hover:text-zed-text-bright hover:bg-zed-hover" href="#">
+<span class="material-icons-outlined text-sm">folder</span>
+<span>Internal Docs</span>
+</a>
+</div>
+</div>
+</nav>
+<div class="p-4 thin-border-t flex items-center gap-3 bg-zed-sidebar/50">
+<div class="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary border border-primary/30">JD</div>
+<div class="flex flex-col">
+<span class="text-xs font-medium text-zed-text-bright leading-none">John Dev</span>
+<span class="text-[10px] text-zed-text-dim mt-1">Free Tier</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0 bg-zed-main overflow-hidden">
+<!-- Main Header -->
+<header class="h-14 px-6 flex items-center justify-between thin-border-b flex-shrink-0">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+<h1 class="text-sm font-semibold text-zed-text-bright">ADF Framework</h1>
+</div>
+<div class="flex items-center gap-1.5 text-zed-text-dim">
+<span class="material-icons-outlined text-[14px]">link</span>
+<span class="text-[11px] font-medium uppercase tracking-tight">connected</span>
+</div>
+<span class="text-[11px] text-zed-text-dim">Last synced: 2 hours ago</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-3 py-1 rounded bg-zed-hover text-[11px] font-medium text-zed-text-muted hover:text-zed-text-bright">New Task</button>
+<button class="material-icons-outlined text-zed-text-dim hover:text-zed-text-bright text-lg">more_horiz</button>
+</div>
+</header>
+<!-- Metadata line -->
+<div class="px-6 py-3 thin-border-b flex items-center gap-4 text-[11px] font-medium">
+<span class="px-2 py-0.5 rounded bg-zed-hover text-primary uppercase tracking-wider">dev chip</span>
+<span class="text-zed-text-muted"><b class="text-zed-text-bright">12</b> tasks</span>
+<span class="text-zed-danger"><b class="text-zed-danger">2</b> blocked</span>
+<span class="text-zed-text-muted"><b class="text-zed-text-bright">45%</b> complete</span>
+<div class="h-1 w-24 bg-zed-border rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 45%"></div>
+</div>
+</div>
+<!-- Task Lists -->
+<div class="flex-1 overflow-y-auto no-scrollbar pb-10">
+<!-- Phase 1 -->
+<section class="mt-6">
+<div class="px-6 py-2 flex items-center justify-between">
+<h2 class="text-xs font-bold uppercase tracking-widest text-zed-text-dim">Phase 1: Core Refactor</h2>
+<span class="text-[10px] text-zed-text-dim">4 / 6 COMPLETED</span>
+</div>
+<div class="mt-1">
+<!-- Task 1 -->
+<div class="px-6 py-2.5 flex items-center gap-4 task-row group cursor-pointer transition-colors">
+<span class="material-icons-outlined text-zed-success text-[18px]">check_box</span>
+<span class="flex-1 text-sm text-zed-text-dim line-through decoration-zed-text-dim/50">Initialize atomic design patterns</span>
+<div class="w-1.5 h-1.5 rounded-full bg-zed-text-dim"></div>
+<span class="text-[11px] text-zed-text-dim w-16 text-right">Jul 12</span>
+</div>
+<!-- Task 2 -->
+<div class="px-6 py-2.5 flex items-center gap-4 task-row group cursor-pointer transition-colors">
+<span class="material-icons-outlined text-zed-success text-[18px]">check_box</span>
+<span class="flex-1 text-sm text-zed-text-dim line-through decoration-zed-text-dim/50">Setup unit testing architecture</span>
+<div class="w-1.5 h-1.5 rounded-full bg-zed-text-dim"></div>
+<span class="text-[11px] text-zed-text-dim w-16 text-right">Jul 14</span>
+</div>
+<!-- Task 3: SELECTED & BLOCKED -->
+<div class="px-6 py-2.5 flex items-center gap-4 bg-zed-hover group cursor-pointer border-y border-white/5">
+<span class="material-icons-outlined text-zed-text-muted text-[18px]">check_box_outline_blank</span>
+<span class="flex-1 text-sm text-zed-text-bright font-medium">Resolve dependency conflicts</span>
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-bold text-zed-danger uppercase tracking-tighter">blocked</span>
+<div class="w-1.5 h-1.5 rounded-full bg-zed-danger"></div>
+</div>
+<span class="text-[11px] text-zed-text-bright w-16 text-right">Today</span>
+</div>
+<!-- Task 4 -->
+<div class="px-6 py-2.5 flex items-center gap-4 task-row group cursor-pointer transition-colors">
+<span class="material-icons-outlined text-zed-text-muted text-[18px]">check_box_outline_blank</span>
+<span class="flex-1 text-sm text-zed-text-bright">Optimize hydration logic</span>
+<div class="w-1.5 h-1.5 rounded-full bg-primary/40"></div>
+<span class="text-[11px] text-zed-text-muted w-16 text-right">Jul 18</span>
+</div>
+</div>
+</section>
+<div class="mx-6 my-4 border-t border-zed-border/30"></div>
+<!-- Phase 2 -->
+<section>
+<div class="px-6 py-2 flex items-center justify-between">
+<h2 class="text-xs font-bold uppercase tracking-widest text-zed-text-dim">Phase 2: Plugin System</h2>
+<span class="text-[10px] text-zed-text-dim">0 / 4 COMPLETED</span>
+</div>
+<div class="mt-1">
+<div class="px-6 py-2.5 flex items-center gap-4 task-row group cursor-pointer transition-colors">
+<span class="material-icons-outlined text-zed-text-muted text-[18px]">check_box_outline_blank</span>
+<span class="flex-1 text-sm text-zed-text-bright">Define plugin manifest schema</span>
+<div class="w-1.5 h-1.5 rounded-full bg-zed-text-muted"></div>
+<span class="text-[11px] text-zed-text-muted w-16 text-right">Aug 01</span>
+</div>
+<div class="px-6 py-2.5 flex items-center gap-4 task-row group cursor-pointer transition-colors">
+<span class="material-icons-outlined text-zed-text-muted text-[18px]">check_box_outline_blank</span>
+<span class="flex-1 text-sm text-zed-text-bright">Implement lifecycle hooks</span>
+<div class="w-1.5 h-1.5 rounded-full bg-zed-text-muted"></div>
+<span class="text-[11px] text-zed-text-muted w-16 text-right">Aug 05</span>
+</div>
+</div>
+</section>
+<!-- Backlog -->
+<section class="mt-8 opacity-60">
+<div class="px-6 py-2">
+<h2 class="text-[10px] font-bold uppercase tracking-widest text-zed-text-dim">Backlog</h2>
+</div>
+<div class="mt-1">
+<div class="px-6 py-2 flex items-center gap-4 task-row cursor-pointer transition-colors">
+<span class="material-icons-outlined text-zed-text-dim text-[16px]">remove_circle_outline</span>
+<span class="flex-1 text-xs text-zed-text-muted italic">Dark mode preference sync...</span>
+<span class="text-[10px] text-zed-text-dim">Pending</span>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Right Detail Panel (320px) -->
+<aside class="w-[320px] flex-shrink-0 bg-zed-sidebar thin-border-l flex flex-col">
+<!-- Header -->
+<div class="p-6 thin-border-b">
+<div class="flex items-center gap-2 mb-3">
+<span class="text-[10px] font-bold text-zed-text-dim uppercase tracking-widest">ADF Framework</span>
+<span class="text-zed-text-dim text-[10px]">/</span>
+<span class="text-[10px] font-bold text-zed-text-dim uppercase tracking-widest">Phase 1</span>
+</div>
+<h3 class="text-lg font-semibold text-zed-text-bright leading-snug">Resolve dependency conflicts</h3>
+<div class="mt-4 flex flex-wrap gap-2">
+<div class="flex items-center gap-1.5 bg-zed-danger/10 border border-zed-danger/20 px-2 py-0.5 rounded">
+<div class="w-1.5 h-1.5 rounded-full bg-zed-danger"></div>
+<span class="text-[10px] font-bold text-zed-danger uppercase tracking-tighter">P1 Priority</span>
+</div>
+<div class="flex items-center gap-1.5 bg-zed-danger/10 border border-zed-danger/20 px-2 py-0.5 rounded">
+<span class="text-[10px] font-bold text-zed-danger uppercase tracking-tighter">Blocked</span>
+</div>
+</div>
+</div>
+<!-- Description & Attributes -->
+<div class="flex-1 overflow-y-auto no-scrollbar">
+<div class="p-6">
+<h4 class="text-[10px] font-bold uppercase tracking-widest text-zed-text-dim mb-2">Description</h4>
+<p class="text-sm text-zed-text-muted leading-relaxed mb-6">
+                        The current version of <code class="bg-zed-hover px-1 rounded text-primary">@adf/core</code> is conflicting with the peer dependencies in the new refactor branch. Need to isolate the workspace packages and align versions.
+                    </p>
+<h4 class="text-[10px] font-bold uppercase tracking-widest text-zed-text-dim mb-3">Properties</h4>
+<div class="space-y-0 text-xs border border-zed-border rounded-md overflow-hidden">
+<div class="flex thin-border-b">
+<div class="w-24 bg-zed-main p-2 text-zed-text-dim font-medium">Owner</div>
+<div class="flex-1 p-2 text-zed-text-bright">@marcus_dev</div>
+</div>
+<div class="flex thin-border-b">
+<div class="w-24 bg-zed-main p-2 text-zed-text-dim font-medium">Due Date</div>
+<div class="flex-1 p-2 text-zed-text-bright">Jul 18, 2024</div>
+</div>
+<div class="flex thin-border-b">
+<div class="w-24 bg-zed-main p-2 text-zed-text-dim font-medium">Branch</div>
+<div class="flex-1 p-2 font-mono text-primary">fix/dep-conflicts</div>
+</div>
+<div class="flex">
+<div class="w-24 bg-zed-main p-2 text-zed-text-dim font-medium">Tags</div>
+<div class="flex-1 p-2 text-zed-text-bright">Refactor, Core</div>
+</div>
+</div>
+<!-- Activity Log -->
+<div class="mt-8">
+<h4 class="text-[10px] font-bold uppercase tracking-widest text-zed-text-dim mb-4">Activity</h4>
+<div class="relative pl-4 space-y-6">
+<div class="absolute left-[3px] top-1.5 bottom-1 w-[1px] bg-zed-border"></div>
+<!-- Activity Item 1 -->
+<div class="relative">
+<div class="absolute -left-[16px] top-1 w-2 h-2 rounded-full bg-zed-border ring-4 ring-zed-sidebar"></div>
+<div class="flex flex-col">
+<span class="text-[11px] text-zed-text-muted"><b class="text-zed-text-bright">Marcus</b> updated status to <span class="text-zed-danger">Blocked</span></span>
+<span class="text-[10px] text-zed-text-dim">2 hours ago</span>
+</div>
+</div>
+<!-- Activity Item 2 -->
+<div class="relative">
+<div class="absolute -left-[16px] top-1 w-2 h-2 rounded-full bg-zed-border ring-4 ring-zed-sidebar"></div>
+<div class="flex flex-col">
+<span class="text-[11px] text-zed-text-muted"><b class="text-zed-text-bright">John Dev</b> commented:</span>
+<p class="text-[11px] mt-1 p-2 bg-zed-main rounded border border-zed-border text-zed-text-muted italic">"Should we try pnpm overrides?"</p>
+<span class="text-[10px] text-zed-text-dim mt-1">4 hours ago</span>
+</div>
+</div>
+<!-- Activity Item 3 -->
+<div class="relative">
+<div class="absolute -left-[16px] top-1 w-2 h-2 rounded-full bg-zed-border ring-4 ring-zed-sidebar"></div>
+<div class="flex flex-col">
+<span class="text-[11px] text-zed-text-muted"><b class="text-zed-text-bright">System</b> created task</span>
+<span class="text-[10px] text-zed-text-dim">Yesterday</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Action -->
+<div class="p-4 thin-border-t bg-zed-sidebar">
+<div class="flex items-center gap-2">
+<input class="flex-1 bg-zed-main border-zed-border rounded px-3 py-1.5 text-xs text-zed-text-bright placeholder-zed-text-dim focus:ring-1 focus:ring-primary focus:border-primary outline-none" placeholder="Add a comment..." type="text"/>
+<button class="material-icons-outlined text-zed-text-dim hover:text-primary transition-colors">send</button>
+</div>
+</div>
+</aside>
+</div>
+</body></html>

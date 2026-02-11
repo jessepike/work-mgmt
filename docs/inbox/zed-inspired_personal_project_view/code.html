@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Personal Project View - Zed Inspired</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=IBM+Plex+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#5892d0",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#1A1D23",
+                        "zed-panel": "#1E2127",
+                        "zed-chrome": "#212429",
+                        "zed-hover": "#262930",
+                        "zed-active": "#2A2D34",
+                        "zed-border": "#262930",
+                        "zed-text-primary": "#C8CCD2",
+                        "zed-text-secondary": "#7D8490",
+                        "zed-text-muted": "#4D525C",
+                        "zed-blue": "#5A93CC",
+                        "zed-green": "#8BA876",
+                        "zed-red": "#A85D61",
+                        "zed-orange": "#B0825A",
+                    },
+                    fontFamily: {
+                        "display": ["IBM Plex Sans", "Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #262930;
+        }
+        .task-row:hover {
+            background-color: #262930;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-zed-text-primary font-display h-screen flex flex-col overflow-hidden">
+<!-- Top Bar -->
+<header class="h-12 bg-zed-chrome border-b border-zed-border flex items-center justify-between px-4 z-50">
+<div class="flex items-center gap-4">
+<span class="text-zed-text-secondary material-icons text-sm">menu</span>
+<span class="text-xs font-medium tracking-wide">Work Management</span>
+</div>
+<div class="flex-1 max-w-xl px-8">
+<div class="relative group">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-icons text-zed-text-muted text-sm">search</span>
+<input class="w-full bg-zed-panel border-none rounded text-xs py-1.5 pl-9 pr-4 focus:ring-1 focus:ring-primary/50 text-zed-text-primary placeholder-zed-text-muted" placeholder="Search tasks..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="w-7 h-7 bg-primary rounded-full flex items-center justify-center text-white hover:opacity-90 transition-opacity">
+<span class="material-icons text-lg">add</span>
+</button>
+<div class="w-7 h-7 rounded-full bg-zed-active border border-zed-border overflow-hidden flex items-center justify-center">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="User avatar portrait looking professional" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQ8jI0nqJNY1nPmzrEEN7caVsnlNb-dOx8IPRyzcDUAWSqTv9cvACyDzWIuzBE09s9fIX6yiNoZ9t9za510Gr7j5Pyfbq4QDsZHmtjx-uk2qUx7SOOuwC44iIR1JDtCjMybym7Bwot6WIbsGgi0fYBPwOueETrba6H4J6XOTZrD5uCXJzwY9V6jZYqgJ2bU-WIFflhHgPjMa5VW0RexdG2zxw7HcRuvAFYSNlCiMAWaGKyYcSIdrpt6rtkOv3U0tLPfM3zzY6RFtY"/>
+</div>
+</div>
+</header>
+<div class="flex-1 flex overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-[240px] bg-zed-panel border-r border-zed-border flex flex-col">
+<div class="p-4 space-y-6">
+<div>
+<h3 class="text-[10px] font-bold text-zed-text-muted tracking-[0.1em] uppercase mb-3">Workspace</h3>
+<ul class="space-y-0.5">
+<li class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-zed-hover text-zed-text-secondary cursor-pointer transition-colors">
+<span class="material-icons text-sm">inbox</span>
+<span class="text-[13px]">Inbox</span>
+</li>
+<li class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-zed-hover text-zed-text-secondary cursor-pointer transition-colors">
+<span class="material-icons text-sm">calendar_today</span>
+<span class="text-[13px]">Today</span>
+</li>
+</ul>
+</div>
+<div>
+<h3 class="text-[10px] font-bold text-zed-text-muted tracking-[0.1em] uppercase mb-3 px-2">Projects</h3>
+<ul class="space-y-0.5">
+<li class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-zed-hover text-zed-text-secondary cursor-pointer transition-colors">
+<span class="material-icons text-sm">folder</span>
+<span class="text-[13px]">Engineering</span>
+</li>
+<li class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-zed-hover text-zed-text-secondary cursor-pointer transition-colors">
+<span class="material-icons text-sm">folder</span>
+<span class="text-[13px]">Marketing</span>
+</li>
+<li class="flex items-center gap-2 px-2 py-1.5 bg-zed-active border-l-2 border-primary text-zed-text-primary cursor-pointer">
+<span class="material-icons text-sm text-zed-blue">folder</span>
+<span class="text-[13px]">Personal</span>
+</li>
+<li class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-zed-hover text-zed-text-secondary cursor-pointer transition-colors">
+<span class="material-icons text-sm">folder</span>
+<span class="text-[13px]">Travel</span>
+</li>
+</ul>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 bg-background-dark flex flex-col overflow-hidden">
+<!-- Project Header -->
+<div class="px-8 pt-8 pb-4 flex flex-col gap-2 shrink-0">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-zed-green"></div>
+<h1 class="text-xl font-semibold text-zed-text-primary">Personal</h1>
+<span class="ml-2 px-1.5 py-0.5 bg-zed-active border border-zed-border rounded text-[10px] text-zed-text-muted tracking-wide uppercase">native</span>
+</div>
+<div class="flex items-center gap-2 text-xs text-zed-text-secondary">
+<span class="px-2 py-0.5 bg-primary/10 text-zed-blue rounded">personal chip</span>
+<span class="text-zed-text-muted">•</span>
+<span>5 tasks</span>
+<span class="text-zed-text-muted">•</span>
+<span>0 blocked</span>
+<span class="text-zed-text-muted">•</span>
+<span class="text-zed-green">40% complete</span>
+</div>
+</div>
+<!-- Task List Area -->
+<div class="flex-1 overflow-y-auto custom-scrollbar px-8 py-4">
+<div class="max-w-4xl space-y-8">
+<!-- Section: Tax & Finance -->
+<section>
+<div class="flex items-center gap-3 mb-2">
+<span class="text-zed-text-muted text-[13px] whitespace-nowrap">── Tax &amp; Finance</span>
+<div class="flex-1 h-px bg-zed-border"></div>
+</div>
+<div class="flex flex-col">
+<!-- Task 1 (Completed) -->
+<div class="task-row group flex items-center h-9 px-2 rounded-md transition-all cursor-pointer">
+<div class="w-4 h-4 rounded-full bg-zed-green flex items-center justify-center shrink-0">
+<span class="material-icons text-[10px] text-zed-chrome font-bold">check</span>
+</div>
+<span class="ml-3 text-[14px] text-zed-text-muted line-through flex-1">Gather W-2 forms</span>
+<div class="flex items-center gap-4">
+<div class="w-1.5 h-1.5 rounded-full bg-zed-red" title="P1 Priority"></div>
+</div>
+</div>
+<!-- Task 2 (Pending) -->
+<div class="task-row group flex items-center h-9 px-2 rounded-md transition-all cursor-pointer">
+<div class="w-4 h-4 rounded-full border border-zed-text-muted shrink-0"></div>
+<span class="ml-3 text-[14px] text-zed-text-primary flex-1">Schedule CPA appointment</span>
+<div class="flex items-center gap-4">
+<span class="text-[12px] text-zed-text-secondary">due: Feb 14</span>
+<div class="w-1.5 h-1.5 rounded-full bg-zed-orange" title="P2 Priority"></div>
+</div>
+</div>
+<!-- Task 3 (Pending) -->
+<div class="task-row group flex items-center h-9 px-2 rounded-md transition-all cursor-pointer">
+<div class="w-4 h-4 rounded-full border border-zed-text-muted shrink-0"></div>
+<span class="ml-3 text-[14px] text-zed-text-primary flex-1">Review investment allocations</span>
+<div class="flex items-center gap-4">
+<div class="w-1.5 h-1.5 rounded-full bg-zed-blue" title="P3 Priority"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: Home -->
+<section>
+<div class="flex items-center gap-3 mb-2">
+<span class="text-zed-text-muted text-[13px] whitespace-nowrap">── Home</span>
+<div class="flex-1 h-px bg-zed-border"></div>
+</div>
+<div class="flex flex-col">
+<!-- Task 4 (Completed) -->
+<div class="task-row group flex items-center h-9 px-2 rounded-md transition-all cursor-pointer">
+<div class="w-4 h-4 rounded-full bg-zed-green flex items-center justify-center shrink-0">
+<span class="material-icons text-[10px] text-zed-chrome font-bold">check</span>
+</div>
+<span class="ml-3 text-[14px] text-zed-text-muted line-through flex-1">Fix kitchen faucet</span>
+<div class="flex items-center gap-4">
+<div class="w-1.5 h-1.5 rounded-full bg-zed-blue" title="P3 Priority"></div>
+</div>
+</div>
+<!-- Task 5 (Pending) -->
+<div class="task-row group flex items-center h-9 px-2 rounded-md transition-all cursor-pointer">
+<div class="w-4 h-4 rounded-full border border-zed-text-muted shrink-0"></div>
+<span class="ml-3 text-[14px] text-zed-text-primary flex-1">Research standing desk options</span>
+<div class="flex items-center gap-4">
+<div class="w-1.5 h-1.5 rounded-full bg-zed-blue" title="P3 Priority"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer / Add Task -->
+<div class="pt-2 px-2">
+<button class="flex items-center gap-2 text-zed-text-muted hover:text-zed-text-secondary transition-colors text-[14px]">
+<span class="material-icons text-sm">add</span>
+<span>Add task...</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Status Bar (Bottom) -->
+<footer class="h-6 bg-zed-chrome border-t border-zed-border flex items-center justify-between px-3 shrink-0">
+<div class="flex items-center gap-4 text-[11px] text-zed-text-muted">
+<div class="flex items-center gap-1">
+<span class="material-icons text-[12px]">code</span>
+<span>UTF-8</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-icons text-[12px]">account_tree</span>
+<span>main</span>
+</div>
+</div>
+<div class="flex items-center gap-4 text-[11px] text-zed-text-muted uppercase tracking-tighter">
+<span>Ln 12, Col 4</span>
+<span>Task Project Viewer</span>
+</div>
+</footer>
+</body></html>

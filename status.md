@@ -2,13 +2,14 @@
 project: "work-management"
 stage: "Develop"
 updated: "2026-02-11"
+last_session: "2026-02-11"
 ---
 
 # Status
 
 ## Current State
 
-- **Phase:** Develop — Phases 1-4 complete
+- **Phase:** Develop — Phases 1-4 complete, Phase 5 in progress
 - **Focus:** Dashboard Implementation (Phase 5)
 - **Build:** Passing (Next.js build + TypeScript clean)
 - **API:** Core REST surface implemented (projects, plans, phases, tasks, backlog, queries, connectors)
@@ -41,8 +42,12 @@ updated: "2026-02-11"
 ### Phase 4: ADF Connector — Done (via MCP)
 - Parser and sync tool built into mcp-server/src/adf/ and mcp-server/src/tools/adf-tools.ts
 
-### Phase 5: Dashboard — Not Started
-- B19-B28 all Pending
+### Phase 5: Dashboard — In Progress
+- B19 In Progress — Dashboard shell: root layout with sidebar, Today view scaffold, Zed-inspired styling
+- B22 In Progress — Portfolio view page created
+- B23 In Progress — Project detail view scaffolded ([id] route)
+- B24 In Progress — Kanban view scaffolded
+- Component library started: TaskItem, sidebar layout, UI primitives
 
 ### Deployment
 - B31 Pending — Vercel deploy
@@ -154,3 +159,4 @@ updated: "2026-02-11"
 | 2026-02-11 | **Port reconfiguration.** Main app moved to port 3005. MCP server updated to connect to 3005. Verified connection via Claude Desktop. |
 | 2026-02-11 | **Capability Access.** Registered Memory Layer and Knowledge Base via `capabilities-registry`. Fixed relative path issues with `memory-layer`. |
 | 2026-02-11 | **ADF Alignment.** Moved `status.md` to root, linked `brief.md`. Resumed Develop Phase 6 (Build). |
+| 2026-02-11 | **Dashboard scaffold.** Phase 5 started: Zed-inspired Today view, root layout with sidebar, portfolio/project/kanban page stubs, TaskItem component, Tailwind theme with custom design tokens, Stitch design references added to docs/inbox. |

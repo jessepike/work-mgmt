@@ -31,6 +31,11 @@ npm run build
 npm --prefix mcp-server run build
 ```
 
+5. API contract smoke test (requires app running):
+```bash
+npm run test:api-contract
+```
+
 ## API Base URL
 
 - Local API base: `http://localhost:3005/api`

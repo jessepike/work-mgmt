@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Zed-Inspired Portfolio Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#5b94cd",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#14191e",
+                        "zed-main": "#1A1D23",
+                        "zed-sidebar": "#1E2127",
+                        "zed-header": "#212429",
+                        "zed-border": "#262930",
+                        "zed-hover": "#262930",
+                        "zed-active": "#2A2D34",
+                        "text-primary": "#C8CCD2",
+                        "text-secondary": "#7D8490",
+                        "text-muted": "#4D525C",
+                        "status-red": "#A85D61",
+                        "status-green": "#8BA876",
+                        "status-yellow": "#B8A06A"
+                    },
+                    fontFamily: {
+                        "display": ["IBM Plex Sans", "Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1A1D23;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #262930;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-primary font-display antialiased">
+<div class="flex h-screen w-full overflow-hidden bg-zed-main">
+<!-- Left Sidebar -->
+<aside class="w-[240px] flex-shrink-0 bg-zed-sidebar border-r border-zed-border flex flex-col">
+<div class="h-12 flex items-center px-4 border-b border-zed-border text-text-secondary font-semibold text-xs tracking-widest">
+                WORKSPACES
+            </div>
+<nav class="flex-1 py-2">
+<div class="flex items-center h-9 px-4 text-text-secondary hover:bg-zed-hover cursor-pointer transition-colors">
+<span class="material-icons-outlined text-sm mr-3">home</span>
+<span class="text-sm">Home</span>
+</div>
+<!-- Active Item -->
+<div class="flex items-center h-9 px-[14px] bg-zed-active border-l-2 border-primary text-text-primary cursor-default">
+<span class="material-icons-outlined text-sm mr-[10px] text-primary">folder</span>
+<span class="text-sm font-medium">PORTFOLIO</span>
+</div>
+<div class="flex items-center h-9 px-4 text-text-secondary hover:bg-zed-hover cursor-pointer transition-colors">
+<span class="material-icons-outlined text-sm mr-3">assignment</span>
+<span class="text-sm">Tasks</span>
+</div>
+<div class="flex items-center h-9 px-4 text-text-secondary hover:bg-zed-hover cursor-pointer transition-colors">
+<span class="material-icons-outlined text-sm mr-3">schedule</span>
+<span class="text-sm">Timeline</span>
+</div>
+<div class="mt-4 px-4 text-[10px] text-text-muted font-bold tracking-widest uppercase">Teams</div>
+<div class="flex items-center h-9 px-4 text-text-secondary hover:bg-zed-hover cursor-pointer transition-colors">
+<span class="material-icons-outlined text-sm mr-3">group</span>
+<span class="text-sm">Engineering</span>
+</div>
+<div class="flex items-center h-9 px-4 text-text-secondary hover:bg-zed-hover cursor-pointer transition-colors">
+<span class="material-icons-outlined text-sm mr-3">design_services</span>
+<span class="text-sm">Product Design</span>
+</div>
+</nav>
+<div class="p-4 border-t border-zed-border text-text-muted text-xs flex items-center justify-between">
+<span>V1.4.2</span>
+<span class="material-icons-outlined text-sm">settings</span>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0">
+<!-- Top Bar -->
+<header class="h-12 flex items-center justify-between px-6 bg-zed-header border-b border-zed-border">
+<div class="flex items-center gap-4">
+<h1 class="text-sm font-medium text-text-primary">Work Management</h1>
+<div class="h-4 w-[1px] bg-zed-border"></div>
+<div class="flex items-center text-text-secondary bg-zed-main border border-zed-border rounded px-2 py-0.5 h-7">
+<span class="material-icons-outlined text-sm mr-2">search</span>
+<input class="bg-transparent border-none p-0 text-xs focus:ring-0 placeholder-text-muted w-48" placeholder="Global search..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="w-7 h-7 flex items-center justify-center bg-primary rounded-full text-white hover:opacity-90">
+<span class="material-icons-outlined text-lg">add</span>
+</button>
+<div class="w-7 h-7 rounded-full bg-zed-active border border-zed-border flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User avatar for portfolio manager" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCao3UZ8kDj93GbSgUAFKZZ1CXuUsepbckbPehFMsgaOrY3TDRbg6Q8UICwvU_8nTRlCR-0hnyGzgE_ukh9kPol6GVFaPRnnxwI_8zoAxC8W1sX5IT9TVAKoGAC1a889eCKyUUG1BNq5aDgGHbKM1lKLNm4Bz9wESz3EQFTtvRcMhRO4AGi_NcnIuzoCwa-bhsb8rlRgkwPaI6KlR1ViLKzenNo0FctFMUb9chqzqzFNQGcGTucHQLm-VHkfh5Iw4plRqaUwXJ7y5Q"/>
+</div>
+</div>
+</header>
+<!-- Sub-header / Filters -->
+<div class="flex items-center justify-between px-6 py-3 bg-zed-header border-b border-zed-border">
+<div class="flex items-center gap-2">
+<button class="px-3 py-1 bg-zed-active border border-zed-border text-xs text-primary rounded-sm font-medium">All</button>
+<button class="px-3 py-1 bg-zed-main border border-zed-border text-xs text-text-secondary rounded-sm hover:bg-zed-hover transition-colors">Dev</button>
+<button class="px-3 py-1 bg-zed-main border border-zed-border text-xs text-text-secondary rounded-sm hover:bg-zed-hover transition-colors">Business</button>
+<button class="px-3 py-1 bg-zed-main border border-zed-border text-xs text-text-secondary rounded-sm hover:bg-zed-hover transition-colors">Personal</button>
+<button class="px-3 py-1 bg-zed-main border border-zed-border text-xs text-text-secondary rounded-sm hover:bg-zed-hover transition-colors">Board</button>
+<button class="px-3 py-1 bg-zed-main border border-zed-border text-xs text-text-secondary rounded-sm hover:bg-zed-hover transition-colors">Consulting</button>
+</div>
+<button class="flex items-center text-xs text-primary hover:underline font-medium">
+<span class="material-icons-outlined text-sm mr-1">add_circle_outline</span>
+                    New Project
+                </button>
+</div>
+<!-- Dashboard Grid -->
+<div class="flex-1 overflow-y-auto p-6 custom-scrollbar bg-zed-main">
+<div class="grid grid-cols-2 gap-4 max-w-[1200px] mx-auto">
+<!-- Card 1: ADF Framework -->
+<div class="bg-zed-sidebar border border-zed-border rounded-md hover:bg-zed-hover group transition-colors flex flex-col h-fit overflow-hidden">
+<div class="p-4 flex-1">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-status-yellow"></div>
+<h3 class="font-semibold text-text-primary text-sm">ADF Framework</h3>
+</div>
+<span class="material-icons-outlined text-text-muted text-sm">sync</span>
+</div>
+<div class="flex gap-2 mb-4">
+<span class="bg-zed-header px-2 py-0.5 rounded text-[10px] text-text-secondary font-medium tracking-tight border border-zed-border">ENGINEERING</span>
+<div class="flex items-center gap-2 text-xs text-text-muted">
+<span>12 tasks</span>
+<span class="w-1 h-1 rounded-full bg-text-muted opacity-30"></span>
+<span class="text-status-red">2 blocked</span>
+</div>
+</div>
+<div class="text-xs">
+<span class="text-text-secondary">Current focus:</span>
+<span class="text-text-primary ml-1 font-medium">Plugin system refactor</span>
+</div>
+</div>
+<div class="mt-auto">
+<div class="flex justify-between px-4 mb-1">
+<span class="text-[10px] text-text-muted">45%</span>
+</div>
+<div class="h-[3px] w-full bg-zed-main">
+<div class="h-full bg-primary" style="width: 45%;"></div>
+</div>
+</div>
+</div>
+<!-- Card 2: Work Management -->
+<div class="bg-zed-sidebar border border-zed-border rounded-md hover:bg-zed-hover group transition-colors flex flex-col h-fit overflow-hidden">
+<div class="p-4 flex-1">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-status-green"></div>
+<h3 class="font-semibold text-text-primary text-sm">Work Management</h3>
+</div>
+</div>
+<div class="flex gap-2 mb-4">
+<span class="bg-zed-header px-2 py-0.5 rounded text-[10px] text-text-secondary font-medium tracking-tight border border-zed-border">PRODUCT</span>
+<div class="flex items-center gap-2 text-xs text-text-muted">
+<span>8 tasks</span>
+<span class="w-1 h-1 rounded-full bg-text-muted opacity-30"></span>
+<span>0 blocked</span>
+</div>
+</div>
+<div class="text-xs">
+<span class="text-text-secondary">Current focus:</span>
+<span class="text-text-primary ml-1 font-medium">Brief review and finalization</span>
+</div>
+</div>
+<div class="mt-auto">
+<div class="flex justify-between px-4 mb-1">
+<span class="text-[10px] text-text-muted">15%</span>
+</div>
+<div class="h-[3px] w-full bg-zed-main">
+<div class="h-full bg-primary" style="width: 15%;"></div>
+</div>
+</div>
+</div>
+<!-- Card 3: SaaS Product -->
+<div class="bg-zed-sidebar border border-zed-border rounded-md hover:bg-zed-hover group transition-colors flex flex-col h-fit overflow-hidden">
+<div class="p-4 flex-1">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-status-red"></div>
+<h3 class="font-semibold text-text-primary text-sm">SaaS Product</h3>
+</div>
+<span class="material-icons-outlined text-text-muted text-sm">sync</span>
+</div>
+<div class="flex gap-2 mb-4">
+<span class="bg-zed-header px-2 py-0.5 rounded text-[10px] text-text-secondary font-medium tracking-tight border border-zed-border">DEV</span>
+<div class="flex items-center gap-2 text-xs text-text-muted">
+<span>24 tasks</span>
+<span class="w-1 h-1 rounded-full bg-text-muted opacity-30"></span>
+<span class="text-status-red">5 blocked</span>
+</div>
+</div>
+<div class="text-xs">
+<span class="text-text-secondary">Current focus:</span>
+<span class="text-text-primary ml-1 font-medium">Auth system migration</span>
+</div>
+</div>
+<div class="mt-auto">
+<div class="flex justify-between px-4 mb-1">
+<span class="text-[10px] text-text-muted">68%</span>
+</div>
+<div class="h-[3px] w-full bg-zed-main">
+<div class="h-full bg-primary" style="width: 68%;"></div>
+</div>
+</div>
+</div>
+<!-- Card 4: Consulting: Acme -->
+<div class="bg-zed-sidebar border border-zed-border rounded-md hover:bg-zed-hover group transition-colors flex flex-col h-fit overflow-hidden">
+<div class="p-4 flex-1">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-status-green"></div>
+<h3 class="font-semibold text-text-primary text-sm">Consulting: Acme</h3>
+</div>
+</div>
+<div class="flex gap-2 mb-4">
+<span class="bg-zed-header px-2 py-0.5 rounded text-[10px] text-text-secondary font-medium tracking-tight border border-zed-border">BUSINESS</span>
+<div class="flex items-center gap-2 text-xs text-text-muted">
+<span>6 tasks</span>
+<span class="w-1 h-1 rounded-full bg-text-muted opacity-30"></span>
+<span>0 blocked</span>
+</div>
+</div>
+<div class="text-xs">
+<span class="text-text-secondary">Current focus:</span>
+<span class="text-text-primary ml-1 font-medium">Q1 delivery sprint</span>
+</div>
+</div>
+<div class="mt-auto">
+<div class="flex justify-between px-4 mb-1">
+<span class="text-[10px] text-text-muted">80%</span>
+</div>
+<div class="h-[3px] w-full bg-zed-main">
+<div class="h-full bg-primary" style="width: 80%;"></div>
+</div>
+</div>
+</div>
+<!-- Card 5: Knowledge Base -->
+<div class="bg-zed-sidebar border border-zed-border rounded-md hover:bg-zed-hover group transition-colors flex flex-col h-fit overflow-hidden">
+<div class="p-4 flex-1">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-status-green"></div>
+<h3 class="font-semibold text-text-primary text-sm">Knowledge Base</h3>
+</div>
+<span class="material-icons-outlined text-text-muted text-sm">sync</span>
+</div>
+<div class="flex gap-2 mb-4">
+<span class="bg-zed-header px-2 py-0.5 rounded text-[10px] text-text-secondary font-medium tracking-tight border border-zed-border">INTERNAL</span>
+<div class="flex items-center gap-2 text-xs text-text-muted">
+<span>10 tasks</span>
+<span class="w-1 h-1 rounded-full bg-text-muted opacity-30"></span>
+<span class="text-status-red">1 blocked</span>
+</div>
+</div>
+<div class="text-xs">
+<span class="text-text-secondary">Current focus:</span>
+<span class="text-text-primary ml-1 font-medium">Search ranking improvements</span>
+</div>
+</div>
+<div class="mt-auto">
+<div class="flex justify-between px-4 mb-1">
+<span class="text-[10px] text-text-muted">55%</span>
+</div>
+<div class="h-[3px] w-full bg-zed-main">
+<div class="h-full bg-primary" style="width: 55%;"></div>
+</div>
+</div>
+</div>
+<!-- Card 6: Board Governance -->
+<div class="bg-zed-sidebar border border-zed-border rounded-md hover:bg-zed-hover group transition-colors flex flex-col h-fit overflow-hidden">
+<div class="p-4 flex-1">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-status-yellow"></div>
+<h3 class="font-semibold text-text-primary text-sm">Board Governance</h3>
+</div>
+</div>
+<div class="flex gap-2 mb-4">
+<span class="bg-zed-header px-2 py-0.5 rounded text-[10px] text-text-secondary font-medium tracking-tight border border-zed-border">BOARD</span>
+<div class="flex items-center gap-2 text-xs text-text-muted">
+<span>4 tasks</span>
+<span class="w-1 h-1 rounded-full bg-text-muted opacity-30"></span>
+<span class="text-status-red">1 blocked</span>
+</div>
+</div>
+<div class="text-xs">
+<span class="text-text-secondary">Current focus:</span>
+<span class="text-text-primary ml-1 font-medium">Quarterly review prep</span>
+</div>
+</div>
+<div class="mt-auto">
+<div class="flex justify-between px-4 mb-1">
+<span class="text-[10px] text-text-muted">30%</span>
+</div>
+<div class="h-[3px] w-full bg-zed-main">
+<div class="h-full bg-primary" style="width: 30%;"></div>
+</div>
+</div>
+</div>
+<!-- Card 7: Personal -->
+<div class="bg-zed-sidebar border border-zed-border rounded-md hover:bg-zed-hover group transition-colors flex flex-col h-fit overflow-hidden">
+<div class="p-4 flex-1">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-status-green"></div>
+<h3 class="font-semibold text-text-primary text-sm">Personal</h3>
+</div>
+</div>
+<div class="flex gap-2 mb-4">
+<span class="bg-zed-header px-2 py-0.5 rounded text-[10px] text-text-secondary font-medium tracking-tight border border-zed-border">PERSONAL</span>
+<div class="flex items-center gap-2 text-xs text-text-muted">
+<span>5 tasks</span>
+<span class="w-1 h-1 rounded-full bg-text-muted opacity-30"></span>
+<span>0 blocked</span>
+</div>
+</div>
+<div class="text-xs">
+<span class="text-text-secondary">Current focus:</span>
+<span class="text-text-primary ml-1 font-medium">Tax prep and filing</span>
+</div>
+</div>
+<div class="mt-auto">
+<div class="flex justify-between px-4 mb-1">
+<span class="text-[10px] text-text-muted">40%</span>
+</div>
+<div class="h-[3px] w-full bg-zed-main">
+<div class="h-full bg-primary" style="width: 40%;"></div>
+</div>
+</div>
+</div>
+<!-- Card 8: Capabilities Registry -->
+<div class="bg-zed-sidebar border border-zed-border rounded-md hover:bg-zed-hover group transition-colors flex flex-col h-fit overflow-hidden">
+<div class="p-4 flex-1">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 rounded-full bg-status-green"></div>
+<h3 class="font-semibold text-text-primary text-sm">Capabilities Registry</h3>
+</div>
+<span class="material-icons-outlined text-text-muted text-sm">sync</span>
+</div>
+<div class="flex gap-2 mb-4">
+<span class="bg-zed-header px-2 py-0.5 rounded text-[10px] text-text-secondary font-medium tracking-tight border border-zed-border">DEV</span>
+<div class="flex items-center gap-2 text-xs text-text-muted">
+<span>3 tasks</span>
+<span class="w-1 h-1 rounded-full bg-text-muted opacity-30"></span>
+<span>0 blocked</span>
+</div>
+</div>
+<div class="text-xs">
+<span class="text-text-secondary">Current focus:</span>
+<span class="text-text-primary ml-1 font-medium">Inventory documentation</span>
+</div>
+</div>
+<div class="mt-auto">
+<div class="flex justify-between px-4 mb-1">
+<span class="text-[10px] text-text-muted">70%</span>
+</div>
+<div class="h-[3px] w-full bg-zed-main">
+<div class="h-full bg-primary" style="width: 70%;"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Stats -->
+<footer class="h-8 bg-zed-header border-t border-zed-border flex items-center justify-between px-6 text-[10px] text-text-muted uppercase tracking-wider font-bold">
+<div class="flex gap-4">
+<span>8 TOTAL PROJECTS</span>
+<div class="h-3 w-[1px] bg-zed-border self-center"></div>
+<span class="text-status-red">1 CRITICAL</span>
+<div class="h-3 w-[1px] bg-zed-border self-center"></div>
+<span class="text-status-yellow">2 AT RISK</span>
+</div>
+<div>SYSTEM STATUS: OPTIMAL</div>
+</footer>
+</main>
+</div>
+</body></html>

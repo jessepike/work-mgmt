@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Zed-Style Status Kanban Board</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3991ef",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#1A1D23", // Main background
+                        "zed-surface": "#1E2127",    // Cards/Sidebar
+                        "zed-chrome": "#212429",     // Top bar/Headers
+                        "zed-border": "#262930",
+                        "zed-active": "#2A2D34",
+                        "zed-text-primary": "#C8CCD2",
+                        "zed-text-secondary": "#7D8490",
+                        "zed-text-muted": "#4D525C",
+                        "p1": "#A85D61",
+                        "p2": "#B0825A",
+                        "p3": "#5A93CC",
+                    },
+                    fontFamily: {
+                        "display": ["IBM Plex Sans", "Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "md": "6px",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .kanban-col {
+            min-width: 280px;
+            max-width: 320px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-zed-text-primary font-display h-screen flex flex-col overflow-hidden">
+<!-- Top Bar (Chrome) -->
+<header class="h-12 bg-background-light dark:bg-zed-chrome border-b border-zed-border flex items-center justify-between px-4 z-10">
+<div class="flex items-center gap-4">
+<span class="text-zed-text-secondary text-sm font-medium">Work Management</span>
+<div class="h-4 w-[1px] bg-zed-border"></div>
+<div class="flex items-center gap-1 text-zed-text-secondary">
+<span class="material-icons text-sm">folder</span>
+<span class="text-xs uppercase tracking-wider font-semibold">Project Space</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative flex items-center bg-background-light dark:bg-zed-surface border border-zed-border rounded-md px-2 h-7 w-64">
+<span class="material-icons text-sm text-zed-text-muted">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-xs text-zed-text-primary w-full placeholder-zed-text-muted" placeholder="Search tasks..." type="text"/>
+<span class="text-[10px] text-zed-text-muted border border-zed-border px-1 rounded">⌘K</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="bg-primary text-white p-1 rounded-md flex items-center justify-center hover:opacity-90 transition-opacity">
+<span class="material-icons text-sm">add</span>
+</button>
+<div class="w-7 h-7 rounded-full bg-zed-active border border-zed-border overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="User avatar profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSPlCPM8e5DnpvrULuT-Q2blLc5CrZiZ2Z4yFCq1vxJQPlWK1yH_o_-LoSqqoXEp1OAh0A_wDVaYkAQVlbMnmP7CVLMbxtdt7ZGGUJwT3VV5G_wELAUyeEF-A3FvTDmDu-aMUz7GVoiBntrsQ_oHUYTk_m0RJfw9tLqY_DWBFw4w3yWqYvapQCpzFOsi1vrWcZNmdomdjMJbrVYU2tOAi7WTG_TSqeHplo1oTMw8usl1CzfPNiNtE39fu-sChdmlIIFT2BMj8PxAs"/>
+</div>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-[240px] bg-background-light dark:bg-zed-surface border-r border-zed-border flex flex-col py-4">
+<div class="px-4 mb-6">
+<h3 class="text-[10px] uppercase tracking-widest text-zed-text-muted font-bold mb-3">Workspace</h3>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-2 py-1.5 text-sm text-zed-text-secondary hover:bg-zed-active rounded-md" href="#">
+<span class="material-icons text-sm">dashboard</span> Dashboard
+                    </a>
+<a class="flex items-center gap-3 px-2 py-1.5 text-sm text-zed-text-secondary hover:bg-zed-active rounded-md" href="#">
+<span class="material-icons text-sm">list</span> All Tasks
+                    </a>
+</nav>
+</div>
+<div class="mb-6">
+<h3 class="text-[10px] uppercase tracking-widest text-zed-text-muted font-bold mb-3 px-4">Views</h3>
+<nav class="space-y-0.5">
+<a class="flex items-center gap-3 px-4 py-1.5 text-sm text-zed-text-primary bg-zed-active border-l-2 border-p3" href="#">
+<span class="material-icons text-sm">view_kanban</span> Status Kanban
+                    </a>
+<a class="flex items-center gap-3 px-4 py-1.5 text-sm text-zed-text-secondary hover:bg-zed-active transition-colors" href="#">
+<span class="material-icons text-sm">schedule</span> Timeline
+                    </a>
+<a class="flex items-center gap-3 px-4 py-1.5 text-sm text-zed-text-secondary hover:bg-zed-active transition-colors" href="#">
+<span class="material-icons text-sm">analytics</span> Reports
+                    </a>
+</nav>
+</div>
+<div class="px-4">
+<h3 class="text-[10px] uppercase tracking-widest text-zed-text-muted font-bold mb-3">Labels</h3>
+<div class="space-y-2">
+<div class="flex items-center gap-2 text-xs text-zed-text-secondary">
+<div class="w-2 h-2 rounded-full bg-p1"></div> Critical
+                    </div>
+<div class="flex items-center gap-2 text-xs text-zed-text-secondary">
+<div class="w-2 h-2 rounded-full bg-p2"></div> High
+                    </div>
+<div class="flex items-center gap-2 text-xs text-zed-text-secondary">
+<div class="w-2 h-2 rounded-full bg-p3"></div> Normal
+                    </div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col bg-background-light dark:bg-background-dark overflow-hidden">
+<!-- Filter Bar -->
+<div class="h-12 px-6 flex items-center gap-2 border-b border-zed-border bg-background-light dark:bg-background-dark/50">
+<button class="px-3 py-1 text-xs font-medium text-zed-text-primary bg-background-light dark:bg-zed-chrome border border-zed-border rounded-md hover:bg-zed-active">
+                    All Projects
+                </button>
+<button class="px-3 py-1 text-xs font-medium text-zed-text-secondary bg-transparent border border-transparent hover:border-zed-border rounded-md hover:bg-zed-active">
+                    Priority: Any
+                </button>
+<button class="px-3 py-1 text-xs font-medium text-zed-text-secondary bg-transparent border border-transparent hover:border-zed-border rounded-md hover:bg-zed-active">
+                    Category: All
+                </button>
+<div class="flex-1"></div>
+<button class="flex items-center gap-1 text-xs text-zed-text-secondary hover:text-zed-text-primary">
+<span class="material-icons text-sm">sort</span> Sort
+                </button>
+</div>
+<!-- Kanban Grid -->
+<div class="flex-1 overflow-x-auto p-6 flex gap-6 scrollbar-hide">
+<!-- PENDING -->
+<div class="kanban-col flex flex-col gap-4">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-bold text-zed-text-secondary tracking-widest uppercase">Pending</h2>
+<span class="text-[10px] bg-zed-chrome text-zed-text-muted px-1.5 py-0.5 rounded-md font-bold">5</span>
+</div>
+<button class="material-icons text-sm text-zed-text-muted">more_horiz</button>
+</div>
+<div class="flex flex-col gap-2">
+<!-- Card 1 -->
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md hover:border-zed-text-muted transition-colors cursor-pointer group relative">
+<div class="flex justify-between items-start mb-2">
+<span class="bg-background-light dark:bg-zed-chrome text-[10px] text-zed-text-secondary px-1.5 py-0.5 rounded uppercase tracking-tighter">ADF</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-primary leading-snug">Plugin manifest spec</h4>
+<div class="mt-4 flex justify-end">
+<div class="w-1.5 h-1.5 rounded-full bg-p1" title="P1 Priority"></div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md hover:border-zed-text-muted transition-colors cursor-pointer group relative">
+<div class="flex justify-between items-start mb-2">
+<span class="bg-background-light dark:bg-zed-chrome text-[10px] text-zed-text-secondary px-1.5 py-0.5 rounded uppercase tracking-tighter">Acme</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-primary leading-snug">Client pres prep</h4>
+<div class="mt-4 flex justify-end">
+<div class="w-1.5 h-1.5 rounded-full bg-p2" title="P2 Priority"></div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md hover:border-zed-text-muted transition-colors cursor-pointer group relative">
+<div class="flex justify-between items-start mb-2">
+<span class="bg-background-light dark:bg-zed-chrome text-[10px] text-zed-text-secondary px-1.5 py-0.5 rounded uppercase tracking-tighter">KB</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-primary leading-snug">KB search ranking</h4>
+<div class="mt-4 flex justify-end">
+<div class="w-1.5 h-1.5 rounded-full bg-p3" title="P3 Priority"></div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md hover:border-zed-text-muted transition-colors cursor-pointer group relative">
+<div class="flex justify-between items-start mb-2">
+<span class="bg-background-light dark:bg-zed-chrome text-[10px] text-zed-text-secondary px-1.5 py-0.5 rounded uppercase tracking-tighter">ADF</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-primary leading-snug">Integration test suite</h4>
+<div class="mt-4 flex justify-end">
+<div class="w-1.5 h-1.5 rounded-full bg-p2" title="P2 Priority"></div>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md hover:border-zed-text-muted transition-colors cursor-pointer group relative">
+<div class="flex justify-between items-start mb-2">
+<span class="bg-background-light dark:bg-zed-chrome text-[10px] text-zed-text-secondary px-1.5 py-0.5 rounded uppercase tracking-tighter">Personal</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-primary leading-snug">Standing desk research</h4>
+<div class="mt-4 flex justify-end">
+<div class="w-1.5 h-1.5 rounded-full bg-p3" title="P3 Priority"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- IN PROGRESS -->
+<div class="kanban-col flex flex-col gap-4">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-bold text-zed-text-secondary tracking-widest uppercase">In Progress</h2>
+<span class="text-[10px] bg-zed-chrome text-zed-text-muted px-1.5 py-0.5 rounded-md font-bold">4</span>
+</div>
+<button class="material-icons text-sm text-zed-text-muted">more_horiz</button>
+</div>
+<div class="flex flex-col gap-2">
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md hover:border-zed-text-muted transition-colors cursor-pointer group relative">
+<div class="flex justify-between items-start mb-2">
+<span class="bg-background-light dark:bg-zed-chrome text-[10px] text-zed-text-secondary px-1.5 py-0.5 rounded uppercase tracking-tighter">SaaS</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-primary leading-snug">Auth system migration</h4>
+<div class="mt-4 flex justify-end">
+<div class="w-1.5 h-1.5 rounded-full bg-p1" title="P1 Priority"></div>
+</div>
+</div>
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md hover:border-zed-text-muted transition-colors cursor-pointer group relative">
+<div class="flex justify-between items-start mb-2">
+<span class="bg-background-light dark:bg-zed-chrome text-[10px] text-zed-text-secondary px-1.5 py-0.5 rounded uppercase tracking-tighter">Acme</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-primary leading-snug">Review design brief</h4>
+<div class="mt-4 flex justify-end">
+<div class="w-1.5 h-1.5 rounded-full bg-p1" title="P1 Priority"></div>
+</div>
+</div>
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md hover:border-zed-text-muted transition-colors cursor-pointer group relative">
+<div class="flex justify-between items-start mb-2">
+<span class="bg-background-light dark:bg-zed-chrome text-[10px] text-zed-text-secondary px-1.5 py-0.5 rounded uppercase tracking-tighter">Acme</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-primary leading-snug">Q1 delivery sprint</h4>
+<div class="mt-4 flex justify-end">
+<div class="w-1.5 h-1.5 rounded-full bg-p2" title="P2 Priority"></div>
+</div>
+</div>
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md hover:border-zed-text-muted transition-colors cursor-pointer group relative">
+<div class="flex justify-between items-start mb-2">
+<span class="bg-background-light dark:bg-zed-chrome text-[10px] text-zed-text-secondary px-1.5 py-0.5 rounded uppercase tracking-tighter">Personal</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-primary leading-snug">Budget spreadsheet</h4>
+<div class="mt-4 flex justify-end">
+<div class="w-1.5 h-1.5 rounded-full bg-p3" title="P3 Priority"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- BLOCKED -->
+<div class="kanban-col flex flex-col gap-4">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-bold text-p1 tracking-widest uppercase">Blocked</h2>
+<span class="text-[10px] bg-zed-chrome text-p1 px-1.5 py-0.5 rounded-md font-bold">3</span>
+</div>
+<button class="material-icons text-sm text-zed-text-muted">more_horiz</button>
+</div>
+<div class="flex flex-col gap-2">
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md hover:border-zed-text-muted transition-colors cursor-pointer group relative border-l-2 border-l-p1">
+<div class="flex justify-between items-start mb-2">
+<span class="bg-background-light dark:bg-zed-chrome text-[10px] text-zed-text-secondary px-1.5 py-0.5 rounded uppercase tracking-tighter">ADF</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-primary leading-snug">Dep conflicts</h4>
+<div class="mt-4 flex justify-end">
+<div class="w-1.5 h-1.5 rounded-full bg-p1" title="P1 Priority"></div>
+</div>
+</div>
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md hover:border-zed-text-muted transition-colors cursor-pointer group relative border-l-2 border-l-p1">
+<div class="flex justify-between items-start mb-2">
+<span class="bg-background-light dark:bg-zed-chrome text-[10px] text-zed-text-secondary px-1.5 py-0.5 rounded uppercase tracking-tighter">Board</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-primary leading-snug">Board review prep</h4>
+<div class="mt-4 flex justify-end">
+<div class="w-1.5 h-1.5 rounded-full bg-p2" title="P2 Priority"></div>
+</div>
+</div>
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md hover:border-zed-text-muted transition-colors cursor-pointer group relative border-l-2 border-l-p1">
+<div class="flex justify-between items-start mb-2">
+<span class="bg-background-light dark:bg-zed-chrome text-[10px] text-zed-text-secondary px-1.5 py-0.5 rounded uppercase tracking-tighter">SaaS</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-primary leading-snug">Plugin API extraction</h4>
+<div class="mt-4 flex justify-end">
+<div class="w-1.5 h-1.5 rounded-full bg-p1" title="P1 Priority"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- DONE -->
+<div class="kanban-col flex flex-col gap-4 opacity-70">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-bold text-zed-text-muted tracking-widest uppercase">Done</h2>
+<span class="text-[10px] bg-zed-chrome text-zed-text-muted px-1.5 py-0.5 rounded-md font-bold">6</span>
+</div>
+<button class="material-icons text-sm text-zed-text-muted">more_horiz</button>
+</div>
+<div class="flex flex-col gap-2">
+<!-- Done Cards -->
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md flex flex-col gap-1">
+<div class="flex items-center gap-2 text-zed-text-muted mb-1">
+<span class="material-icons text-sm text-primary">check_circle</span>
+<span class="text-[10px] uppercase tracking-tighter">ADF</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-muted line-through">Extract plugin intf</h4>
+</div>
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md flex flex-col gap-1">
+<div class="flex items-center gap-2 text-zed-text-muted mb-1">
+<span class="material-icons text-sm text-primary">check_circle</span>
+<span class="text-[10px] uppercase tracking-tighter">ADF</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-muted line-through">Migrate hooks</h4>
+</div>
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md flex flex-col gap-1">
+<div class="flex items-center gap-2 text-zed-text-muted mb-1">
+<span class="material-icons text-sm text-primary">check_circle</span>
+<span class="text-[10px] uppercase tracking-tighter">ADF</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-muted line-through">Add plugin discovery</h4>
+</div>
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md flex flex-col gap-1">
+<div class="flex items-center gap-2 text-zed-text-muted mb-1">
+<span class="material-icons text-sm text-primary">check_circle</span>
+<span class="text-[10px] uppercase tracking-tighter">ADF</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-muted line-through">Update docs</h4>
+</div>
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md flex flex-col gap-1">
+<div class="flex items-center gap-2 text-zed-text-muted mb-1">
+<span class="material-icons text-sm text-primary">check_circle</span>
+<span class="text-[10px] uppercase tracking-tighter">Personal</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-muted line-through">Gather W-2 forms</h4>
+</div>
+<div class="bg-background-light dark:bg-zed-surface border border-zed-border p-3 rounded-md flex flex-col gap-1">
+<div class="flex items-center gap-2 text-zed-text-muted mb-1">
+<span class="material-icons text-sm text-primary">check_circle</span>
+<span class="text-[10px] uppercase tracking-tighter">Personal</span>
+</div>
+<h4 class="text-sm font-medium text-zed-text-muted line-through">Fix kitchen faucet</h4>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
