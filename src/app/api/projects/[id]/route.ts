@@ -10,6 +10,14 @@ function latestIso(a: string | null, b: string | null): string | null {
     return new Date(a).getTime() >= new Date(b).getTime() ? a : b;
 }
 
+function chunk<T>(items: T[], size: number): T[][] {
+    const out: T[][] = [];
+    for (let i = 0; i < items.length; i += size) {
+        out.push(items.slice(i, i + size));
+    }
+    return out;
+}
+
 // Helper to validate UUID
 function isValidUUID(uuid: string) {
     const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -102,19 +110,23 @@ export async function GET(
 
     let latestTaskActivityAt: string | null = null;
     if (taskIds.length > 0) {
-        const { data: taskActivityRows, error: taskActivityError } = await supabase
-            .from('activity_log')
-            .select('created_at')
-            .eq('entity_type', 'task')
-            .in('entity_id', taskIds)
-            .order('created_at', { ascending: false })
-            .limit(1);
+        // Chunk to avoid supabase query-string URI limits on large projects.
+        const idChunks = chunk(taskIds, 100);
+        for (const idChunk of idChunks) {
+            const { data: taskActivityRows, error: taskActivityError } = await supabase
+                .from('activity_log')
+                .select('created_at')
+                .eq('entity_type', 'task')
+                .in('entity_id', idChunk)
+                .order('created_at', { ascending: false })
+                .limit(1);
 
-        if (taskActivityError) {
-            return NextResponse.json({ error: taskActivityError.message }, { status: 500 });
+            if (taskActivityError) {
+                return NextResponse.json({ error: taskActivityError.message }, { status: 500 });
+            }
+
+            latestTaskActivityAt = latestIso(latestTaskActivityAt, taskActivityRows?.[0]?.created_at || null);
         }
-
-        latestTaskActivityAt = taskActivityRows?.[0]?.created_at || null;
     }
 
     const latestProjectActivityAt = projectActivityRows?.[0]?.created_at || null;

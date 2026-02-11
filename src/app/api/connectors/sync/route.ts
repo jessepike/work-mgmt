@@ -174,7 +174,20 @@ export async function POST(request: NextRequest) {
             if (projectUpdateError) throw projectUpdateError;
         }
 
-        // 5. Log activity
+        // 5. Update connector heartbeat metadata for UI visibility.
+        const { error: connectorUpdateError } = await supabase
+            .from('connector')
+            .update({
+                last_sync_at: new Date().toISOString(),
+                status: 'active',
+                updated_at: new Date().toISOString()
+            })
+            .eq('project_id', project_id)
+            .eq('connector_type', 'adf');
+
+        if (connectorUpdateError) throw connectorUpdateError;
+
+        // 6. Log activity
         await logActivity({
             entityType: 'project',
             entityId: project_id,
