@@ -14,6 +14,8 @@ export function computeProjectHealth(
 ): HealthSignal {
     const now = new Date();
     const activeTasks = tasks.filter(t => t.status !== 'done');
+    const inProgressTasks = activeTasks.filter(t => t.status === 'in_progress');
+    const pendingTasks = activeTasks.filter(t => t.status === 'pending');
     const blockedTasks = activeTasks.filter(t => t.status === 'blocked');
 
     // Red signals (worst first)
@@ -26,6 +28,10 @@ export function computeProjectHealth(
 
     if (activeTasks.length > 0 && blockedTasks.length / activeTasks.length > 0.3) {
         return { health: 'red', reason: `${blockedTasks.length}/${activeTasks.length} tasks blocked (>30%)` };
+    }
+
+    if (activeTasks.length >= 120 && inProgressTasks.length === 0) {
+        return { health: 'red', reason: `${activeTasks.length} active tasks but none in progress` };
     }
 
     const daysSinceActivity = lastActivityAt
@@ -50,6 +56,14 @@ export function computeProjectHealth(
 
     if (blockedTasks.length > 0) {
         return { health: 'yellow', reason: `${blockedTasks.length} blocked task(s)` };
+    }
+
+    if (activeTasks.length >= 40 && inProgressTasks.length === 0) {
+        return { health: 'yellow', reason: `${activeTasks.length} active tasks but none in progress` };
+    }
+
+    if (activeTasks.length >= 30 && pendingTasks.length / activeTasks.length >= 0.9) {
+        return { health: 'yellow', reason: `${pendingTasks.length}/${activeTasks.length} tasks still pending` };
     }
 
     if (lastActivityAt && daysSinceActivity > 7) {
