@@ -5,6 +5,25 @@ import { parseTasksMd, parseBacklogMd } from '@/lib/adf/parser';
 import path from 'path';
 import fs from 'fs/promises';
 
+function normalizeSourceId(sourceId: string, projectPath: string): string {
+    if (!sourceId) return sourceId;
+    const normalizedRoot = projectPath.replace(/\\/g, '/');
+    const normalizedSource = sourceId.replace(/\\/g, '/');
+
+    if (normalizedSource.startsWith(normalizedRoot)) {
+        return normalizedSource.replace(normalizedRoot, '.');
+    }
+
+    return normalizedSource;
+}
+
+function mapBacklogStatusFromParsedStatus(status: string): 'captured' | 'triaged' | 'prioritized' | 'promoted' | 'archived' {
+    if (status === 'in_progress') return 'triaged';
+    if (status === 'blocked') return 'prioritized';
+    if (status === 'done') return 'promoted';
+    return 'captured';
+}
+
 // POST /api/connectors/sync
 export async function POST(request: NextRequest) {
     const supabase = await createServiceClient();
@@ -65,22 +84,20 @@ export async function POST(request: NextRequest) {
             } catch { }
         }
 
-        const tasksCount = tasksFile ? (await parseTasksMd(tasksFile)).length : 0;
-        const backlogCount = backlogFile ? (await parseBacklogMd(backlogFile)).length : 0;
-
         const tasks = tasksFile ? await parseTasksMd(tasksFile) : [];
         const backlog = backlogFile ? await parseBacklogMd(backlogFile) : [];
+        const tasksCount = tasks.length;
+        const backlogCount = backlog.length;
+        const totalCount = tasksCount + backlogCount;
 
-        const allItems = [...tasks, ...backlog];
-
-        if (allItems.length === 0) {
+        if (totalCount === 0) {
             return NextResponse.json({ message: 'No items found to sync', count: 0 });
         }
 
-        // 3. Prepare payload for bulk upsert
-        const payload = allItems.map(item => ({
+        // 3. Prepare payloads for bulk upsert
+        const taskPayload = tasks.map(item => ({
             project_id,
-            source_id: item.source_id,
+            source_id: normalizeSourceId(item.source_id, projectPath),
             title: item.title,
             status: item.status,
             priority: item.priority || "P2",
@@ -88,17 +105,45 @@ export async function POST(request: NextRequest) {
             updated_at: new Date().toISOString()
         } as any));
 
-        // 4. Perform bulk upsert
-        const { data, error: upsertError } = await supabase
-            .from('task')
-            .upsert(payload, {
-                onConflict: 'project_id, source_id',
-                ignoreDuplicates: false
-            })
-            .select();
+        const backlogPayload = backlog.map(item => ({
+            project_id,
+            source_id: normalizeSourceId(item.source_id, projectPath),
+            title: item.title,
+            description: item.description || null,
+            priority: item.priority || "P2",
+            status: mapBacklogStatusFromParsedStatus(item.status),
+            data_origin: "synced",
+            updated_at: new Date().toISOString()
+        } as any));
 
-        if (upsertError) {
-            throw upsertError;
+        // 4. Perform bulk upserts
+        let upsertedTasks: any[] = [];
+        let upsertedBacklog: any[] = [];
+
+        if (taskPayload.length > 0) {
+            const { data, error: taskUpsertError } = await supabase
+                .from('task')
+                .upsert(taskPayload, {
+                    onConflict: 'project_id, source_id',
+                    ignoreDuplicates: false
+                })
+                .select();
+
+            if (taskUpsertError) throw taskUpsertError;
+            upsertedTasks = data || [];
+        }
+
+        if (backlogPayload.length > 0) {
+            const { data, error: backlogUpsertError } = await supabase
+                .from('backlog_item')
+                .upsert(backlogPayload, {
+                    onConflict: 'project_id, source_id',
+                    ignoreDuplicates: false
+                })
+                .select();
+
+            if (backlogUpsertError) throw backlogUpsertError;
+            upsertedBacklog = data || [];
         }
 
         // 5. Log activity
@@ -109,7 +154,7 @@ export async function POST(request: NextRequest) {
             actorId: 'adf-sync',
             action: 'bulk_sync',
             detail: {
-                count: allItems.length,
+                count: totalCount,
                 tasks: tasksCount,
                 backlog: backlogCount
             }
@@ -117,8 +162,11 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
             message: 'Sync complete',
-            count: allItems.length,
-            data
+            count: totalCount,
+            tasks_count: upsertedTasks.length,
+            backlog_count: upsertedBacklog.length,
+            tasks: upsertedTasks,
+            backlog: upsertedBacklog
         });
 
     } catch (error: any) {
