@@ -23,6 +23,8 @@ export function TaskCreateModal({ open, onClose, projects, defaultProjectId, onC
     const [title, setTitle] = useState("");
     const [priority, setPriority] = useState<"P1" | "P2" | "P3">("P2");
     const [deadlineAt, setDeadlineAt] = useState("");
+    const [formError, setFormError] = useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<{ title?: string; project?: string }>({});
     const sortedProjects = useMemo(() => [...projects].sort((a, b) => a.name.localeCompare(b.name)), [projects]);
 
     useEffect(() => {
@@ -31,11 +33,20 @@ export function TaskCreateModal({ open, onClose, projects, defaultProjectId, onC
         setTitle("");
         setPriority("P2");
         setDeadlineAt("");
+        setFormError(null);
+        setFieldErrors({});
     }, [open, defaultProjectId, sortedProjects]);
 
     async function submit() {
         const trimmed = title.trim();
-        if (!trimmed || !projectId || submitting) return;
+        if (submitting) return;
+        const nextFieldErrors: { title?: string; project?: string } = {};
+        if (!trimmed) nextFieldErrors.title = "Title is required";
+        if (!projectId) nextFieldErrors.project = "Project is required";
+        setFieldErrors(nextFieldErrors);
+        setFormError(null);
+        if (Object.keys(nextFieldErrors).length > 0) return;
+
         setSubmitting(true);
         try {
             const res = await fetch("/api/tasks", {
@@ -54,7 +65,9 @@ export function TaskCreateModal({ open, onClose, projects, defaultProjectId, onC
             onCreated?.(body.data);
             onClose();
         } catch (error) {
-            showToast("error", error instanceof Error ? error.message : "Failed to create task");
+            const message = error instanceof Error ? error.message : "Failed to create task";
+            setFormError(message);
+            showToast("error", message);
         } finally {
             setSubmitting(false);
         }
@@ -67,22 +80,38 @@ export function TaskCreateModal({ open, onClose, projects, defaultProjectId, onC
                     <label className="text-[10px] font-bold uppercase tracking-widest text-text-muted">Project</label>
                     <select
                         value={projectId}
-                        onChange={(e) => setProjectId(e.target.value)}
-                        className="mt-1 w-full bg-zed-main border border-zed-border rounded px-2 py-2 text-sm text-text-primary"
+                        onChange={(e) => {
+                            setProjectId(e.target.value);
+                            setFieldErrors((prev) => ({ ...prev, project: undefined }));
+                        }}
+                        disabled={submitting}
+                        className={`
+                            mt-1 w-full bg-zed-main border rounded px-2 py-2 text-sm text-text-primary disabled:opacity-50
+                            ${fieldErrors.project ? "border-status-red" : "border-zed-border"}
+                        `}
                     >
                         {sortedProjects.map((project) => (
                             <option key={project.id} value={project.id}>{project.name}</option>
                         ))}
                     </select>
+                    {fieldErrors.project && <p className="mt-1 text-[11px] text-status-red">{fieldErrors.project}</p>}
                 </div>
                 <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-text-muted">Title</label>
                     <input
                         value={title}
-                        onChange={(e) => setTitle(e.target.value)}
+                        onChange={(e) => {
+                            setTitle(e.target.value);
+                            setFieldErrors((prev) => ({ ...prev, title: undefined }));
+                        }}
                         placeholder="What needs to get done?"
-                        className="mt-1 w-full bg-zed-main border border-zed-border rounded px-2 py-2 text-sm text-text-primary"
+                        disabled={submitting}
+                        className={`
+                            mt-1 w-full bg-zed-main border rounded px-2 py-2 text-sm text-text-primary disabled:opacity-50
+                            ${fieldErrors.title ? "border-status-red" : "border-zed-border"}
+                        `}
                     />
+                    {fieldErrors.title && <p className="mt-1 text-[11px] text-status-red">{fieldErrors.title}</p>}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -90,7 +119,8 @@ export function TaskCreateModal({ open, onClose, projects, defaultProjectId, onC
                         <select
                             value={priority}
                             onChange={(e) => setPriority(e.target.value as any)}
-                            className="mt-1 w-full bg-zed-main border border-zed-border rounded px-2 py-2 text-sm text-text-primary"
+                            disabled={submitting}
+                            className="mt-1 w-full bg-zed-main border border-zed-border rounded px-2 py-2 text-sm text-text-primary disabled:opacity-50"
                         >
                             <option value="P1">P1</option>
                             <option value="P2">P2</option>
@@ -103,10 +133,16 @@ export function TaskCreateModal({ open, onClose, projects, defaultProjectId, onC
                             type="date"
                             value={deadlineAt}
                             onChange={(e) => setDeadlineAt(e.target.value)}
-                            className="mt-1 w-full bg-zed-main border border-zed-border rounded px-2 py-2 text-sm text-text-primary"
+                            disabled={submitting}
+                            className="mt-1 w-full bg-zed-main border border-zed-border rounded px-2 py-2 text-sm text-text-primary disabled:opacity-50"
                         />
                     </div>
                 </div>
+                {formError && (
+                    <div className="rounded border border-status-red/30 bg-status-red/10 px-3 py-2 text-[11px] text-status-red">
+                        {formError}
+                    </div>
+                )}
                 <div className="flex items-center justify-end gap-2 pt-2">
                     <button
                         onClick={onClose}

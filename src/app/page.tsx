@@ -1,6 +1,7 @@
 import { TaskItem } from "@/components/ui/TaskItem";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { apiFetch } from "@/lib/api/fetch";
+import { TodayHeaderActions } from "@/components/features/TodayHeaderActions";
 import type { TaskWithProject, ApiResponse } from "@/lib/types/api";
 
 type DeadlineBucket = "overdue" | "today" | "this_week" | "later";
@@ -34,11 +35,16 @@ const bucketOrder: DeadlineBucket[] = ["overdue", "today", "this_week", "later"]
 
 export default async function TodayPage() {
     let tasks: TaskWithProject[] = [];
+    let projects: Array<{ id: string; name: string }> = [];
     let error: string | null = null;
 
     try {
-        const res = await apiFetch<ApiResponse<TaskWithProject[]>>("/api/whats-next?limit=20");
-        tasks = res.data;
+        const [taskRes, projectRes] = await Promise.all([
+            apiFetch<ApiResponse<TaskWithProject[]>>("/api/whats-next?limit=20"),
+            apiFetch<ApiResponse<Array<{ id: string; name: string }>>>("/api/projects?status=active&scope=enabled"),
+        ]);
+        tasks = taskRes.data;
+        projects = projectRes.data.map((p) => ({ id: p.id, name: p.name }));
     } catch (e) {
         error = e instanceof Error ? e.message : "Failed to load tasks";
     }
@@ -71,10 +77,15 @@ export default async function TodayPage() {
         <div className="flex flex-col min-h-full bg-zed-main p-8 lg:p-12">
             <div className="max-w-4xl mx-auto w-full">
                 <header className="mb-10">
-                    <h2 className="text-2xl font-semibold text-text-primary tracking-tight">Today</h2>
-                    <p className="text-xs text-text-secondary mt-1 font-medium">
-                        {today} • {tasks.length} task{tasks.length !== 1 ? "s" : ""}
-                    </p>
+                    <div className="flex items-center justify-between gap-4">
+                        <div>
+                            <h2 className="text-2xl font-semibold text-text-primary tracking-tight">Today</h2>
+                            <p className="text-xs text-text-secondary mt-1 font-medium">
+                                {today} • {tasks.length} task{tasks.length !== 1 ? "s" : ""}
+                            </p>
+                        </div>
+                        <TodayHeaderActions projects={projects} />
+                    </div>
                 </header>
 
                 {tasks.length === 0 ? (

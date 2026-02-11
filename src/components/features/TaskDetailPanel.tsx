@@ -98,6 +98,11 @@ export function TaskDetailPanel({ task, projectName, phaseName, onClose, onTaskU
 
             <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
                 <h1 className="text-xl font-semibold mb-4 text-text-primary tracking-tight">{task.title}</h1>
+                {savingField && (
+                    <div className="mb-3 text-[10px] font-bold uppercase tracking-widest text-text-muted animate-pulse">
+                        Saving {savingField.replaceAll("_", " ")}...
+                    </div>
+                )}
 
                 <div className="flex gap-2 mb-6 flex-wrap">
                     <span className={cn(
@@ -123,9 +128,9 @@ export function TaskDetailPanel({ task, projectName, phaseName, onClose, onTaskU
                             void patchTask({ status: next }, "status");
                         }}
                         disabled={savingField !== null}
-                        className="px-2 py-1 border rounded text-[9px] font-bold uppercase tracking-tight bg-zed-active border-zed-border text-text-secondary disabled:opacity-40"
+                        className="px-2 py-1 border rounded text-[9px] font-bold uppercase tracking-tight bg-zed-active border-zed-border text-text-secondary disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                        {isDone ? "Reopen" : "Mark Done"}
+                        {savingField === "status" ? "Saving..." : isDone ? "Reopen" : "Mark Done"}
                     </button>
                 </div>
 
