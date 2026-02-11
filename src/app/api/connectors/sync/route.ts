@@ -7,14 +7,32 @@ import fs from 'fs/promises';
 
 function normalizeSourceId(sourceId: string, projectPath: string): string {
     if (!sourceId) return sourceId;
-    const normalizedRoot = projectPath.replace(/\\/g, '/');
-    const normalizedSource = sourceId.replace(/\\/g, '/');
+    const normalized = sourceId.replace(/\\/g, '/');
+    const structuredMatch = normalized.match(/^(.*?)(:(?:id|slug):.*)$/);
+    const sourcePathPart = structuredMatch ? structuredMatch[1] : normalized;
+    const sourceSuffix = structuredMatch ? structuredMatch[2] : "";
 
-    if (normalizedSource.startsWith(normalizedRoot)) {
-        return normalizedSource.replace(normalizedRoot, '.');
+    const rootAbsolute = path.resolve(projectPath).replace(/\\/g, '/');
+    const sourceAbsolute = path.isAbsolute(sourcePathPart)
+        ? path.resolve(sourcePathPart).replace(/\\/g, '/')
+        : path.resolve(projectPath, sourcePathPart).replace(/\\/g, '/');
+
+    if (sourceAbsolute.startsWith(rootAbsolute)) {
+        const relative = sourceAbsolute.slice(rootAbsolute.length).replace(/^\/+/, '');
+        const normalizedRelative = relative ? `./${relative}` : '.';
+        return `${normalizedRelative}${sourceSuffix}`;
     }
 
-    return normalizedSource;
+    const rootBase = path.basename(rootAbsolute);
+    const marker = `/${rootBase}/`;
+    const markerIndex = sourceAbsolute.indexOf(marker);
+    if (markerIndex !== -1) {
+        const relative = sourceAbsolute.slice(markerIndex + marker.length).replace(/^\/+/, '');
+        const normalizedRelative = relative ? `./${relative}` : '.';
+        return `${normalizedRelative}${sourceSuffix}`;
+    }
+
+    return `${sourceAbsolute}${sourceSuffix}`;
 }
 
 function deriveStage(status: string | null | undefined): string | null {
@@ -103,7 +121,9 @@ export async function POST(request: NextRequest) {
             path.join(projectPath, "tasks.md"),
             path.join(projectPath, "task.md"),
             path.join(projectPath, "docs", "tasks.md"),
-            path.join(projectPath, "docs", "task.md")
+            path.join(projectPath, "docs", "task.md"),
+            path.join(projectPath, "docs", "adf", "tasks.md"),
+            path.join(projectPath, "docs", "adf", "task.md")
         ];
 
         let tasksFile = "";
