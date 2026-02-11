@@ -11,6 +11,14 @@ interface ActorOption {
     name: string;
 }
 
+interface TaskComment {
+    id: string;
+    actor_id: string;
+    actor_name: string;
+    created_at: string;
+    comment: string;
+}
+
 interface TaskDetailPanelProps {
     task: Task;
     projectName?: string;
@@ -22,6 +30,9 @@ interface TaskDetailPanelProps {
 export function TaskDetailPanel({ task, projectName, phaseName, onClose, onTaskUpdated }: TaskDetailPanelProps) {
     const [activity, setActivity] = useState<ActivityLog[]>([]);
     const [actors, setActors] = useState<ActorOption[]>([]);
+    const [comments, setComments] = useState<TaskComment[]>([]);
+    const [commentDraft, setCommentDraft] = useState("");
+    const [commentBusy, setCommentBusy] = useState(false);
     const [savingField, setSavingField] = useState<string | null>(null);
     const [draft, setDraft] = useState({
         status: task.status,
@@ -53,6 +64,13 @@ export function TaskDetailPanel({ task, projectName, phaseName, onClose, onTaskU
     }, [task.id]);
 
     useEffect(() => {
+        fetch(`/api/tasks/${task.id}/comments`)
+            .then((r) => r.json())
+            .then((res) => setComments(res.data || []))
+            .catch(() => setComments([]));
+    }, [task.id]);
+
+    useEffect(() => {
         fetch("/api/actors")
             .then((r) => r.json())
             .then((res) => setActors((res.data || []).map((a: any) => ({ id: a.id, name: a.name }))))
@@ -64,6 +82,7 @@ export function TaskDetailPanel({ task, projectName, phaseName, onClose, onTaskU
             draft.status === "done" ? "bg-status-green/10 border-status-green/20 text-status-green" :
                 "bg-zed-active border-zed-border text-text-secondary"
     ), [draft.status]);
+    const actorNameById = useMemo(() => new Map(actors.map((actor) => [actor.id, actor.name])), [actors]);
 
     async function patchTask(patch: Record<string, any>, label: string) {
         if (savingField) return;
@@ -82,6 +101,29 @@ export function TaskDetailPanel({ task, projectName, phaseName, onClose, onTaskU
             showToast("error", error instanceof Error ? error.message : "Failed to update task");
         } finally {
             setSavingField(null);
+        }
+    }
+
+    async function postComment() {
+        if (!commentDraft.trim() || commentBusy) return;
+        setCommentBusy(true);
+        try {
+            const res = await fetch(`/api/tasks/${task.id}/comments`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ comment: commentDraft.trim() }),
+            });
+            const body = await res.json();
+            if (!res.ok) throw new Error(body?.error || "Failed to post comment");
+            const refresh = await fetch(`/api/tasks/${task.id}/comments`);
+            const refreshedBody = await refresh.json();
+            if (refresh.ok) setComments(refreshedBody.data || []);
+            setCommentDraft("");
+            showToast("success", "Comment added");
+        } catch (error) {
+            showToast("error", error instanceof Error ? error.message : "Failed to post comment");
+        } finally {
+            setCommentBusy(false);
         }
     }
 
@@ -139,6 +181,26 @@ export function TaskDetailPanel({ task, projectName, phaseName, onClose, onTaskU
                         This task is synced from source files and can only be updated in the source project.
                     </div>
                 )}
+
+                <section className="mb-6">
+                    <h4 className="text-[10px] font-bold text-text-muted tracking-widest uppercase mb-3">Context</h4>
+                    <div className="space-y-2 text-[11px]">
+                        <div className="flex items-center justify-between rounded border border-zed-border/50 bg-zed-main/30 px-3 py-2">
+                            <span className="text-text-muted uppercase tracking-widest text-[9px] font-bold">Task ID</span>
+                            <span className="font-mono text-text-secondary">{task.display_id ? `#${task.display_id}` : task.id.slice(0, 8)}</span>
+                        </div>
+                        <div className="flex items-center justify-between rounded border border-zed-border/50 bg-zed-main/30 px-3 py-2">
+                            <span className="text-text-muted uppercase tracking-widest text-[9px] font-bold">Updated</span>
+                            <span className="text-text-secondary">{new Date(task.updated_at).toLocaleString()}</span>
+                        </div>
+                        {task.source_id && (
+                            <div className="rounded border border-zed-border/50 bg-zed-main/30 px-3 py-2">
+                                <span className="text-text-muted uppercase tracking-widest text-[9px] font-bold">Source</span>
+                                <p className="text-text-secondary font-mono mt-1 break-all">{task.source_id}</p>
+                            </div>
+                        )}
+                    </div>
+                </section>
 
                 <section className="mb-6">
                     <h4 className="text-[10px] font-bold text-text-muted tracking-widest uppercase mb-3">Properties</h4>
@@ -239,6 +301,48 @@ export function TaskDetailPanel({ task, projectName, phaseName, onClose, onTaskU
                     />
                 </section>
 
+                <section className="mb-8">
+                    <h4 className="text-[10px] font-bold text-text-muted tracking-widest uppercase mb-3">Comments</h4>
+                    <div className="space-y-3 mb-3">
+                        <textarea
+                            value={commentDraft}
+                            onChange={(e) => setCommentDraft(e.target.value)}
+                            disabled={commentBusy}
+                            rows={3}
+                            className="w-full bg-zed-main border border-zed-border rounded px-2 py-2 text-xs text-text-primary disabled:opacity-50"
+                            placeholder="Add context for this task..."
+                        />
+                        <div className="flex items-center justify-between">
+                            <span className="text-[10px] text-text-muted">{commentDraft.trim().length}/5000</span>
+                            <button
+                                onClick={() => void postComment()}
+                                disabled={!commentDraft.trim() || commentBusy}
+                                className="px-3 py-1.5 bg-zed-active border border-zed-border text-[10px] font-bold tracking-widest uppercase hover:bg-zed-hover transition-colors rounded disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                {commentBusy ? "Posting..." : "Add Comment"}
+                            </button>
+                        </div>
+                    </div>
+
+                    {comments.length > 0 ? (
+                        <div className="space-y-2">
+                            {comments.map((comment) => (
+                                <div key={comment.id} className="rounded border border-zed-border/40 bg-zed-main/30 px-3 py-2">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary">
+                                            {comment.actor_name}
+                                        </span>
+                                        <span className="text-[10px] text-text-muted">{new Date(comment.created_at).toLocaleString()}</span>
+                                    </div>
+                                    <p className="mt-1 text-xs text-text-primary whitespace-pre-wrap">{comment.comment}</p>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-xs text-text-muted italic">No comments yet.</div>
+                    )}
+                </section>
+
                 {activity.length > 0 && (
                     <section>
                         <h4 className="text-[10px] font-bold text-text-muted tracking-widest uppercase mb-4 flex items-center gap-2">
@@ -252,9 +356,12 @@ export function TaskDetailPanel({ task, projectName, phaseName, onClose, onTaskU
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-xs text-text-secondary leading-tight">
-                                            <span className="text-text-primary font-bold">{entry.actor_id}</span>{" "}
+                                            <span className="text-text-primary font-bold">{actorNameById.get(entry.actor_id) || entry.actor_id}</span>{" "}
                                             {entry.action.replaceAll("_", " ")}
                                         </p>
+                                        {summarizeDetail(entry.detail) && (
+                                            <p className="text-[11px] text-text-muted mt-1">{summarizeDetail(entry.detail)}</p>
+                                        )}
                                         <p className="text-[10px] text-text-muted mt-1">{new Date(entry.created_at).toLocaleString()}</p>
                                     </div>
                                 </div>
@@ -281,4 +388,24 @@ function toDateInput(iso: string | null): string {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return "";
     return d.toISOString().slice(0, 10);
+}
+
+function summarizeDetail(detail: ActivityLog["detail"]): string | null {
+    if (!detail || typeof detail !== "object" || Array.isArray(detail)) return null;
+    const record = detail as Record<string, unknown>;
+
+    const comment = typeof record.comment === "string" ? record.comment : null;
+    if (comment) return truncate(comment, 140);
+
+    const title = typeof record.title === "string" ? record.title : null;
+    if (title) return `Title: ${truncate(title, 120)}`;
+
+    const changedKeys = Object.keys(record).filter((k) => record[k] !== undefined && record[k] !== null);
+    if (changedKeys.length > 0) return `Updated ${changedKeys.slice(0, 4).join(", ")}`;
+    return null;
+}
+
+function truncate(value: string, max: number): string {
+    if (value.length <= max) return value;
+    return `${value.slice(0, max - 1)}...`;
 }
