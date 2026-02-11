@@ -70,11 +70,16 @@ function registerProjectTools(server) {
             };
         }
     });
-    server.tool("get_project_details", "Get detailed information about a specific project including current plan and health", {
-        id: zod_1.z.string().uuid()
-    }, async ({ id }) => {
+    const getProjectHandler = async ({ id, project_id }) => {
+        const targetId = id || project_id;
+        if (!targetId) {
+            return {
+                content: [{ type: "text", text: "Error getting project details: missing project id" }],
+                isError: true
+            };
+        }
         try {
-            const response = await axios_1.default.get(`${API_BASE_URL}/projects/${id}`);
+            const response = await axios_1.default.get(`${API_BASE_URL}/projects/${targetId}`);
             const project = response.data?.data ?? response.data;
             return {
                 content: [
@@ -96,7 +101,16 @@ function registerProjectTools(server) {
                 isError: true
             };
         }
-    });
+    };
+    server.tool("get_project_details", "Get detailed information about a specific project including current plan and health", {
+        id: zod_1.z.string().uuid().optional(),
+        project_id: zod_1.z.string().uuid().optional()
+    }, getProjectHandler);
+    // Alias for interface parity with original design naming.
+    server.tool("get_project", "Get detailed information about a specific project including current plan and health", {
+        id: zod_1.z.string().uuid().optional(),
+        project_id: zod_1.z.string().uuid().optional()
+    }, getProjectHandler);
     server.tool("update_project", "Update project details", {
         id: zod_1.z.string().uuid(),
         name: zod_1.z.string().optional(),

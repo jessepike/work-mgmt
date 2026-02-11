@@ -35,8 +35,25 @@ export function registerPlanTools(server: McpServer) {
         }
     );
 
-    const updatePlanHandler = async ({ id, ...updates }: { id: string; name?: string; description?: string; status?: "draft" | "approved" | "in_progress" | "completed"; }) => {
-        const response = await axios.patch(`${API_BASE_URL}/plans/${id}`, updates);
+    const updatePlanHandler = async ({
+        id,
+        plan_id,
+        ...updates
+    }: {
+        id?: string;
+        plan_id?: string;
+        name?: string;
+        description?: string;
+        status?: "draft" | "approved" | "in_progress" | "completed";
+    }): Promise<any> => {
+        const targetId = id || plan_id;
+        if (!targetId) {
+            return {
+                content: [{ type: "text", text: "Error updating plan: missing plan id" }],
+                isError: true
+            };
+        }
+        const response = await axios.patch(`${API_BASE_URL}/plans/${targetId}`, updates);
         return {
             content: [{ type: "text", text: `Plan updated successfully: ${response.data.data.id}` }]
         };
@@ -46,7 +63,8 @@ export function registerPlanTools(server: McpServer) {
         "patch_plan",
         "Update an existing plan",
         {
-            id: z.string().uuid(),
+            id: z.string().uuid().optional(),
+            plan_id: z.string().uuid().optional(),
             name: z.string().optional(),
             description: z.string().optional(),
             status: z.enum(["draft", "approved", "in_progress", "completed"]).optional()
@@ -59,7 +77,8 @@ export function registerPlanTools(server: McpServer) {
         "update_plan",
         "Update an existing plan",
         {
-            id: z.string().uuid(),
+            id: z.string().uuid().optional(),
+            plan_id: z.string().uuid().optional(),
             name: z.string().optional(),
             description: z.string().optional(),
             status: z.enum(["draft", "approved", "in_progress", "completed"]).optional()

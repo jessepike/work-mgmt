@@ -44,9 +44,16 @@ export function registerTaskTools(server: McpServer) {
         }
     );
 
-    const getTaskHandler = async ({ id }: { id: string }) => {
+    const getTaskHandler = async ({ id, task_id }: { id?: string; task_id?: string }): Promise<any> => {
+        const targetId = id || task_id;
+        if (!targetId) {
+            return {
+                content: [{ type: "text", text: "Error getting task: missing task id" }],
+                isError: true
+            };
+        }
         try {
-            const response = await axios.get(`${API_BASE_URL}/tasks/${id}`);
+            const response = await axios.get(`${API_BASE_URL}/tasks/${targetId}`);
             const task = response.data?.data ?? response.data;
             return {
                 content: [
@@ -73,7 +80,8 @@ export function registerTaskTools(server: McpServer) {
         "get_task",
         "Get details for a specific task",
         {
-            id: z.string().uuid()
+            id: z.string().uuid().optional(),
+            task_id: z.string().uuid().optional()
         },
         getTaskHandler
     );

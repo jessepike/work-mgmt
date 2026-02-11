@@ -26,6 +26,40 @@ function registerPhaseTools(server) {
             content: [{ type: "text", text: `Phase created successfully: ${response.data.data.id}` }]
         };
     });
+    const updatePhaseHandler = async ({ id, phase_id, ...updates }) => {
+        const targetId = id || phase_id;
+        if (!targetId) {
+            return {
+                content: [{ type: "text", text: "Error updating phase: missing phase id" }],
+                isError: true
+            };
+        }
+        const response = await axios_1.default.patch(`${API_BASE_URL}/phases/${targetId}`, updates);
+        return {
+            content: [{ type: "text", text: `Phase updated successfully: ${response.data.data.id}` }]
+        };
+    };
+    server.tool("patch_phase", "Update an existing phase", {
+        id: zod_1.z.string().uuid().optional(),
+        phase_id: zod_1.z.string().uuid().optional(),
+        name: zod_1.z.string().optional(),
+        description: zod_1.z.string().optional(),
+        sort_order: zod_1.z.number().optional(),
+        deadline_at: zod_1.z.string().optional(),
+        status: zod_1.z.enum(["pending", "active", "completed"]).optional(),
+        handoff_notes: zod_1.z.string().optional()
+    }, updatePhaseHandler);
+    // Alias for design parity naming.
+    server.tool("update_phase", "Update an existing phase", {
+        id: zod_1.z.string().uuid().optional(),
+        phase_id: zod_1.z.string().uuid().optional(),
+        name: zod_1.z.string().optional(),
+        description: zod_1.z.string().optional(),
+        sort_order: zod_1.z.number().optional(),
+        deadline_at: zod_1.z.string().optional(),
+        status: zod_1.z.enum(["pending", "active", "completed"]).optional(),
+        handoff_notes: zod_1.z.string().optional()
+    }, updatePhaseHandler);
     server.tool("start_phase", "Start a phase", {
         id: zod_1.z.string().uuid()
     }, async ({ id }) => {

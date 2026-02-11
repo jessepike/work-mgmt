@@ -37,17 +37,26 @@ export function registerPhaseTools(server: McpServer) {
 
     const updatePhaseHandler = async ({
         id,
+        phase_id,
         ...updates
     }: {
-        id: string;
+        id?: string;
+        phase_id?: string;
         name?: string;
         description?: string;
         sort_order?: number;
         deadline_at?: string;
         status?: "pending" | "active" | "completed";
         handoff_notes?: string;
-    }) => {
-        const response = await axios.patch(`${API_BASE_URL}/phases/${id}`, updates);
+    }): Promise<any> => {
+        const targetId = id || phase_id;
+        if (!targetId) {
+            return {
+                content: [{ type: "text", text: "Error updating phase: missing phase id" }],
+                isError: true
+            };
+        }
+        const response = await axios.patch(`${API_BASE_URL}/phases/${targetId}`, updates);
         return {
             content: [{ type: "text", text: `Phase updated successfully: ${response.data.data.id}` }]
         };
@@ -57,7 +66,8 @@ export function registerPhaseTools(server: McpServer) {
         "patch_phase",
         "Update an existing phase",
         {
-            id: z.string().uuid(),
+            id: z.string().uuid().optional(),
+            phase_id: z.string().uuid().optional(),
             name: z.string().optional(),
             description: z.string().optional(),
             sort_order: z.number().optional(),
@@ -73,7 +83,8 @@ export function registerPhaseTools(server: McpServer) {
         "update_phase",
         "Update an existing phase",
         {
-            id: z.string().uuid(),
+            id: z.string().uuid().optional(),
+            phase_id: z.string().uuid().optional(),
             name: z.string().optional(),
             description: z.string().optional(),
             sort_order: z.number().optional(),

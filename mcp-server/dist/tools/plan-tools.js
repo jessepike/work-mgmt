@@ -26,17 +26,34 @@ function registerPlanTools(server) {
             content: [{ type: "text", text: `Plan created successfully: ${response.data.data.id}` }]
         };
     });
-    server.tool("patch_plan", "Update an existing plan", {
-        id: zod_1.z.string().uuid(),
-        name: zod_1.z.string().optional(),
-        description: zod_1.z.string().optional(),
-        status: zod_1.z.enum(["draft", "approved", "in_progress", "completed"]).optional()
-    }, async ({ id, ...updates }) => {
-        const response = await axios_1.default.patch(`${API_BASE_URL}/plans/${id}`, updates);
+    const updatePlanHandler = async ({ id, plan_id, ...updates }) => {
+        const targetId = id || plan_id;
+        if (!targetId) {
+            return {
+                content: [{ type: "text", text: "Error updating plan: missing plan id" }],
+                isError: true
+            };
+        }
+        const response = await axios_1.default.patch(`${API_BASE_URL}/plans/${targetId}`, updates);
         return {
             content: [{ type: "text", text: `Plan updated successfully: ${response.data.data.id}` }]
         };
-    });
+    };
+    server.tool("patch_plan", "Update an existing plan", {
+        id: zod_1.z.string().uuid().optional(),
+        plan_id: zod_1.z.string().uuid().optional(),
+        name: zod_1.z.string().optional(),
+        description: zod_1.z.string().optional(),
+        status: zod_1.z.enum(["draft", "approved", "in_progress", "completed"]).optional()
+    }, updatePlanHandler);
+    // Alias for design parity naming.
+    server.tool("update_plan", "Update an existing plan", {
+        id: zod_1.z.string().uuid().optional(),
+        plan_id: zod_1.z.string().uuid().optional(),
+        name: zod_1.z.string().optional(),
+        description: zod_1.z.string().optional(),
+        status: zod_1.z.enum(["draft", "approved", "in_progress", "completed"]).optional()
+    }, updatePlanHandler);
     server.tool("approve_plan", "Approve a plan and set its status to 'approved'", {
         id: zod_1.z.string().uuid(),
         approved_by: zod_1.z.string().describe("The ID of the actor approving the plan")

@@ -78,9 +78,16 @@ export function registerProjectTools(server: McpServer) {
         }
     );
 
-    const getProjectHandler = async ({ id }: { id: string }) => {
+    const getProjectHandler = async ({ id, project_id }: { id?: string; project_id?: string }): Promise<any> => {
+        const targetId = id || project_id;
+        if (!targetId) {
+            return {
+                content: [{ type: "text", text: "Error getting project details: missing project id" }],
+                isError: true
+            };
+        }
         try {
-            const response = await axios.get(`${API_BASE_URL}/projects/${id}`);
+            const response = await axios.get(`${API_BASE_URL}/projects/${targetId}`);
             const project = response.data?.data ?? response.data;
             return {
                 content: [
@@ -107,7 +114,8 @@ export function registerProjectTools(server: McpServer) {
         "get_project_details",
         "Get detailed information about a specific project including current plan and health",
         {
-            id: z.string().uuid()
+            id: z.string().uuid().optional(),
+            project_id: z.string().uuid().optional()
         },
         getProjectHandler
     );
@@ -117,7 +125,8 @@ export function registerProjectTools(server: McpServer) {
         "get_project",
         "Get detailed information about a specific project including current plan and health",
         {
-            id: z.string().uuid()
+            id: z.string().uuid().optional(),
+            project_id: z.string().uuid().optional()
         },
         getProjectHandler
     );

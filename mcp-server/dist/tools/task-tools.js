@@ -42,6 +42,42 @@ function registerTaskTools(server) {
             };
         }
     });
+    const getTaskHandler = async ({ id, task_id }) => {
+        const targetId = id || task_id;
+        if (!targetId) {
+            return {
+                content: [{ type: "text", text: "Error getting task: missing task id" }],
+                isError: true
+            };
+        }
+        try {
+            const response = await axios_1.default.get(`${API_BASE_URL}/tasks/${targetId}`);
+            const task = response.data?.data ?? response.data;
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify(task, null, 2)
+                    }
+                ]
+            };
+        }
+        catch (error) {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Error getting task: ${error.response?.data?.error || error.message}`
+                    }
+                ],
+                isError: true
+            };
+        }
+    };
+    server.tool("get_task", "Get details for a specific task", {
+        id: zod_1.z.string().uuid().optional(),
+        task_id: zod_1.z.string().uuid().optional()
+    }, getTaskHandler);
     server.tool("create_task", "Create a new task", {
         project_id: zod_1.z.string().uuid(),
         title: zod_1.z.string(),
