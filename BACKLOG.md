@@ -29,16 +29,16 @@ updated: "2026-02-11"
 | B16 | MCP server: stdio transport, tool definitions for all CRUD + query tools | New spec | MCP | P1 | L | Done |
 | B17 | ADF connector: markdown parser for status.md, tasks.md, backlog.md | New spec | MCP | P1 | M | Done |
 | B18 | ADF connector: sync_project tool — parse, map to entities, upsert via REST (source_id) | New spec | MCP | P1 | M | Done |
-| B19 | Dashboard shell: root layout, sidebar, header, auth gate, view switcher | New spec | Dashboard | P1 | M | Pending |
-| B20 | Auth pages: Supabase Auth UI login, session management | New spec | Dashboard | P1 | S | Pending |
-| B21 | Today view: whats-next data, grouped by deadline bucket, task items | New spec | Dashboard | P1 | M | Pending |
-| B22 | Portfolio view: project cards, filter bar, health badges, create project modal | New spec | Dashboard | P1 | M | Pending |
-| B23 | Project detail view: adaptive layout (flat vs planned), backlog section, sync indicator | New spec | Dashboard | P1 | L | Pending |
-| B24 | Status kanban view: columns by status, task cards, drag-and-drop (native only) | New spec | Dashboard | P2 | M | Pending |
-| B25 | Priority board view: columns by priority | New spec | Dashboard | P2 | S | Pending |
-| B26 | Deadline view: grouped by time bucket | New spec | Dashboard | P2 | S | Pending |
-| B27 | Task detail panel: slide-out, all fields, activity log, inline editing | New spec | Dashboard | P1 | M | Pending |
-| B28 | Quick-add component: title + Enter, optional field expansion | New spec | Dashboard | P2 | S | Pending |
+| B19 | Dashboard shell: root layout, sidebar, header, auth gate, view switcher | New spec | Dashboard | P1 | M | Done |
+| B20 | Auth pages: Supabase Auth UI login, session management | New spec | Dashboard | P1 | S | Deferred |
+| B21 | Today view: whats-next data, grouped by deadline bucket, task items | New spec | Dashboard | P1 | M | Done |
+| B22 | Portfolio view: project cards, filter bar, health badges, create project modal | New spec | Dashboard | P1 | M | Done |
+| B23 | Project detail view: adaptive layout (flat vs planned), backlog section, sync indicator | New spec | Dashboard | P1 | L | Done |
+| B24 | Status kanban view: columns by status, task cards, drag-and-drop (native only) | New spec | Dashboard | P2 | M | Done |
+| B25 | Priority board view: columns by priority | New spec | Dashboard | P2 | S | Deferred |
+| B26 | Deadline view: grouped by time bucket | New spec | Dashboard | P2 | S | Deferred |
+| B27 | Task detail panel: slide-out, all fields, activity log, inline editing | New spec | Dashboard | P1 | M | Done |
+| B28 | Quick-add component: title + Enter, optional field expansion | New spec | Dashboard | P2 | S | Done |
 | B29 | Wire MCP server to Claude Desktop config, validate read + write operations | Setup | MCP | P1 | S | Done |
 | B30 | Test ADF connector against 3+ real project repos | Enhancement | MCP | P1 | M | Pending |
 | B31 | Deploy to Vercel, configure environment variables, push Supabase migrations to production | Setup | App | P1 | M | Pending |

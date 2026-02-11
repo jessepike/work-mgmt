@@ -9,8 +9,8 @@ last_session: "2026-02-11"
 
 ## Current State
 
-- **Phase:** Develop — Phases 1-4 complete, Phase 5 in progress
-- **Focus:** Dashboard Implementation (Phase 5)
+- **Phase:** Develop — Phases 1-5 complete (MVP scope)
+- **Focus:** Deployment preparation (B31)
 - **Build:** Passing (Next.js build + TypeScript clean)
 - **API:** Core REST surface implemented (projects, plans, phases, tasks, backlog, queries, connectors)
 - **MCP:** Stdio server + tool modules wired and smoke-tested against local API
@@ -42,12 +42,18 @@ last_session: "2026-02-11"
 ### Phase 4: ADF Connector — Done (via MCP)
 - Parser and sync tool built into mcp-server/src/adf/ and mcp-server/src/tools/adf-tools.ts
 
-### Phase 5: Dashboard — In Progress
-- B19 In Progress — Dashboard shell: root layout with sidebar, Today view scaffold, Zed-inspired styling
-- B22 In Progress — Portfolio view page created
-- B23 In Progress — Project detail view scaffolded ([id] route)
-- B24 In Progress — Kanban view scaffolded
-- Component library started: TaskItem, sidebar layout, UI primitives
+### Phase 5: Dashboard — Complete (MVP Scope)
+- B19 Done — Dashboard shell: root layout, sidebar (Today/Portfolio/Kanban), header, ToastContainer
+- B21 Done — Today view: live data from /api/whats-next, deadline bucket grouping, loading/error states
+- B22 Done — Portfolio view: live projects with category filter, footer stats, project cards link to detail
+- B23 Done — Project detail: adaptive layout (flat/planned), PhaseAccordion, QuickAdd, BacklogSection, SyncIndicator
+- B24 Done — Kanban: 4-column status board, HTML5 drag-and-drop, project filter, synced item protection
+- B27 Done — Task detail panel: slide-out with properties, activity log, read-only for synced items
+- B28 Done — Quick-add: inline within project detail for native projects
+- B20 Deferred — Auth (single-user MVP)
+- B25/B26 Deferred — Priority Board and Deadline View (P2)
+- Component library: HealthBadge, PriorityChip, EmptyState, Toast, Modal, ViewSwitcher, FilterBar, StatusColumn, TaskCard, SyncIndicator
+- Shared utilities: cn(), apiFetch(), API response types
 
 ### Deployment
 - B31 Pending — Vercel deploy
@@ -142,7 +148,8 @@ last_session: "2026-02-11"
 - [x] Phase 2: REST API — core endpoints (projects, plans, phases, tasks, backlog, queries)
 - [x] **Phase 2 remaining: Connector endpoints (B15)**
 - [ ] **Phase 3 remaining: Validate_task MCP parity and broader connector trials (B16/B30)**
-- [ ] **Phase 5: Dashboard — views, components, auth, deploy**
+- [x] **Phase 5: Dashboard — views, components (MVP scope, auth deferred)**
+- [ ] **Deployment: Vercel deploy, env vars, production DB (B31)**
 - [x] Fix open bugs: actor ID hardcoding (BUG-2)
 - [x] Portfolio Status API (/api/projects/status) <!-- id: 24 -->
 
@@ -161,3 +168,4 @@ last_session: "2026-02-11"
 | 2026-02-11 | **ADF Alignment.** Moved `status.md` to root, linked `brief.md`. Resumed Develop Phase 6 (Build). |
 | 2026-02-11 | **Dashboard scaffold.** Phase 5 started: Zed-inspired Today view, root layout with sidebar, portfolio/project/kanban page stubs, TaskItem component, Tailwind theme with custom design tokens, Stitch design references added to docs/inbox. |
 | 2026-02-11 | **UI/UX prep.** Reviewed full status + backlog. Committed MCP tool name aliases (update_plan, get_project) for design parity. Loaded design context: interface spec, 12 Stitch mockups cataloged, UI code inventory (4 stub pages, 4 components, theme). Loaded Stitch + Chrome browser tools for design workflow. Ready to begin Phase 5 implementation. |
+| 2026-02-11 | **Dashboard implementation complete.** 5 commits across 5 phases: (1) Foundation — cn() utility, API types, 6 shared UI primitives. (2) Today view — live /api/whats-next data, deadline buckets, loading/error. (3) Portfolio — category filtering, live stats footer. (4) Project Detail — adaptive flat/planned layout, PhaseAccordion, TaskDetailPanel, QuickAdd, BacklogSection, SyncIndicator, data_origin enforcement. (5) Kanban — HTML5 DnD, project filter, optimistic updates, synced item protection. ~18 new files, ~8 modified. TypeScript clean, Next.js build passing. |
