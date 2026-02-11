@@ -14,7 +14,7 @@ updated: "2026-02-11"
 | B1 | Scaffold Next.js 15 project with TypeScript, Tailwind CSS 4, pnpm | Setup | App | P1 | S | Done |
 | B2 | Initialize Supabase CLI, link existing project, create migration structure | Setup | Database | P1 | S | Done |
 | B3 | Create migration: extensions, enums, all entity tables, triggers, indexes, RLS, FTS | New spec | Database | P1 | L | Done |
-| B4 | Create seed data: actor_registry + 5-8 real projects (mix connected/native) | Setup | Database | P1 | M | Partial |
+| B4 | Create seed data: actor_registry + 5-8 real projects (mix connected/native) | Setup | Database | P1 | M | Done |
 | B5 | Supabase client setup: server client (service role), browser client (anon key), middleware | Setup | API | P1 | S | Done |
 | B6 | Shared validation logic: workflow_type constraints, data_origin enforcement, source_id rules | New spec | API | P1 | M | Done |
 | B7 | Activity logging helper: logActivity() with actor context, standard actions | New spec | API | P1 | S | Done |
@@ -45,8 +45,8 @@ updated: "2026-02-11"
 
 ## Notes
 
-### B4 — Partial
-Seed has 3 actors + 3 projects. Spec called for 5-8 projects with mix of connected/native.
+### B4 — Done
+Seed includes 3 actors and 7 projects with mixed connected/native workflow patterns.
 
 ### B14 — Done
 Status, blockers, deadlines, search, whats-next, and activity endpoints are implemented.

@@ -36,6 +36,11 @@ npm --prefix mcp-server run build
 npm run test:api-contract
 ```
 
+6. ADF connector validation (requires app running + active ADF connectors):
+```bash
+npm run test:adf-sync
+```
+
 ## API Base URL
 
 - Local API base: `http://localhost:3005/api`
@@ -46,6 +51,7 @@ npm run test:api-contract
 - Shared API helpers: `src/lib/api`
 - Supabase clients/types: `src/lib/supabase`, `src/lib/types/database.ts`
 - MCP tools: `mcp-server/src/tools`
+- ADF parser + sync: `src/lib/adf/parser.ts`, `src/app/api/connectors/sync/route.ts`
 - Migrations: `supabase/migrations`
 
 ## Status and Planning
