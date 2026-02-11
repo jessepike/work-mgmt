@@ -42,19 +42,19 @@ updated: "2026-02-11"
 | B29 | Wire MCP server to Claude Desktop config, validate read + write operations | Setup | MCP | P1 | S | Done |
 | B30 | Test ADF connector against 3+ real project repos | Enhancement | MCP | P1 | M | Partial |
 | B31 | Deploy to Vercel, configure environment variables, push Supabase migrations to production | Setup | App | P1 | M | Partial |
-| B32 | Make task properties editable in detail panel (status, priority, owner, due date) | New spec | Dashboard | P1 | L | In Progress |
-| B33 | Wire task creation paths end-to-end (global new task, project new task, quick add) | New spec | Dashboard | P1 | M | In Progress |
-| B34 | Wire task completion interaction on task rows (single-click complete with optimistic UI) | New spec | Dashboard | P1 | M | Pending |
-| B35 | Add task description/notes editing in Task Detail panel | Enhancement | Dashboard | P1 | M | Pending |
-| B36 | Fix duplicate synced tasks by tightening source_id canonicalization + de-dupe guardrails | Bug | MCP/API | P1 | L | Pending |
-| B37 | Add cleanup utility for smoke/test artifacts (identify + archive/delete) | Ops | Data | P1 | M | Pending |
-| B38 | Add sidebar project list with enabled-project scope and quick navigation | UX | Dashboard | P1 | M | Pending |
-| B39 | Calibrate project health signals for high-pending/low-flow projects | Enhancement | API | P1 | M | Pending |
-| B40 | Kanban scalability pass: default project selection, empty/all-state handling, high-volume guardrails | UX | Dashboard | P2 | M | In Progress |
-| B41 | Improve Today prioritization quality (deadline + priority + flow signals, quick complete) | Enhancement | API/Dashboard | P2 | M | Pending |
+| B32 | Make task properties editable in detail panel (status, priority, owner, due date) | New spec | Dashboard | P1 | L | Done |
+| B33 | Wire task creation paths end-to-end (global new task, project new task, quick add) | New spec | Dashboard | P1 | M | Done |
+| B34 | Wire task completion interaction on task rows (single-click complete with optimistic UI) | New spec | Dashboard | P1 | M | Done |
+| B35 | Add task description/notes editing in Task Detail panel | Enhancement | Dashboard | P1 | M | Done |
+| B36 | Fix duplicate synced tasks by tightening source_id canonicalization + de-dupe guardrails | Bug | MCP/API | P1 | L | Done |
+| B37 | Add cleanup utility for smoke/test artifacts (identify + archive/delete) | Ops | Data | P1 | M | Done |
+| B38 | Add sidebar project list with enabled-project scope and quick navigation | UX | Dashboard | P1 | M | Done |
+| B39 | Calibrate project health signals for high-pending/low-flow projects | Enhancement | API | P1 | M | Done |
+| B40 | Kanban scalability pass: default project selection, empty/all-state handling, high-volume guardrails | UX | Dashboard | P2 | M | Done |
+| B41 | Improve Today prioritization quality (deadline + priority + flow signals, quick complete) | Enhancement | API/Dashboard | P2 | M | Done |
 | B42 | Task detail depth pass (due date, owner picker, comments/activity context) | Enhancement | Dashboard | P2 | L | Pending |
-| B43 | Activity log readability pass (include entity labels/task titles in event rows) | Polish | API/Dashboard | P2 | S | In Progress |
-| B44 | Feedback polish pass (loading/disabled states + explicit "not implemented" affordances) | Polish | Dashboard | P2 | S | In Progress |
+| B43 | Activity log readability pass (include entity labels/task titles in event rows) | Polish | API/Dashboard | P2 | S | Done |
+| B44 | Feedback polish pass (loading/disabled states + explicit "not implemented" affordances) | Polish | Dashboard | P2 | S | Done |
 | B45 | Search validation + dedicated search result UX for portfolio-scale datasets | Enhancement | Dashboard | P2 | M | Pending |
 | B46 | Implement Priority Board view (`/projects/:id/priority`) | Deferred scope | Dashboard | P2 | M | Pending |
 | B47 | Implement Deadline View (`/projects/:id/deadlines`) | Deferred scope | Dashboard | P2 | M | Pending |
