@@ -99,3 +99,13 @@ Optional custom API URL:
 ```bash
 API_BASE_URL=http://localhost:3005/api node tests/api-contract-smoke.mjs
 ```
+
+## Mutation Smoke (Backend)
+Run write-path smoke test for task/backlog flows:
+```bash
+node tests/api-mutation-smoke.mjs
+```
+
+For automatic cleanup, ensure these env vars are set in the shell:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`

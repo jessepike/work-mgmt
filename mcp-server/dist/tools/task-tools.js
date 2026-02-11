@@ -133,4 +133,35 @@ function registerTaskTools(server) {
             };
         }
     });
+    server.tool("validate_task", "Validate a task with passed/failed status", {
+        id: zod_1.z.string().uuid(),
+        status: zod_1.z.enum(["passed", "failed"]),
+        validated_by: zod_1.z.string().optional()
+    }, async ({ id, status, validated_by }) => {
+        try {
+            const response = await axios_1.default.post(`${API_BASE_URL}/tasks/${id}/validate`, {
+                status,
+                validated_by
+            });
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Task validated: ${JSON.stringify(response.data.data, null, 2)}`
+                    }
+                ]
+            };
+        }
+        catch (error) {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Error validating task: ${error.response?.data?.error || error.message}`
+                    }
+                ],
+                isError: true
+            };
+        }
+    });
 }
