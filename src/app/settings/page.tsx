@@ -20,6 +20,9 @@ interface ConnectorRow {
   config: { path?: string } | null;
 }
 
+type ConnectionState = "configured" | "missing_path" | "not_configured" | "native";
+type FreshnessState = "healthy" | "aging" | "stale" | "never" | "not_ready" | "n/a";
+
 function formatTimeAgo(value: string | null) {
   if (!value) return "Never";
   const date = new Date(value);
@@ -31,6 +34,34 @@ function formatTimeAgo(value: string | null) {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
+}
+
+function badgeClass(kind: "green" | "yellow" | "red" | "muted") {
+  if (kind === "green") return "bg-status-green/15 text-status-green border-status-green/30";
+  if (kind === "yellow") return "bg-status-yellow/15 text-status-yellow border-status-yellow/30";
+  if (kind === "red") return "bg-status-red/15 text-status-red border-status-red/30";
+  return "bg-zed-active text-text-secondary border-zed-border";
+}
+
+function getConnectionState(projectType: ProjectRow["project_type"], connector?: ConnectorRow): ConnectionState {
+  if (projectType === "native") return "native";
+  if (!connector) return "not_configured";
+  if (!connector.config?.path) return "missing_path";
+  return "configured";
+}
+
+function getFreshnessState(
+  projectType: ProjectRow["project_type"],
+  connection: ConnectionState,
+  lastSyncAt: string | null
+): FreshnessState {
+  if (projectType === "native") return "n/a";
+  if (connection !== "configured") return "not_ready";
+  if (!lastSyncAt) return "never";
+  const ageHours = (Date.now() - new Date(lastSyncAt).getTime()) / 36e5;
+  if (ageHours <= 6) return "healthy";
+  if (ageHours <= 24) return "aging";
+  return "stale";
 }
 
 export default function SettingsPage() {
@@ -147,9 +178,11 @@ export default function SettingsPage() {
               <thead className="bg-zed-header/40 border-b border-zed-border text-text-muted uppercase tracking-widest text-[10px]">
                 <tr>
                   <th className="px-4 py-3">Project</th>
-                  <th className="px-4 py-3">Type</th>
-                  <th className="px-4 py-3">Sync Status</th>
+                  <th className="px-4 py-3">Source</th>
+                  <th className="px-4 py-3">Connection</th>
+                  <th className="px-4 py-3">Sync Control</th>
                   <th className="px-4 py-3">Last Synced</th>
+                  <th className="px-4 py-3">Freshness</th>
                   <th className="px-4 py-3">Repo Path</th>
                   <th className="px-4 py-3">Actions</th>
                 </tr>
@@ -160,14 +193,37 @@ export default function SettingsPage() {
                   const enabled = connector?.status === "active";
                   const isConnected = project.project_type === "connected";
                   const busy = busyProject === project.id;
+                  const connection = getConnectionState(project.project_type, connector);
+                  const freshness = getFreshnessState(project.project_type, connection, connector?.last_sync_at || null);
+                  const needsAttention =
+                    isConnected &&
+                    (connection === "not_configured" || connection === "missing_path" || freshness === "stale" || freshness === "never");
 
                   return (
-                    <tr key={project.id} className="border-b border-zed-border/50 last:border-b-0">
+                    <tr
+                      key={project.id}
+                      className={`border-b border-zed-border/50 last:border-b-0 ${needsAttention ? "bg-status-yellow/5" : ""}`}
+                    >
                       <td className="px-4 py-3">
                         <div className="text-text-primary font-medium">{project.name}</div>
                         <div className="text-text-muted text-[10px] mt-1">{project.id}</div>
                       </td>
-                      <td className="px-4 py-3 text-text-secondary">{project.project_type}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${project.project_type === "native" ? badgeClass("muted") : badgeClass("green")}`}>
+                          {project.project_type === "native" ? "Native" : "ADF"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {connection === "native" ? (
+                          <span className={`inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${badgeClass("muted")}`}>—</span>
+                        ) : connection === "configured" ? (
+                          <span className={`inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${badgeClass("green")}`}>Configured</span>
+                        ) : connection === "missing_path" ? (
+                          <span className={`inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${badgeClass("yellow")}`}>Missing Path</span>
+                        ) : (
+                          <span className={`inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${badgeClass("red")}`}>Not Configured</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3">
                         {isConnected ? (
                           <label className="inline-flex items-center cursor-pointer">
@@ -181,13 +237,30 @@ export default function SettingsPage() {
                             <span className={`w-10 h-5 rounded-full transition-colors ${enabled ? "bg-primary" : "bg-zed-border"}`}>
                               <span className={`block w-4 h-4 bg-white rounded-full mt-0.5 transition-transform ${enabled ? "translate-x-5" : "translate-x-0.5"}`} />
                             </span>
-                            <span className="ml-2 text-[11px] text-text-secondary">{enabled ? "Enabled" : connector ? "Paused" : "Not configured"}</span>
+                            <span className="ml-2 text-[11px] text-text-secondary">
+                              {!connector ? "Disabled" : enabled ? "Enabled" : connector.status === "error" ? "Error" : "Paused"}
+                            </span>
                           </label>
                         ) : (
-                          <span className="text-text-muted">N/A (native)</span>
+                          <span className="text-text-muted">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-text-secondary">{isConnected ? formatTimeAgo(connector?.last_sync_at || null) : "-"}</td>
+                      <td className="px-4 py-3 text-text-secondary">{isConnected ? formatTimeAgo(connector?.last_sync_at || null) : "—"}</td>
+                      <td className="px-4 py-3">
+                        {freshness === "n/a" ? (
+                          <span className="text-text-muted">—</span>
+                        ) : freshness === "healthy" ? (
+                          <span className={`inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${badgeClass("green")}`}>Healthy</span>
+                        ) : freshness === "aging" ? (
+                          <span className={`inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${badgeClass("yellow")}`}>Aging</span>
+                        ) : freshness === "stale" ? (
+                          <span className={`inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${badgeClass("red")}`}>Stale</span>
+                        ) : freshness === "never" ? (
+                          <span className={`inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${badgeClass("yellow")}`}>Never Synced</span>
+                        ) : (
+                          <span className={`inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${badgeClass("red")}`}>Not Ready</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3">
                         {isConnected ? (
                           connector?.config?.path ? (
@@ -209,7 +282,7 @@ export default function SettingsPage() {
                         {isConnected ? (
                           <button
                             onClick={() => syncNow(project)}
-                            disabled={!connector || busy || connector.status === "paused"}
+                            disabled={!connector || busy || connector.status === "paused" || !connector.config?.path}
                             className="px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase rounded bg-zed-active border border-zed-border text-text-secondary disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zed-hover"
                           >
                             Sync now
