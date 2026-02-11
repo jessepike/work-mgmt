@@ -103,6 +103,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                             <ProjectCard
                                 key={project.id}
                                 id={project.id}
+                                href={buildProjectHref(project.id, { category: categoryFilter, preset })}
                                 name={project.name}
                                 category={normalizeCategoryLabel(project.categories[0] || "uncategorized")}
                                 tasksCount={project.task_summary?.total_active || 0}
@@ -236,4 +237,12 @@ function isProjectStale(project: Pick<ProjectFromApi, "last_activity_at" | "crea
     if (!reference) return false;
     const ageDays = (now - new Date(reference).getTime()) / (1000 * 60 * 60 * 24);
     return ageDays >= 7;
+}
+
+function buildProjectHref(projectId: string, context: { category?: string; preset?: string }): string {
+    const params = new URLSearchParams();
+    params.set("from", "portfolio");
+    if (context.category) params.set("category", context.category);
+    if (context.preset) params.set("preset", context.preset);
+    return `/projects/${projectId}?${params.toString()}`;
 }

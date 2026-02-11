@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { IconDots, IconCircle, IconCircleCheckFilled } from "@tabler/icons-react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { HealthBadge } from "@/components/ui/HealthBadge";
 import { PriorityChip } from "@/components/ui/PriorityChip";
@@ -34,12 +35,14 @@ interface ProjectInfo {
 interface ProjectDetailClientProps {
     project: ProjectInfo;
     tasks: Task[];
+    returnHref?: string;
+    returnLabel?: string;
 }
 
 type ProjectTab = "active" | "backlog" | "completed";
 type TaskSortMode = "smart" | "priority" | "due_date" | "updated";
 
-export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps) {
+export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }: ProjectDetailClientProps) {
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [selectedTab, setSelectedTab] = useState<ProjectTab>("active");
     const [sortMode, setSortMode] = useState<TaskSortMode>("smart");
@@ -48,6 +51,7 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
     const [taskRows, setTaskRows] = useState<Task[]>(tasks);
     const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
     const [bulkBusy, setBulkBusy] = useState(false);
+    const [bulkFeedback, setBulkFeedback] = useState<{ skippedIds: string[]; skippedReasons: Record<string, string> } | null>(null);
 
     const isConnected = project.project_type === "connected";
     const isPlanned = project.workflow_type === "planned";
@@ -86,7 +90,13 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
     async function runBulkUpdate(updates: { status?: Task["status"]; priority?: Task["priority"] }) {
         if (selectedTaskIds.size === 0 || bulkBusy) return;
         const taskIds = Array.from(selectedTaskIds);
+        const previousById = new Map(
+            taskRows
+                .filter((task) => taskIds.includes(task.id))
+                .map((task) => [task.id, { status: task.status, priority: task.priority, completed_at: task.completed_at }])
+        );
         setBulkBusy(true);
+        setBulkFeedback(null);
         try {
             const res = await fetch("/api/tasks/bulk-update", {
                 method: "POST",
@@ -98,10 +108,13 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
             });
             const body = await res.json();
             if (!res.ok) throw new Error(body?.error || "Bulk update failed");
+            const skippedIds: string[] = body?.data?.skipped_ids || [];
+            const updatedTaskIds = taskIds.filter((id) => !skippedIds.includes(id));
 
             setTaskRows((prev) =>
                 prev.map((task) => {
                     if (!taskIds.includes(task.id)) return task;
+                    if (skippedIds.includes(task.id)) return task;
                     const nextStatus = updates.status ?? task.status;
                     return {
                         ...task,
@@ -114,9 +127,43 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
             );
 
             setSelectedTaskIds(new Set());
-            const skipped = body?.data?.skipped_ids?.length || 0;
+            const skipped = skippedIds.length;
             const updated = body?.data?.updated_count || taskIds.length;
-            showToast("success", `Updated ${updated} tasks${skipped ? ` (${skipped} skipped)` : ""}`);
+            if (skipped > 0) {
+                setBulkFeedback({
+                    skippedIds: body?.data?.skipped_ids || [],
+                    skippedReasons: body?.data?.skipped_reasons || {},
+                });
+            }
+            showToast("success", `Updated ${updated} tasks${skipped ? ` (${skipped} skipped)` : ""}`, {
+                actionLabel: "Undo",
+                onAction: async () => {
+                    const reverseIds = Array.from(previousById.keys());
+                    for (const taskId of reverseIds.filter((id) => updatedTaskIds.includes(id))) {
+                        const prev = previousById.get(taskId);
+                        if (!prev) continue;
+                        await fetch(`/api/tasks/${taskId}`, {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ status: prev.status, priority: prev.priority }),
+                        });
+                    }
+                    setTaskRows((prev) =>
+                        prev.map((task) => {
+                            const before = previousById.get(task.id);
+                            if (!before) return task;
+                            return {
+                                ...task,
+                                status: before.status,
+                                priority: before.priority,
+                                completed_at: before.completed_at,
+                                updated_at: new Date().toISOString(),
+                            };
+                        })
+                    );
+                    showToast("success", "Bulk action undone");
+                },
+            });
         } catch (error) {
             showToast("error", error instanceof Error ? error.message : "Bulk update failed");
         } finally {
@@ -129,6 +176,14 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
             <div className="flex-1 flex flex-col border-r border-zed-border min-w-0">
                 <header className="px-8 h-14 flex items-center justify-between border-b border-zed-border bg-zed-header/30">
                     <div className="flex items-center gap-3 min-w-0">
+                        {returnHref && (
+                            <Link
+                                href={returnHref}
+                                className="text-[10px] font-bold uppercase tracking-widest text-text-muted hover:text-text-secondary"
+                            >
+                                {returnLabel || "Back"}
+                            </Link>
+                        )}
                         <HealthBadge health={project.health} size="md" />
                         <h2 className="text-sm font-semibold text-text-primary truncate">{project.name}</h2>
                         {isConnected && project.connector && (
@@ -312,11 +367,83 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
                             </div>
                         </div>
                     )}
+
+                    {bulkFeedback && bulkFeedback.skippedIds.length > 0 && (
+                        <div className="p-2 rounded border border-status-yellow/30 bg-status-yellow/10">
+                            <div className="text-[10px] font-bold uppercase tracking-widest text-status-yellow">
+                                Some tasks were skipped
+                            </div>
+                            <div className="mt-1 space-y-1">
+                                {bulkFeedback.skippedIds.slice(0, 5).map((taskId) => (
+                                    <div key={taskId} className="text-[11px] text-text-secondary font-mono">
+                                        {taskId.slice(0, 8)}: {bulkFeedback.skippedReasons[taskId] || "Skipped"}
+                                    </div>
+                                ))}
+                                {bulkFeedback.skippedIds.length > 5 && (
+                                    <div className="text-[11px] text-text-muted">+{bulkFeedback.skippedIds.length - 5} more</div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-10">
                     {selectedTab === "active" && (
                         <>
+                            {activeTasks.length === 0 && (
+                                <div className="rounded border border-zed-border bg-zed-sidebar/30 p-4">
+                                    <div className="text-sm font-semibold text-text-primary">No active tasks</div>
+                                    <div className="text-xs text-text-secondary mt-1">
+                                        Promote a backlog item or create a new task to start execution.
+                                    </div>
+                                    <div className="mt-3 flex items-center gap-2">
+                                        <button
+                                            onClick={() => setSelectedTab("backlog")}
+                                            className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover"
+                                        >
+                                            Open Backlog
+                                        </button>
+                                        {!isConnected && (
+                                            <button
+                                                onClick={() => {
+                                                    const input = document.querySelector<HTMLInputElement>('input[placeholder=\"Add a task...\"]');
+                                                    input?.focus();
+                                                }}
+                                                className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover"
+                                            >
+                                                Add Task
+                                            </button>
+                                        )}
+                                        {isConnected && project.connector && (
+                                            <button
+                                                onClick={async () => {
+                                                    if (syncing) return;
+                                                    setSyncing(true);
+                                                    try {
+                                                        const res = await fetch("/api/connectors/sync", {
+                                                            method: "POST",
+                                                            headers: { "Content-Type": "application/json" },
+                                                            body: JSON.stringify({ project_id: project.id }),
+                                                        });
+                                                        const body = await res.json();
+                                                        if (!res.ok) throw new Error(body?.error || "Sync failed");
+                                                        setLastSyncAt(new Date().toISOString());
+                                                        showToast("success", `Synced ${body?.count || 0} items`);
+                                                    } catch (error) {
+                                                        showToast("error", error instanceof Error ? error.message : "Sync failed");
+                                                    } finally {
+                                                        setSyncing(false);
+                                                    }
+                                                }}
+                                                className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover"
+                                            >
+                                                Sync Now
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
                             {!isConnected && (
                                 <QuickAdd
                                     projectId={project.id}
@@ -553,7 +680,12 @@ function TaskListFlat({
                             <span className="text-[9px] font-bold text-status-red uppercase tracking-tight">BLOCKED</span>
                         )}
                         {task.data_origin === "synced" && (
-                            <span className="text-[9px] font-bold text-text-muted/50 uppercase tracking-tight">SYNCED</span>
+                            <span
+                                className="text-[9px] font-bold text-text-muted/50 uppercase tracking-tight"
+                                title={task.source_id || "Synced task"}
+                            >
+                                SYNCED
+                            </span>
                         )}
                         <PriorityChip priority={task.priority} />
                         {task.deadline_at && (

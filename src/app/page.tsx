@@ -105,7 +105,7 @@ export default async function TodayPage() {
                                                 project={task.project?.name || "Unknown"}
                                                 priority={task.priority || "P3"}
                                                 status={task.status}
-                                                href={task.project?.id ? `/projects/${task.project.id}` : undefined}
+                                                href={task.project?.id ? `/projects/${task.project.id}?from=today` : undefined}
                                             />
                                         ))}
                                     </div>

@@ -25,10 +25,12 @@ interface ProjectDetail {
 
 interface ProjectDetailPageProps {
     params: Promise<{ id: string }>;
+    searchParams: Promise<{ from?: string; category?: string; preset?: string }>;
 }
 
-export default async function ProjectDetailPage({ params }: ProjectDetailPageProps) {
+export default async function ProjectDetailPage({ params, searchParams }: ProjectDetailPageProps) {
     const { id } = await params;
+    const query = await searchParams;
 
     let project: ProjectDetail | null = null;
     let tasks: Task[] = [];
@@ -57,6 +59,26 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
         <ProjectDetailClient
             project={project}
             tasks={tasks}
+            returnHref={buildReturnHref(query)}
+            returnLabel={buildReturnLabel(query)}
         />
     );
+}
+
+function buildReturnHref(query: { from?: string; category?: string; preset?: string }): string | undefined {
+    if (query.from === "today") return "/";
+    if (query.from === "portfolio") {
+        const params = new URLSearchParams();
+        if (query.category) params.set("category", query.category);
+        if (query.preset) params.set("preset", query.preset);
+        const suffix = params.toString();
+        return suffix ? `/portfolio?${suffix}` : "/portfolio";
+    }
+    return undefined;
+}
+
+function buildReturnLabel(query: { from?: string }): string | undefined {
+    if (query.from === "today") return "Back to Today";
+    if (query.from === "portfolio") return "Back to Portfolio";
+    return undefined;
 }

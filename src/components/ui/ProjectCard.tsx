@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 
 interface ProjectCardProps {
     id?: string;
+    href?: string;
     name: string;
     category: string;
     tasksCount: number;
@@ -31,6 +32,7 @@ const healthColors = {
 
 export function ProjectCard({
     id,
+    href,
     name,
     category,
     tasksCount,
@@ -49,7 +51,7 @@ export function ProjectCard({
     isStale = false
 }: ProjectCardProps) {
     const Wrapper = id ? Link : "div";
-    const wrapperProps = id ? { href: `/projects/${id}` } : {};
+    const wrapperProps = id ? { href: href || `/projects/${id}` } : {};
     const stageLabel = stage.trim();
     const syncLabel = formatRelativeTime(lastSyncAt);
     const activityLabel = formatRelativeTime(lastActivityAt);

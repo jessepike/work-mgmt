@@ -10,13 +10,19 @@ interface ToastMessage {
     id: number;
     type: ToastType;
     message: string;
+    actionLabel?: string;
+    onAction?: () => void;
 }
 
 let toastId = 0;
 const listeners: Set<(toast: ToastMessage) => void> = new Set();
 
-export function showToast(type: ToastType, message: string) {
-    const toast: ToastMessage = { id: ++toastId, type, message };
+export function showToast(
+    type: ToastType,
+    message: string,
+    options?: { actionLabel?: string; onAction?: () => void }
+) {
+    const toast: ToastMessage = { id: ++toastId, type, message, ...options };
     listeners.forEach((fn) => fn(toast));
 }
 
@@ -28,7 +34,7 @@ export function ToastContainer() {
             setToasts((prev) => [...prev, toast]);
             setTimeout(() => {
                 setToasts((prev) => prev.filter((t) => t.id !== toast.id));
-            }, 3000);
+            }, toast.onAction ? 6000 : 3000);
         };
         listeners.add(handler);
         return () => { listeners.delete(handler); };
@@ -58,6 +64,17 @@ export function ToastContainer() {
                         <IconX className="w-3.5 h-3.5" />
                     )}
                     {toast.message}
+                    {toast.onAction && toast.actionLabel && (
+                        <button
+                            onClick={() => {
+                                toast.onAction?.();
+                                dismiss(toast.id);
+                            }}
+                            className="ml-2 px-1.5 py-0.5 rounded border border-zed-border text-text-secondary hover:text-text-primary"
+                        >
+                            {toast.actionLabel}
+                        </button>
+                    )}
                     <button
                         onClick={() => dismiss(toast.id)}
                         className="ml-2 text-text-muted hover:text-text-secondary"

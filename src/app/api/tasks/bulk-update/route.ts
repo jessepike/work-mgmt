@@ -51,11 +51,15 @@ export async function POST(request: NextRequest) {
     const skippedIds = (tasks || [])
         .filter((task) => forbiddenForSynced && task.data_origin === 'synced')
         .map((task) => task.id);
+    const skippedReasons = Object.fromEntries(
+        skippedIds.map((id) => [id, 'Synced tasks only allow status updates'])
+    );
 
     if (allowedTasks.length === 0) {
         return NextResponse.json({
             error: 'No tasks eligible for update (synced tasks only allow status changes)',
-            skipped_ids: skippedIds
+            skipped_ids: skippedIds,
+            skipped_reasons: skippedReasons
         }, { status: 400 });
     }
 
@@ -88,7 +92,8 @@ export async function POST(request: NextRequest) {
             detail: {
                 count: eligibleIds.length,
                 updates: body.updates,
-                skipped_ids: skippedIds
+                skipped_ids: skippedIds,
+                skipped_reasons: skippedReasons
             }
         });
     }
@@ -96,7 +101,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
         data: {
             updated_count: eligibleIds.length,
-            skipped_ids: skippedIds
+            skipped_ids: skippedIds,
+            skipped_reasons: skippedReasons
         }
     });
 }
