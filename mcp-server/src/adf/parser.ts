@@ -12,6 +12,8 @@ export interface AdfTask {
 export interface AdfStatus {
     current_status: string; // The main status line
     blockers: string[];
+    pending_decisions: string[];
+    focus?: string;
 }
 
 export interface AdfBacklogItem {
@@ -104,42 +106,71 @@ function mapBacklogStatus(rawStatus: string, currentSection: string): AdfBacklog
 export async function parseStatusMd(filePath: string): Promise<AdfStatus> {
     try {
         const content = await fs.readFile(filePath, "utf-8");
-        // Extract status from "Current Status" or similar header, or just first line if simple
-        // Simple heuristic: Look for lines starting with "Status:" or headers
-
-        // For now, let's extract the first non-empty line as status if no specific format
-        // Real ADF might have strict sections.
-
         let current_status = "Active";
         const blockers: string[] = [];
+        const pending_decisions: string[] = [];
+        let focus: string | undefined;
+        let section: "none" | "status" | "blockers" | "pending_decisions" | "focus" = "none";
 
-        // Check for "Blockers" or "Blocking Issues"
         const lines = content.split("\n");
-        let inBlockers = false;
-
-        for (const line of lines) {
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
             const trimmed = line.trim();
-            if (trimmed.match(/^#+\s*Current Status/i)) {
-                // Next line might be status
-                continue;
-            }
-            if (trimmed.match(/^#+\s*Blockers/i)) {
-                inBlockers = true;
+
+            const keyValueMatch = trimmed.match(/^(current_status|status|focus)\s*:\s*(.+)$/i);
+            if (keyValueMatch) {
+                const key = keyValueMatch[1].toLowerCase();
+                const value = keyValueMatch[2].trim();
+                if (key === "focus") focus = value;
+                else current_status = value;
                 continue;
             }
 
-            if (inBlockers) {
-                if (trimmed.startsWith("- [ ]") || trimmed.startsWith("- ")) {
-                    blockers.push(trimmed.replace(/^-\s*(\[ \]\s*)?/, ""));
-                } else if (trimmed.startsWith("#")) {
-                    inBlockers = false;
+            const headingMatch = trimmed.match(/^#+\s*(.+)$/);
+            if (headingMatch) {
+                const heading = headingMatch[1].toLowerCase();
+                if (heading.includes("current status") || heading === "status") section = "status";
+                else if (heading.includes("blocker")) section = "blockers";
+                else if (heading.includes("pending decision")) section = "pending_decisions";
+                else if (heading === "focus" || heading.includes("current focus")) section = "focus";
+                else section = "none";
+                continue;
+            }
+
+            if (!trimmed) continue;
+
+            if (section === "status") {
+                if (!trimmed.startsWith("- ")) {
+                    current_status = trimmed.replace(/^[-*]\s*/, "").trim();
+                    section = "none";
                 }
+                continue;
+            }
+
+            if (section === "focus" && !focus) {
+                focus = trimmed.replace(/^[-*]\s*/, "").trim();
+                section = "none";
+                continue;
+            }
+
+            if (section === "blockers") {
+                if (trimmed.startsWith("- [ ]") || trimmed.startsWith("- [x]") || trimmed.startsWith("- ")) {
+                    blockers.push(trimmed.replace(/^-\s*(\[[x ]\]\s*)?/, ""));
+                }
+                continue;
+            }
+
+            if (section === "pending_decisions") {
+                if (trimmed.startsWith("- [ ]") || trimmed.startsWith("- [x]") || trimmed.startsWith("- ")) {
+                    pending_decisions.push(trimmed.replace(/^-\s*(\[[x ]\]\s*)?/, ""));
+                }
+                continue;
             }
         }
 
-        return { current_status, blockers };
+        return { current_status, blockers, pending_decisions, focus };
     } catch (e) {
-        return { current_status: "Unknown", blockers: [] };
+        return { current_status: "Unknown", blockers: [], pending_decisions: [] };
     }
 }
 
