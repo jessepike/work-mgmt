@@ -36,6 +36,8 @@ export default function KanbanPage() {
     const [tasks, setTasks] = useState<KanbanTask[]>([]);
     const [projects, setProjects] = useState<ProjectOption[]>([]);
     const [selectedProject, setSelectedProject] = useState<string>("");
+    const [autoScoped, setAutoScoped] = useState(false);
+    const [showAllColumns, setShowAllColumns] = useState(false);
     const [loading, setLoading] = useState(true);
     const [dragTaskId, setDragTaskId] = useState<string | null>(null);
 
@@ -71,12 +73,16 @@ export default function KanbanPage() {
                     sort_order: t.sort_order,
                 }))
             );
+            if (!autoScoped && !selectedProject && nextProjects.length > 0) {
+                setSelectedProject(nextProjects[0].id);
+                setAutoScoped(true);
+            }
         } catch {
             showToast("error", "Failed to load kanban data");
         } finally {
             setLoading(false);
         }
-    }, [selectedProject]);
+    }, [selectedProject, autoScoped]);
 
     useEffect(() => {
         fetchData();
@@ -161,6 +167,19 @@ export default function KanbanPage() {
                             </button>
                         ))}
                     </nav>
+                    {!selectedProject && tasks.length > 250 && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-status-yellow">
+                                High volume: {tasks.length} tasks
+                            </span>
+                            <button
+                                onClick={() => setShowAllColumns((prev) => !prev)}
+                                className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover"
+                            >
+                                {showAllColumns ? "Cap Cards" : "Show All"}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </header>
 
@@ -171,6 +190,8 @@ export default function KanbanPage() {
                     <div className="flex gap-6 h-full min-w-fit">
                         {columns.map((col) => {
                             const columnTasks = tasks.filter((t) => t.status === col.status);
+                            const cappedTasks = !selectedProject && !showAllColumns ? columnTasks.slice(0, 200) : columnTasks;
+                            const hiddenCount = columnTasks.length - cappedTasks.length;
                             return (
                                 <StatusColumn
                                     key={col.status}
@@ -180,7 +201,7 @@ export default function KanbanPage() {
                                     onDragOver={handleDragOver}
                                     onDrop={(e) => handleDrop(e, col.status)}
                                 >
-                                    {columnTasks.map((task) => (
+                                    {cappedTasks.map((task) => (
                                         <TaskCard
                                             key={task.id}
                                             id={task.id}
@@ -194,6 +215,11 @@ export default function KanbanPage() {
                                             onClick={() => router.push(`/projects/${task.project_id}?from=kanban&task=${task.id}`)}
                                         />
                                     ))}
+                                    {hiddenCount > 0 && (
+                                        <div className="text-[10px] text-text-muted px-2 py-1">
+                                            {hiddenCount} more hidden in this column
+                                        </div>
+                                    )}
                                 </StatusColumn>
                             );
                         })}

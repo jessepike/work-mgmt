@@ -49,6 +49,7 @@ interface ActivityItem {
     entity_type: string;
     action: string;
     detail: Record<string, any> | null;
+    entity_label?: string | null;
 }
 
 export function ProjectDetailClient({ project, tasks, returnHref, returnLabel, initialTaskId }: ProjectDetailClientProps) {
@@ -708,6 +709,9 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel, i
                                     <div key={item.id} className="flex items-center justify-between gap-3 h-9 px-3 rounded border border-zed-border/40 bg-zed-sidebar/20">
                                         <div className="text-[11px] text-text-secondary truncate">
                                             <span className="uppercase text-text-muted mr-2">{item.entity_type}</span>
+                                            {item.entity_label && (
+                                                <span className="text-text-primary mr-2">{item.entity_label}</span>
+                                            )}
                                             {item.action.replaceAll("_", " ")}
                                         </div>
                                         <div className="text-[10px] font-mono text-text-muted whitespace-nowrap">

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
     IconHome,
@@ -19,6 +20,17 @@ const navItems = [
 
 export function Sidebar() {
     const pathname = usePathname();
+    const [projectLinks, setProjectLinks] = useState<Array<{ id: string; name: string }>>([]);
+
+    useEffect(() => {
+        fetch("/api/projects?status=active&scope=enabled")
+            .then((r) => r.json())
+            .then((res) => {
+                const rows = (res?.data || []) as Array<{ id: string; name: string }>;
+                setProjectLinks(rows.slice(0, 18));
+            })
+            .catch(() => setProjectLinks([]));
+    }, []);
 
     return (
         <aside className="w-[240px] flex-shrink-0 bg-zed-sidebar border-r border-zed-border flex flex-col h-screen">
@@ -49,6 +61,32 @@ export function Sidebar() {
                             </Link>
                         );
                     })}
+                </div>
+
+                <div className="mt-4 px-4">
+                    <div className="text-[10px] uppercase tracking-widest font-bold text-text-muted mb-2">
+                        Projects
+                    </div>
+                    <div className="space-y-0.5">
+                        {projectLinks.map((project) => {
+                            const href = `/projects/${project.id}`;
+                            const isActive = pathname.startsWith(href);
+                            return (
+                                <Link
+                                    key={project.id}
+                                    href={href}
+                                    className={cn(
+                                        "block h-7 px-2 leading-7 text-xs truncate rounded transition-colors",
+                                        isActive
+                                            ? "bg-zed-active text-primary"
+                                            : "text-text-secondary hover:bg-zed-hover hover:text-text-primary"
+                                    )}
+                                >
+                                    {project.name}
+                                </Link>
+                            );
+                        })}
+                    </div>
                 </div>
             </nav>
 

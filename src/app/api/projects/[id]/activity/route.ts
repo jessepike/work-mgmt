@@ -6,6 +6,12 @@ function isValidUUID(uuid: string) {
     return regex.test(uuid);
 }
 
+function getDetailString(detail: unknown, field: string): string | null {
+    if (!detail || typeof detail !== 'object' || Array.isArray(detail)) return null;
+    const value = (detail as Record<string, unknown>)[field];
+    return typeof value === 'string' && value.trim().length > 0 ? value : null;
+}
+
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -27,6 +33,27 @@ export async function GET(
 
     const taskIds = (taskRows || []).map((row) => row.id);
     const backlogIds = (backlogRows || []).map((row) => row.id);
+
+    let taskTitleById = new Map<string, string>();
+    let backlogTitleById = new Map<string, string>();
+
+    if (taskIds.length > 0) {
+        const { data: taskDetailRows, error: taskDetailError } = await supabase
+            .from('task')
+            .select('id, title')
+            .in('id', taskIds);
+        if (taskDetailError) return NextResponse.json({ error: taskDetailError.message }, { status: 500 });
+        taskTitleById = new Map((taskDetailRows || []).map((row) => [row.id, row.title]));
+    }
+
+    if (backlogIds.length > 0) {
+        const { data: backlogDetailRows, error: backlogDetailError } = await supabase
+            .from('backlog_item')
+            .select('id, title')
+            .in('id', backlogIds);
+        if (backlogDetailError) return NextResponse.json({ error: backlogDetailError.message }, { status: 500 });
+        backlogTitleById = new Map((backlogDetailRows || []).map((row) => [row.id, row.title]));
+    }
 
     const queries = [
         supabase
@@ -72,6 +99,17 @@ export async function GET(
 
     const merged = results
         .flatMap((result) => result.data || [])
+        .map((item) => {
+            let entityLabel: string | null = null;
+            if (item.entity_type === 'task') {
+                entityLabel = taskTitleById.get(item.entity_id) || getDetailString(item.detail, 'title');
+            } else if (item.entity_type === 'backlog_item') {
+                entityLabel = backlogTitleById.get(item.entity_id) || getDetailString(item.detail, 'title');
+            } else if (item.entity_type === 'project') {
+                entityLabel = getDetailString(item.detail, 'name');
+            }
+            return { ...item, entity_label: entityLabel };
+        })
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, limit);
 

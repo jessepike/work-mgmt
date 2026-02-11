@@ -25,8 +25,7 @@ export async function GET(request: NextRequest) {
         project:project_id(id, name, status, current_phase_id),
         phase:phase_id(status)
     `)
-        .neq('status', 'done')
-        .neq('status', 'blocked'); // Don't recommend blocked tasks (unless recently unblocked logic exists, but 'blocked' status means currently blocked)
+        .neq('status', 'done');
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -73,6 +72,12 @@ export async function GET(request: NextRequest) {
             reasons.push('In Progress');
         }
 
+        // 4b. Blocked tasks still need visibility in today's view.
+        if (task.status === 'blocked') {
+            score += 35;
+            reasons.push('Blocked');
+        }
+
         // 5. Approaching deadline (within 2 days)
         if (deadline && !isOverdue && deadline < now + (2 * 24 * 60 * 60 * 1000)) {
             score += 40;
@@ -82,9 +87,15 @@ export async function GET(request: NextRequest) {
             return { ...task, score, match_reasons: reasons };
         });
 
-    // Sort by score desc, then created_at asc (FIFO)
+    // Sort by score desc, then:
+    // - in_progress before pending before blocked
+    // - oldest first for tie-breaks
     scoredTasks.sort((a, b) => {
         if (b.score !== a.score) return b.score - a.score;
+        const statusRank = (s: string) => s === 'in_progress' ? 0 : s === 'pending' ? 1 : s === 'blocked' ? 2 : 3;
+        const aStatus = statusRank(a.status);
+        const bStatus = statusRank(b.status);
+        if (aStatus !== bStatus) return aStatus - bStatus;
         return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     });
 
