@@ -80,3 +80,10 @@ npm run smoke:e2e
 - Otherwise uses the first project from `list_projects`.
 - If no projects exist, attempts bootstrap only when `SMOKE_OWNER_ID` is set.
 - If no project context can be resolved, script exits as `SKIPPED` (exit 0). Set `SMOKE_STRICT=1` to make that a failure.
+- Any MCP tool/API error now fails the run immediately.
+
+## CI
+
+- GitHub Actions workflow: `.github/workflows/mcp-smoke.yml`
+- Push/PR behavior: runs MCP contract smoke.
+- Manual dispatch option: can run strict MCP e2e smoke against a chosen API URL + project.

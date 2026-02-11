@@ -1,0 +1,74 @@
+name: MCP Smoke
+
+on:
+  push:
+    paths:
+      - 'mcp-server/**'
+      - 'src/app/api/**'
+      - 'src/lib/api/**'
+      - '.github/workflows/mcp-smoke.yml'
+  pull_request:
+    paths:
+      - 'mcp-server/**'
+      - 'src/app/api/**'
+      - 'src/lib/api/**'
+      - '.github/workflows/mcp-smoke.yml'
+  workflow_dispatch:
+    inputs:
+      run_e2e:
+        description: 'Run strict MCP e2e smoke'
+        required: false
+        default: 'false'
+      api_url:
+        description: 'API base URL for MCP (e.g., https://dev.example.com/api)'
+        required: false
+        default: 'http://localhost:3005/api'
+      smoke_project_id:
+        description: 'Existing project UUID used by strict e2e smoke'
+        required: false
+        default: ''
+      smoke_owner_id:
+        description: 'Owner UUID (optional bootstrap fallback)'
+        required: false
+        default: ''
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcp-server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: mcp-server/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: MCP contract smoke
+        run: npm run smoke:contract
+
+  e2e:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.run_e2e == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcp-server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: mcp-server/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: MCP e2e smoke (strict)
+        env:
+          API_URL: ${{ github.event.inputs.api_url }}
+          SMOKE_PROJECT_ID: ${{ github.event.inputs.smoke_project_id }}
+          SMOKE_OWNER_ID: ${{ github.event.inputs.smoke_owner_id }}
+          SMOKE_STRICT: '1'
+        run: npm run smoke:e2e

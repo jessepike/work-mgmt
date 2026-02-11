@@ -14,6 +14,12 @@ function assert(condition, message) {
 async function callAndParse(client, name, args = {}, opts = {}) {
   const result = await client.callTool(name, args, opts.timeoutMs || 20000);
   const text = textFromToolResult(result);
+  if (result?.isError) {
+    if (opts.allowError) {
+      return { result, text, json: parseJsonText(text) };
+    }
+    throw new Error(`Tool ${name} failed: ${text || 'unknown error'}`);
+  }
   return { result, text, json: parseJsonText(text) };
 }
 
@@ -34,7 +40,13 @@ async function main() {
     if (process.env.SMOKE_PROJECT_ID) {
       project = { id: process.env.SMOKE_PROJECT_ID };
     } else {
-      const projectsRes = await callAndParse(client, 'list_projects', { limit: 20 });
+      const projectsRes = await callAndParse(client, 'list_projects', { limit: 20 }, { allowError: !strict });
+      if (projectsRes.result?.isError) {
+        const msg = `Cannot list projects from API. ${projectsRes.text || 'Unknown error'}`;
+        if (strict) throw new Error(msg);
+        console.warn(`SKIPPED: ${msg}`);
+        return;
+      }
       const projects = Array.isArray(projectsRes.json) ? projectsRes.json : [];
       project = projects[0] || null;
     }
