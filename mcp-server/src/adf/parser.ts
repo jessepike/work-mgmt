@@ -1,5 +1,4 @@
 import fs from "fs/promises";
-import path from "path";
 
 // Types matching the ADF specification slightly adapted for our internal model
 export interface AdfTask {
@@ -13,6 +12,93 @@ export interface AdfTask {
 export interface AdfStatus {
     current_status: string; // The main status line
     blockers: string[];
+}
+
+export interface AdfBacklogItem {
+    title: string;
+    source_id: string;
+    description?: string;
+    priority?: "P1" | "P2" | "P3";
+    status: "captured" | "triaged" | "prioritized" | "promoted" | "archived";
+}
+
+function slugify(input: string): string {
+    return input
+        .toLowerCase()
+        .replace(/<[^>]+>/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 80);
+}
+
+function normalizeSourceToken(raw: string): string {
+    return raw
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9._:-]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+}
+
+function buildStableSourceId(
+    filePath: string,
+    section: string,
+    title: string,
+    explicitId: string | null,
+    seen: Map<string, number>
+): string {
+    if (explicitId) {
+        return `${filePath}:id:${normalizeSourceToken(explicitId)}`;
+    }
+
+    const sectionSlug = slugify(section || "section") || "section";
+    const titleSlug = slugify(title || "item") || "item";
+    const key = `${sectionSlug}:${titleSlug}`;
+    const seq = (seen.get(key) || 0) + 1;
+    seen.set(key, seq);
+
+    return `${filePath}:slug:${key}${seq > 1 ? `:${seq}` : ""}`;
+}
+
+function parsePriority(text: string): { cleanedText: string; priority?: "P1" | "P2" | "P3" } {
+    const match = text.match(/\((P[1-3])\)/i) || text.match(/\b(P[1-3])\b/i);
+    if (!match) return { cleanedText: text };
+    const priority = match[1].toUpperCase() as "P1" | "P2" | "P3";
+    const cleanedText = text.replace(match[0], "").replace(/\s{2,}/g, " ").trim();
+    return { cleanedText, priority };
+}
+
+function extractInlineId(text: string): string | null {
+    const commentId = text.match(/<!--\s*id\s*:\s*([a-zA-Z0-9._:-]+)\s*-->/i);
+    if (commentId) return commentId[1];
+    const tokenId = text.match(/\b(?:id|source_id)\s*[:=]\s*([a-zA-Z0-9._:-]+)/i);
+    if (tokenId) return tokenId[1];
+    return null;
+}
+
+function mapTaskStatus(rawStatus: string): AdfTask["status"] {
+    const s = rawStatus.toLowerCase();
+    if (s.includes("done") || s.includes("complete") || s === "x") return "done";
+    if (s.includes("progress") || s.includes("doing") || s.includes("active")) return "in_progress";
+    if (s.includes("block")) return "blocked";
+    return "pending";
+}
+
+function mapBacklogStatus(rawStatus: string, currentSection: string): AdfBacklogItem["status"] {
+    const s = rawStatus.toLowerCase();
+    const section = currentSection.toLowerCase();
+
+    if (s.includes("archive")) return "archived";
+    if (s.includes("promot")) return "promoted";
+    if (s.includes("priorit")) return "prioritized";
+    if (s.includes("triage")) return "triaged";
+    if (s.includes("captur") || s.includes("queue")) return "captured";
+
+    if (section.includes("archive")) return "archived";
+    if (section.includes("promot")) return "promoted";
+    if (section.includes("priorit")) return "prioritized";
+    if (section.includes("triage")) return "triaged";
+
+    return "captured";
 }
 
 export async function parseStatusMd(filePath: string): Promise<AdfStatus> {
@@ -62,6 +148,8 @@ export async function parseTasksMd(filePath: string): Promise<AdfTask[]> {
         const content = await fs.readFile(filePath, "utf-8");
         const lines = content.split("\n");
         const tasks: AdfTask[] = [];
+        const seen = new Map<string, number>();
+        let currentSection = "tasks";
 
         // Track if we are in a table
         let inTable = false;
@@ -69,6 +157,10 @@ export async function parseTasksMd(filePath: string): Promise<AdfTask[]> {
 
         lines.forEach((line, index) => {
             const trimmed = line.trim();
+            const heading = trimmed.match(/^#+\s+(.*)$/);
+            if (heading) {
+                currentSection = heading[1];
+            }
 
             // 1. Handle Checkboxes (Standard List)
             const checkboxMatch = trimmed.match(/^- \[(x| )\] (.*)/);
@@ -77,11 +169,13 @@ export async function parseTasksMd(filePath: string): Promise<AdfTask[]> {
                 let text = checkboxMatch[2];
                 let status: AdfTask["status"] = isChecked ? "done" : "pending";
 
-                const prioMatch = text.match(/\((P[1-3])\)/);
-                let priority: AdfTask["priority"] = "P2";
-                if (prioMatch) {
-                    priority = prioMatch[1] as any;
-                    text = text.replace(/\(P[1-3]\)/, "").trim();
+                const explicitId = extractInlineId(text);
+                const prio = parsePriority(text);
+                text = prio.cleanedText;
+                const priority: AdfTask["priority"] = prio.priority || "P2";
+
+                if (!isChecked) {
+                    status = mapTaskStatus(text);
                 }
 
                 text = text.replace(/<!--.*?-->/g, "").trim();
@@ -89,7 +183,7 @@ export async function parseTasksMd(filePath: string): Promise<AdfTask[]> {
                 tasks.push({
                     title: text,
                     status,
-                    source_id: `${filePath}:${index + 1}`,
+                    source_id: buildStableSourceId(filePath, currentSection, text, explicitId, seen),
                     priority
                 });
                 return;
@@ -117,22 +211,22 @@ export async function parseTasksMd(filePath: string): Promise<AdfTask[]> {
                     const taskIndex = tableHeader.findIndex(h => h.includes("task") || h === "item");
                     const statusIndex = tableHeader.findIndex(h => h.includes("status"));
                     const idIndex = tableHeader.findIndex(h => h === "id");
+                    const priorityIndex = tableHeader.findIndex(h => h.includes("priority") || h === "pri");
 
                     if (taskIndex !== -1) {
-                        const title = parts[taskIndex];
+                        const titleRaw = parts[taskIndex];
+                        const titlePrio = parsePriority(titleRaw);
+                        const title = titlePrio.cleanedText;
                         const rawStatus = statusIndex !== -1 ? parts[statusIndex].toLowerCase() : "pending";
-                        const id = idIndex !== -1 ? parts[idIndex] : `${index + 1}`;
-
-                        let status: AdfTask["status"] = "pending";
-                        if (rawStatus.includes("done") || rawStatus.includes("complete") || rawStatus === "x") status = "done";
-                        else if (rawStatus.includes("progress")) status = "in_progress";
-                        else if (rawStatus.includes("block")) status = "blocked";
+                        const id = idIndex !== -1 ? parts[idIndex] : null;
+                        const columnPriority = priorityIndex !== -1 ? parsePriority(parts[priorityIndex]).priority : undefined;
+                        const priority = columnPriority || titlePrio.priority || "P2";
 
                         tasks.push({
                             title,
-                            status,
-                            source_id: `${filePath}:${id}`,
-                            priority: "P2" // Default for table items unless we see a prio column
+                            status: mapTaskStatus(rawStatus),
+                            source_id: buildStableSourceId(filePath, currentSection, title, id, seen),
+                            priority
                         });
                     }
                 }
@@ -148,9 +242,88 @@ export async function parseTasksMd(filePath: string): Promise<AdfTask[]> {
     }
 }
 
-export async function parseBacklogMd(filePath: string): Promise<AdfTask[]> {
-    // Similar to tasks, but maybe table format?
-    // Let's assume list format for now or standard markdown table
-    // For MVP, treat same as tasks.md list
-    return parseTasksMd(filePath);
+export async function parseBacklogMd(filePath: string): Promise<AdfBacklogItem[]> {
+    try {
+        const content = await fs.readFile(filePath, "utf-8");
+        const lines = content.split("\n");
+        const backlog: AdfBacklogItem[] = [];
+        const seen = new Map<string, number>();
+        let currentSection = "backlog";
+
+        let inTable = false;
+        let tableHeader: string[] = [];
+
+        lines.forEach((line) => {
+            const trimmed = line.trim();
+            const heading = trimmed.match(/^#+\s+(.*)$/);
+            if (heading) {
+                currentSection = heading[1];
+            }
+
+            const checkboxMatch = trimmed.match(/^- \[(x| )\] (.*)/);
+            if (checkboxMatch) {
+                let text = checkboxMatch[2].replace(/<!--.*?-->/g, "").trim();
+                const explicitId = extractInlineId(text);
+                const prio = parsePriority(text);
+                text = prio.cleanedText;
+                const status = checkboxMatch[1] === "x"
+                    ? "archived"
+                    : mapBacklogStatus(text, currentSection);
+
+                backlog.push({
+                    title: text,
+                    source_id: buildStableSourceId(filePath, currentSection, text, explicitId, seen),
+                    priority: prio.priority || "P2",
+                    status
+                });
+                return;
+            }
+
+            if (trimmed.startsWith("|") && trimmed.includes("|")) {
+                const parts = trimmed.split("|").map(p => p.trim()).filter((p, i, a) => i > 0 && i < a.length - 1);
+
+                if (trimmed.includes("---")) return;
+
+                if (!inTable) {
+                    if (parts.some(p => p.toLowerCase().includes("item") || p.toLowerCase().includes("task") || p.toLowerCase().includes("status"))) {
+                        inTable = true;
+                        tableHeader = parts.map(p => p.toLowerCase());
+                        return;
+                    }
+                }
+
+                if (inTable) {
+                    const titleIndex = tableHeader.findIndex(h => h.includes("task") || h.includes("item") || h.includes("title"));
+                    const statusIndex = tableHeader.findIndex(h => h.includes("status"));
+                    const idIndex = tableHeader.findIndex(h => h === "id");
+                    const priorityIndex = tableHeader.findIndex(h => h.includes("priority") || h === "pri");
+                    const descriptionIndex = tableHeader.findIndex(h => h.includes("description") || h === "notes");
+
+                    if (titleIndex !== -1) {
+                        const titleRaw = parts[titleIndex];
+                        const titlePrio = parsePriority(titleRaw);
+                        const rawStatus = statusIndex !== -1 ? parts[statusIndex] : "";
+                        const explicitId = idIndex !== -1 ? parts[idIndex] : null;
+                        const columnPriority = priorityIndex !== -1 ? parsePriority(parts[priorityIndex]).priority : undefined;
+                        const description = descriptionIndex !== -1 ? parts[descriptionIndex] : undefined;
+
+                        backlog.push({
+                            title: titlePrio.cleanedText,
+                            source_id: buildStableSourceId(filePath, currentSection, titlePrio.cleanedText, explicitId, seen),
+                            description,
+                            priority: columnPriority || titlePrio.priority || "P2",
+                            status: mapBacklogStatus(rawStatus, currentSection)
+                        });
+                    }
+                }
+            } else {
+                inTable = false;
+            }
+        });
+
+        return backlog;
+    } catch (e) {
+        console.warn(`Failed to parse ${filePath}`, e);
+        return [];
+    }
 }

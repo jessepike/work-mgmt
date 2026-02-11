@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
 import { logActivity } from '@/lib/api/activity';
-import { parseTasksMd, parseBacklogMd } from '@/lib/adf/parser';
+import { parseTasksMd, parseBacklogMd, parseStatusMd } from '@/lib/adf/parser';
 import path from 'path';
 import fs from 'fs/promises';
 
@@ -15,13 +15,6 @@ function normalizeSourceId(sourceId: string, projectPath: string): string {
     }
 
     return normalizedSource;
-}
-
-function mapBacklogStatusFromParsedStatus(status: string): 'captured' | 'triaged' | 'prioritized' | 'promoted' | 'archived' {
-    if (status === 'in_progress') return 'triaged';
-    if (status === 'blocked') return 'prioritized';
-    if (status === 'done') return 'promoted';
-    return 'captured';
 }
 
 // POST /api/connectors/sync
@@ -72,7 +65,11 @@ export async function POST(request: NextRequest) {
 
         const possibleBacklogPaths = [
             path.join(projectPath, "BACKLOG.md"),
-            path.join(projectPath, "docs", "BACKLOG.md")
+            path.join(projectPath, "backlog.md"),
+            path.join(projectPath, "docs", "BACKLOG.md"),
+            path.join(projectPath, "docs", "backlog.md"),
+            path.join(projectPath, "docs", "adf", "BACKLOG.md"),
+            path.join(projectPath, "docs", "adf", "backlog.md")
         ];
 
         let backlogFile = "";
@@ -84,13 +81,29 @@ export async function POST(request: NextRequest) {
             } catch { }
         }
 
+        const possibleStatusPaths = [
+            path.join(projectPath, "status.md"),
+            path.join(projectPath, "docs", "status.md"),
+            path.join(projectPath, "docs", "adf", "status.md")
+        ];
+
+        let statusFile = "";
+        for (const p of possibleStatusPaths) {
+            try {
+                await fs.access(p);
+                statusFile = p;
+                break;
+            } catch { }
+        }
+
         const tasks = tasksFile ? await parseTasksMd(tasksFile) : [];
         const backlog = backlogFile ? await parseBacklogMd(backlogFile) : [];
+        const status = statusFile ? await parseStatusMd(statusFile) : null;
         const tasksCount = tasks.length;
         const backlogCount = backlog.length;
         const totalCount = tasksCount + backlogCount;
 
-        if (totalCount === 0) {
+        if (totalCount === 0 && !status) {
             return NextResponse.json({ message: 'No items found to sync', count: 0 });
         }
 
@@ -111,7 +124,7 @@ export async function POST(request: NextRequest) {
             title: item.title,
             description: item.description || null,
             priority: item.priority || "P2",
-            status: mapBacklogStatusFromParsedStatus(item.status),
+            status: item.status,
             data_origin: "synced",
             updated_at: new Date().toISOString()
         } as any));
@@ -146,6 +159,19 @@ export async function POST(request: NextRequest) {
             upsertedBacklog = data || [];
         }
 
+        if (status) {
+            const { error: projectUpdateError } = await supabase
+                .from('project')
+                .update({
+                    current_stage: status.current_status,
+                    blockers: status.blockers,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', project_id);
+
+            if (projectUpdateError) throw projectUpdateError;
+        }
+
         // 5. Log activity
         await logActivity({
             entityType: 'project',
@@ -156,7 +182,8 @@ export async function POST(request: NextRequest) {
             detail: {
                 count: totalCount,
                 tasks: tasksCount,
-                backlog: backlogCount
+                backlog: backlogCount,
+                status: !!status
             }
         });
 
@@ -165,6 +192,7 @@ export async function POST(request: NextRequest) {
             count: totalCount,
             tasks_count: upsertedTasks.length,
             backlog_count: upsertedBacklog.length,
+            status_synced: !!status,
             tasks: upsertedTasks,
             backlog: upsertedBacklog
         });
