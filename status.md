@@ -10,7 +10,7 @@ last_session: "2026-02-11T21:00"
 ## Current State
 
 - **Phase:** Develop — Phases 1-5 complete (MVP scope)
-- **Focus:** Deployment preparation (B31)
+- **Focus:** UI/UX usability review & project management (pre-deployment)
 - **Build:** Passing (Next.js build + TypeScript clean)
 - **API:** Core REST surface implemented (projects, plans, phases, tasks, backlog, queries, connectors)
 - **MCP:** Stdio server + tool modules wired and smoke-tested against local API
@@ -173,3 +173,4 @@ last_session: "2026-02-11T21:00"
 | 2026-02-11 | **Visual validation attempt.** Started dev server (port 3005, responding 200). Attempted Chrome browser automation via claude-in-chrome MCP — server connected but Chrome extension not linked. Committed parallel MCP agent changes (ADF parser improvements, connector sync fixes). |
 | 2026-02-11 | **Chrome browser tool test.** Attempted claude-in-chrome connection after Chrome restart — extension still not connecting ("No Chrome extension connected"). Needs further debugging of extension ↔ MCP link. |
 | 2026-02-11 | **Dashboard visual testing & bug fixes.** Connected Chrome browser tools (via `/chrome` command). Fixed 4 blockers: (1) SSR fetch failure — NEXT_PUBLIC_APP_URL pointed to wrong port. (2) Auth middleware redirect disabled for MVP. (3) Project name missing from whats-next join. (4) Portfolio 500 — batched task activity queries to avoid Supabase URI length limit. All 4 views verified working: Today, Portfolio, Kanban, Project Detail. KB entry added for chrome extension troubleshooting. |
+| 2026-02-11 | **UI/UX usability review.** Identified gaps before deploy: (1) No project selection/management UI — need settings page showing available/active projects + sync status. (2) Polling/heartbeat — currently manual only; need "Last synced" + "Sync now" button. (3) Tags not implemented (Todoist feature, P2). (4) Missing views: Search, Priority board (B25), Deadline view (B26). Next: Build settings page for project management + sync controls. |
