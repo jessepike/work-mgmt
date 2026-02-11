@@ -78,36 +78,48 @@ export function registerProjectTools(server: McpServer) {
         }
     );
 
+    const getProjectHandler = async ({ id }: { id: string }) => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/projects/${id}`);
+            const project = response.data?.data ?? response.data;
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify(project, null, 2)
+                    }
+                ]
+            };
+        } catch (error: any) {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Error getting project details: ${error.message}`
+                    }
+                ],
+                isError: true
+            };
+        }
+    };
+
     server.tool(
         "get_project_details",
         "Get detailed information about a specific project including current plan and health",
         {
             id: z.string().uuid()
         },
-        async ({ id }) => {
-            try {
-                const response = await axios.get(`${API_BASE_URL}/projects/${id}`);
-                const project = response.data?.data ?? response.data;
-                return {
-                    content: [
-                        {
-                            type: "text",
-                            text: JSON.stringify(project, null, 2)
-                        }
-                    ]
-                };
-            } catch (error: any) {
-                return {
-                    content: [
-                        {
-                            type: "text",
-                            text: `Error getting project details: ${error.message}`
-                        }
-                    ],
-                    isError: true
-                };
-            }
-        }
+        getProjectHandler
+    );
+
+    // Alias for interface parity with original design naming.
+    server.tool(
+        "get_project",
+        "Get detailed information about a specific project including current plan and health",
+        {
+            id: z.string().uuid()
+        },
+        getProjectHandler
     );
 
     server.tool(

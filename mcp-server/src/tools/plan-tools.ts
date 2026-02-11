@@ -35,6 +35,13 @@ export function registerPlanTools(server: McpServer) {
         }
     );
 
+    const updatePlanHandler = async ({ id, ...updates }: { id: string; name?: string; description?: string; status?: "draft" | "approved" | "in_progress" | "completed"; }) => {
+        const response = await axios.patch(`${API_BASE_URL}/plans/${id}`, updates);
+        return {
+            content: [{ type: "text", text: `Plan updated successfully: ${response.data.data.id}` }]
+        };
+    };
+
     server.tool(
         "patch_plan",
         "Update an existing plan",
@@ -44,12 +51,20 @@ export function registerPlanTools(server: McpServer) {
             description: z.string().optional(),
             status: z.enum(["draft", "approved", "in_progress", "completed"]).optional()
         },
-        async ({ id, ...updates }) => {
-            const response = await axios.patch(`${API_BASE_URL}/plans/${id}`, updates);
-            return {
-                content: [{ type: "text", text: `Plan updated successfully: ${response.data.data.id}` }]
-            };
-        }
+        updatePlanHandler
+    );
+
+    // Alias for design parity naming.
+    server.tool(
+        "update_plan",
+        "Update an existing plan",
+        {
+            id: z.string().uuid(),
+            name: z.string().optional(),
+            description: z.string().optional(),
+            status: z.enum(["draft", "approved", "in_progress", "completed"]).optional()
+        },
+        updatePlanHandler
     );
 
     server.tool(
