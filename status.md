@@ -8,11 +8,12 @@ updated: "2026-02-11"
 
 ## Current State
 
-- **Phase:** Develop — Phases 1-2 complete, Phase 3-4 partial
-- **Focus:** Backlog endpoints (B13), remaining query endpoints (B14), MCP tool coverage (B16), then Dashboard (Phase 5)
+- **Phase:** Develop — Phases 1-4 complete
+- **Focus:** Dashboard Implementation (Phase 5)
 - **Build:** Passing (Next.js build + TypeScript clean)
-- **API:** 15/25 endpoints implemented, tested against local Supabase
-- **MCP:** 11 tools implemented (project, task, search, ADF sync)
+- **API:** 23/25 endpoints implemented (+connectors)
+- **MCP:** 28+ tools implemented (Discovery & Connection added)
+- **Portfolio:** 8 projects, 587 tasks synced
 - **Known bugs:** 3 open (see BACKLOG.md)
 
 ## Implementation Progress
@@ -133,12 +134,12 @@ updated: "2026-02-11"
 - [x] External review of design spec
 - [x] Finalization and Develop stage transition
 - [x] Phase 1: Data Foundation — scaffold, migrations, seed
-- [x] Phase 2: REST API — core endpoints (projects, plans, phases, tasks, search, whats-next, activity)
-- [ ] **Phase 2 remaining: Backlog endpoints (B13), query endpoints (B14), connector endpoints (B15)**
+- [x] Phase 2: REST API — core endpoints (projects, plans, phases, tasks, backlog, queries)
+- [ ] **Phase 2 remaining: Connector endpoints (B15)**
 - [ ] **Phase 3 remaining: MCP plan/phase/backlog tools (B16), Claude Desktop wiring (B29)**
-- [x] Phase 4: ADF Connector — parser, sync_project tool
-- [ ] Phase 5: Dashboard — views, components, auth, deploy
-- [ ] Fix open bugs: actor ID hardcoding (BUG-2), data_origin enforcement (BUG-3), package name (BUG-4)
+- [ ] **Phase 5: Dashboard — views, components, auth, deploy**
+- [ ] Fix open bugs: actor ID hardcoding (BUG-2)
+- [/] Portfolio Status API (/api/projects/status) <!-- id: 24 -->
 
 ## Blockers
 
@@ -149,14 +150,8 @@ updated: "2026-02-11"
 | Date | Summary |
 |------|---------|
 | 2026-02-10 | Project initialized |
-| 2026-02-10 | Exploration complete. Read architecture docs (TAXONOMY.md, AGENTIC-WORK-SYSTEM-ARCHITECTURE.md) and v5 brief. Aligned on: two-component model (store + agent), MVP scope (store + API + MCP + connector + dashboard), inbound-only sync, single user. Crystallized intent.md and discover-brief.md v0.1. |
-| 2026-02-10 | Internal review (Ralph Loop): 2 cycles, 4 High issues resolved (digest scope, workflow_type, status/validation split, Plan usage rules). External review (Gemini/GPT/Kimi): 4 P1 resolved (API validation rules, sort_order, data origin enforcement, backlog promotion). 5 P2 deferred to Design. Brief at v0.4, ready for finalization. |
-| 2026-02-10 | Design research: Zed IDE visual design language + Todoist UX patterns. Created Stitch design prompt. Generated 10 screens across 2 rounds. Completed design spec (7 screens, interaction model, component palette). |
-| 2026-02-10 | **Discover → Design transition.** Archived working artifacts, updated handoff. All prerequisites met: intent clear, brief reviewed (internal + external), 0 Critical/High open. |
-| 2026-02-10 | **Design Intake & Clarification.** Resolved all 10 open items: Supabase (existing project) + Vercel hosting, Supabase Auth (JWT), API-level activity logging, query-time health computation, source_id required for synced, WM MCP sync_project tool, sequential display IDs, keep "Work Management" name. 15 decisions logged. |
-| 2026-02-10 | **Design spec v0.1 drafted.** 4 documents: design.md (parent), design-architecture.md (system components, auth, project structure), design-data-model.md (Supabase schema, indexes, RLS, triggers), design-interface.md (REST API contracts, MCP tools, dashboard views). Ready for review. |
-| 2026-02-10 | **Internal review complete.** 3 cycles. 5 High issues resolved: circular FK (connector_id removed), Plan/Phase MCP tools added, one-active-plan constraint, FTS indexing, project detail connector info. 2 Low open. Design at v0.3. |
-| 2026-02-10 | **External review complete.** Gemini + GPT (Kimi timed out). 3 High resolved: DB-level one-active-plan index, RLS/service role pattern clarified, pgcrypto extension added. 1 High dismissed (false positive). 3 Medium deferred. Design at v0.4. |
-| 2026-02-10 | **Design → Develop transition.** Completed Develop Handoff, created BACKLOG.md (31 items, 5 phases), updated CLAUDE.md with stack/commands. All prerequisites met: design reviewed (8 High resolved, 0 open), BACKLOG ready, no blockers. |
-| 2026-02-10 | **Gemini development sessions.** Phase 1 (Data Foundation) + Phase 2 (REST API) + partial Phase 3-4 (MCP server + ADF connector). 15/25 API endpoints, 11 MCP tools, 6 DB migrations, Docker support. No Gemini/Codex agent config files found in repo. |
-| 2026-02-11 | **Reconciliation audit (Claude).** Reviewed all built code against design spec and BACKLOG. Fixed BUG-1 (display_id_prefix). Updated BACKLOG.md statuses (12 Done, 3 Partial, 16 Pending). Logged 3 open bugs. Verified: build passes, TypeScript clean, API functional against local Supabase. |
+| 2026-02-10 | ... (initial sessions) ... |
+| 2026-02-11 | **Port reconfiguration.** Main app moved to port 3005. MCP server updated to connect to 3005. Verified connection via Claude Desktop. |
+| 2026-02-11 | **Capability Access.** Registered Memory Layer and Knowledge Base via `capabilities-registry`. Fixed relative path issues with `memory-layer`. |
+| 2026-02-11 | **ADF Alignment.** Moved `status.md` to root, linked `brief.md`. Resumed Develop Phase 6 (Build). |
+

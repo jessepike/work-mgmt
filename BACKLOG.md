@@ -23,8 +23,8 @@ updated: "2026-02-11"
 | B10 | Plan endpoints: GET list, POST (with one-active-plan validation), PATCH, POST approve | New spec | API | P1 | M | Done |
 | B11 | Phase endpoints: GET list, POST, PATCH, start, complete, DELETE | New spec | API | P1 | S | Done |
 | B12 | Task endpoints: GET list/detail, POST (workflow validation, display_id trigger), PATCH, POST complete, POST validate | New spec | API | P1 | L | Done |
-| B13 | Backlog endpoints: GET list, POST, PATCH, POST promote (creates task, links, validates plan_id for planned) | New spec | API | P1 | M | Pending |
-| B14 | Cross-cutting query endpoints: status, whats-next, blockers, deadlines, search (FTS), activity | New spec | API | P1 | L | Partial |
+| B13 | Backlog endpoints: GET list, POST, PATCH, POST promote (creates task, links, validates plan_id for planned) | New spec | API | P1 | M | Done |
+| B14 | Cross-cutting query endpoints: status, whats-next, blockers, deadlines, search (FTS), activity | New spec | API | P1 | L | Done |
 | B15 | Connector endpoints: GET list, POST, POST sync | New spec | API | P2 | S | Pending |
 | B16 | MCP server: stdio transport, tool definitions for all CRUD + query tools | New spec | MCP | P1 | L | Partial |
 | B17 | ADF connector: markdown parser for status.md, tasks.md, backlog.md | New spec | MCP | P1 | M | Done |
@@ -39,7 +39,7 @@ updated: "2026-02-11"
 | B26 | Deadline view: grouped by time bucket | New spec | Dashboard | P2 | S | Pending |
 | B27 | Task detail panel: slide-out, all fields, activity log, inline editing | New spec | Dashboard | P1 | M | Pending |
 | B28 | Quick-add component: title + Enter, optional field expansion | New spec | Dashboard | P2 | S | Pending |
-| B29 | Wire MCP server to Claude Desktop config, validate read + write operations | Setup | MCP | P1 | S | Pending |
+| B29 | Wire MCP server to Claude Desktop config, validate read + write operations | Setup | MCP | P1 | S | Done |
 | B30 | Test ADF connector against 3+ real project repos | Enhancement | MCP | P1 | M | Pending |
 | B31 | Deploy to Vercel, configure environment variables, push Supabase migrations to production | Setup | App | P1 | M | Pending |
 
@@ -60,8 +60,8 @@ Implemented: project CRUD (4), task CRUD + complete (4), search (1), whats-next 
 |----|-------|----------|--------|
 | BUG-1 | ~~GET /api/tasks referenced nonexistent `display_id_prefix` column on project~~ | High | Fixed |
 | BUG-2 | Actor ID hardcoded as 'jess' in all activity logging — needs JWT extraction | Medium | Open |
-| BUG-3 | data_origin enforcement not integrated in PATCH endpoints (validation exists but unused) | Medium | Open |
-| BUG-4 | package.json name is "temp_next_app" — should be "work-management" | Low | Open |
+| BUG-3 | data_origin enforcement not integrated in PATCH endpoints (validation exists but unused) | Medium | Fixed |
+| BUG-4 | package.json name is "temp_next_app" — should be "work-management" | Low | Fixed |
 
 ## Archive
 
