@@ -40,7 +40,7 @@ updated: "2026-02-11"
 | B27 | Task detail panel: slide-out, all fields, activity log, inline editing | New spec | Dashboard | P1 | M | Done |
 | B28 | Quick-add component: title + Enter, optional field expansion | New spec | Dashboard | P2 | S | Done |
 | B29 | Wire MCP server to Claude Desktop config, validate read + write operations | Setup | MCP | P1 | S | Done |
-| B30 | Test ADF connector against 3+ real project repos | Enhancement | MCP | P1 | M | Partial |
+| B30 | Test ADF connector against 3+ real project repos | Enhancement | MCP | P1 | M | Done |
 | B31 | Deploy to Vercel, configure environment variables, push Supabase migrations to production | Setup | App | P1 | M | Partial |
 | B32 | Make task properties editable in detail panel (status, priority, owner, due date) | New spec | Dashboard | P1 | L | Done |
 | B33 | Wire task creation paths end-to-end (global new task, project new task, quick add) | New spec | Dashboard | P1 | M | Done |
@@ -70,8 +70,11 @@ Status, blockers, deadlines, search, whats-next, and activity endpoints are impl
 ### B16 — Done
 CRUD/query tool coverage is implemented with interface-parity aliases. Contract/e2e smoke scripts and CI workflow are in place for MCP validation.
 
-### B30 — Partial
-Automated validation tooling exists (`npm run test:adf-sync`) plus manual dispatch workflow. Remaining work is executing and documenting results for 3+ real repos.
+### B30 — Done
+Validated on 2026-02-11 via `npm run test:adf-sync` against 3 active ADF-connected projects:
+- `b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12` (count=83, tasks=0, backlog=83, status=true)
+- `c1e73937-ebd3-46e4-b51b-25a1e7694b28` (count=16, tasks=15, backlog=0, status=true)
+- `885e0a47-1ad7-4e32-af01-02111e626a15` (count=23, tasks=7, backlog=16, status=true)
 
 ### B31 — Partial
 Deployment checklist and validation gates are documented. Remaining work is environment rollout and production migration execution.

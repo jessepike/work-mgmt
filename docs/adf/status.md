@@ -26,6 +26,7 @@ updated: "2026-02-11"
 - Added backend CI workflow:
   - Push/PR contract smoke
   - Manual strict E2E dispatch support
+- Extended MCP e2e smoke to exercise `validate_task` for parity proof.
 - API hardening:
   - `/api/activity` now honors `entity_type` filter and validates parameters
   - Project health now uses real last activity (project + task events) in both list/detail endpoints
@@ -33,5 +34,5 @@ updated: "2026-02-11"
 ## Next Steps
 
 - Complete seed data expansion (`B4`) for richer local/CI smoke coverage.
-- Run and document ADF sync against 3+ repos (`B30`).
+- ADF sync validated against 3 active repos (`B30`) with passing outcomes captured in root `BACKLOG.md`.
 - Prepare deployment and env rollout checklist (`B31`).

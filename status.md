@@ -2,7 +2,7 @@
 project: "work-management"
 stage: "Develop"
 updated: "2026-02-11"
-last_session: "2026-02-11T15:41"
+last_session: "2026-02-11T15:56"
 ---
 
 # Status
@@ -71,11 +71,11 @@ Status: Completed (B38, B40, B41, B43, B44, B45, B46, B47)
 - B14 Done — Query endpoints (status, whats-next, blockers, deadlines, search, activity)
 - B15 Done — Connector endpoints (GET, upsert, sync)
 
-### Phase 3: MCP Server — Partial
-- B16 Partial — Plan/phase/backlog/query tools added and route-aligned; stdio smoke tests passing
+### Phase 3: MCP Server — Complete
+- B16 Done — Plan/phase/backlog/query/task tools route-aligned; stdio contract/e2e smoke passing including `validate_task`
 - B17-B18 Done — ADF parser + sync_project tool
 - B29 Done — Claude Desktop wiring
-- B30 Pending — ADF connector testing
+- B30 Done — ADF sync validation executed for 3 active real project connectors
 
 ### Phase 4: ADF Connector — Done (via MCP)
 - Parser and sync tool built into mcp-server/src/adf/ and mcp-server/src/tools/adf-tools.ts
@@ -185,7 +185,7 @@ Status: Completed (B38, B40, B41, B43, B44, B45, B46, B47)
 - [x] Phase 1: Data Foundation — scaffold, migrations, seed
 - [x] Phase 2: REST API — core endpoints (projects, plans, phases, tasks, backlog, queries)
 - [x] **Phase 2 remaining: Connector endpoints (B15)**
-- [ ] **Phase 3 remaining: Validate_task MCP parity and broader connector trials (B16/B30)**
+- [x] **Phase 3 remaining: Validate_task MCP parity and broader connector trials (B16/B30)**
 - [x] **Phase 5: Dashboard — views, components (MVP scope, auth deferred)**
 - [ ] **Deployment: Vercel deploy, env vars, production DB (B31)**
 - [x] Fix open bugs: actor ID hardcoding (BUG-2)
@@ -214,3 +214,4 @@ Status: Completed (B38, B40, B41, B43, B44, B45, B46, B47)
 | 2026-02-11 | **Full browser-level review (Chrome automation).** Clicked through all 5 views (Today, Portfolio, Project Detail, Kanban, Settings). Benchmark: Todoist, equal MCP+dashboard usage. **Key findings:** (1) Dashboard is effectively read-only — task property editing, task creation (NEW TASK, quick-add, global +), and task completion checkboxes are all non-functional. This is the #1 blocker. (2) Today view groups all tasks under "LATER" — no urgency differentiation. (3) Duplicate tasks in synced projects (Krypton). (4) Kanban shows 587 pending tasks in one column — needs per-project default. (5) Health all green despite 587 pending/0 in-progress — needs calibration. (6) Smoke test data mixed with real data. **What's strong:** Portfolio cards with Focus/Next Up/sync metadata, Settings sync table, contextual breadcrumbs, synced item READ ONLY protection, dark theme. **Next steps:** Wire up task CRUD (edit properties, create, complete) as critical priority, then fix duplicates, calibrate health, add sidebar project list. |
 | 2026-02-11 | **Wave 2 + Wave 3 (high-impact) closeout pass.** Completed trust-quality backend hardening and UI wiring: sync quality endpoint + portfolio trust aggregate + MCP tools, smoke-data cleanup utility, source_id normalization and stale-row cleanup, health calibration for stalled high-volume queues. Delivered Wave 3 subset: sidebar project quick-nav, kanban default project scoping with high-volume card cap controls, improved Today scoring (blocked visibility + flow tie-breaks), and project activity readability with entity labels. Added trust drill-through filters on Portfolio (`trust=red|yellow|green`) and trust badges in Portfolio/Settings. Validation green: Next build, API contracts, MCP contract/e2e, dev server on :3005. |
 | 2026-02-11 | **Wave 3 completion pass.** Completed remaining backlog: B42 task detail depth (comments endpoint + comments UI + richer task context/activity snippets), B45 dedicated `/search` experience wired from header with enabled-scope results, B46 `/projects/:id/priority` board, and B47 `/projects/:id/deadlines` view. Validation green: Next build, API contracts, MCP contract/e2e, dev server reachable on :3005. |
+| 2026-02-11 | **MCP parity + connector trial closeout.** Updated MCP e2e smoke to assert `validate_task` behavior, then ran connector validation against 3 active ADF projects via `npm run test:adf-sync` (all pass). Marked B16/B30 complete across tracking artifacts. |

@@ -32,7 +32,7 @@ updated: "2026-02-11"
 | T14.2 | Implement Blockers API | done | GET /api/blockers returns list of blocked tasks with project context | curl test | - | backend |
 | T14.3 | Implement Deadlines API | done | GET /api/deadlines returns upcoming deadlines across portfolio | curl test | - | backend |
 | T14.4 | Verify B14 via MCP | done | MCP exposes and returns results for status/blockers/deadlines/search/activity tools | `npm --prefix mcp-server run smoke:contract` + `smoke:e2e` | T14.1-3 | mcp |
-| T30.1 | Validate ADF sync against 3+ repos | pending | `sync_adf_project` tested against real repos and outcomes logged | manual runbook | B18 | mcp |
+| T30.1 | Validate ADF sync against 3+ repos | done | `sync_adf_project` tested against 3 active repos; all passes logged in `BACKLOG.md` | `npm run test:adf-sync` | B18 | mcp |
 | T31.1 | Deployment readiness checklist | pending | Env vars, migration sequence, and smoke gates documented | checklist review | B31 | ops |
 
 # Completed Tasks

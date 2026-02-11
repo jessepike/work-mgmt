@@ -86,8 +86,13 @@ async function main() {
       const taskDetail = await callAndParse(client, 'get_task', { task_id: taskId });
       taskObj = taskDetail.json;
       assert(taskObj && taskObj.id === taskId, 'get_task failed to return expected task');
+
+      const validateRes = await callAndParse(client, 'validate_task', { id: taskId, status: 'passed' });
+      const validatedTask = validateRes.json;
+      assert(validatedTask && validatedTask.id === taskId, 'validate_task failed to return expected task');
+      assert(validatedTask.validation_status === 'passed', 'validate_task did not set validation_status');
     } else {
-      console.warn('SKIPPED: get_task (no existing tasks)');
+      console.warn('SKIPPED: get_task/validate_task (no existing tasks)');
     }
 
     const nextRes = await callAndParse(client, 'whats_next', { limit: 5 });
@@ -106,7 +111,7 @@ async function main() {
     const portfolioTrustRes = await callAndParse(client, 'get_portfolio_trust', { scope: 'enabled' });
     assert(portfolioTrustRes.json && typeof portfolioTrustRes.json === 'object', 'get_portfolio_trust response is not an object');
 
-    console.log('E2E smoke passed for tools: get_project, update_plan, get_task, whats_next, search, get_activity, get_sync_quality, get_portfolio_trust.');
+    console.log('E2E smoke passed for tools: get_project, update_plan, get_task, validate_task, whats_next, search, get_activity, get_sync_quality, get_portfolio_trust.');
   } finally {
     await client.stop();
   }
