@@ -18,6 +18,7 @@ interface ProjectFromApi {
         pending: number;
         in_progress: number;
         blocked: number;
+        overdue: number;
         total_active: number;
     };
     backlog_summary?: {
@@ -26,6 +27,11 @@ interface ProjectFromApi {
         p2: number;
         p3: number;
     };
+    last_activity_at: string | null;
+    connector_summary?: {
+        status: "active" | "paused" | "error";
+        last_sync_at: string | null;
+    } | null;
 }
 
 interface StatusFromApi {
@@ -81,13 +87,16 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                                 category={project.categories[0]?.toUpperCase() || "UNCATEGORIZED"}
                                 tasksCount={project.task_summary?.total_active || 0}
                                 blockedCount={project.task_summary?.blocked || 0}
+                                overdueCount={project.task_summary?.overdue || 0}
                                 backlogCount={project.backlog_summary?.total_active || 0}
                                 p1Count={project.backlog_summary?.p1 || 0}
-                                currentFocus={project.focus || "No focus set"}
-                                stage={project.current_stage || "unknown"}
-                                progress={calculateProgress(project.task_summary)}
+                                currentFocus={project.focus || "No focus from status/intent"}
+                                stage={normalizeStageLabel(project.current_stage)}
+                                lastActivityAt={project.last_activity_at}
                                 health={project.health}
-                                syncing={project.project_type === "connected"}
+                                projectType={project.project_type}
+                                connectorStatus={project.connector_summary?.status}
+                                lastSyncAt={project.connector_summary?.last_sync_at || null}
                             />
                         ))}
                     </div>
@@ -114,9 +123,11 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
     );
 }
 
-function calculateProgress(summary?: { pending: number; in_progress: number; blocked: number; total_active: number }): number {
-    if (!summary || summary.total_active === 0) return 0;
-    // This is active tasks only (no done count available), so show in_progress as partial progress
-    const inProgress = summary.in_progress / summary.total_active;
-    return Math.round(inProgress * 100);
+function normalizeStageLabel(stage: string | null): string {
+    if (!stage) return "Stage Not Set";
+    const s = stage.trim();
+    if (!s) return "Stage Not Set";
+    const lower = s.toLowerCase();
+    if (lower === "active" || lower === "in progress" || lower === "unknown") return "Stage Not Set";
+    return s;
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
 import { logActivity } from '@/lib/api/activity';
-import { parseTasksMd, parseBacklogMd, parseStatusMd } from '@/lib/adf/parser';
+import { parseTasksMd, parseBacklogMd, parseStatusMd, parseIntentMdSummary } from '@/lib/adf/parser';
 import path from 'path';
 import fs from 'fs/promises';
 
@@ -15,6 +15,20 @@ function normalizeSourceId(sourceId: string, projectPath: string): string {
     }
 
     return normalizedSource;
+}
+
+function deriveStage(status: string | null | undefined): string | null {
+    if (!status) return null;
+    const lower = status.replace(/^["']|["']$/g, '').toLowerCase();
+    if (lower.includes('discover')) return 'Discover';
+    if (lower.includes('design')) return 'Design';
+    if (lower.includes('develop')) return 'Develop';
+    if (lower.includes('build')) return 'Build';
+    if (lower.includes('validate')) return 'Validate';
+    if (lower.includes('deliver')) return 'Deliver';
+    if (lower.includes('operate')) return 'Operate';
+    if (lower.includes('improve')) return 'Improve';
+    return null;
 }
 
 // POST /api/connectors/sync
@@ -99,6 +113,21 @@ export async function POST(request: NextRequest) {
         const tasks = tasksFile ? await parseTasksMd(tasksFile) : [];
         const backlog = backlogFile ? await parseBacklogMd(backlogFile) : [];
         const status = statusFile ? await parseStatusMd(statusFile) : null;
+        const possibleIntentPaths = [
+            path.join(projectPath, "intent.md"),
+            path.join(projectPath, "docs", "intent.md"),
+            path.join(projectPath, "docs", "adf", "intent.md")
+        ];
+
+        let intentFile = "";
+        for (const p of possibleIntentPaths) {
+            try {
+                await fs.access(p);
+                intentFile = p;
+                break;
+            } catch { }
+        }
+        const intentSummary = intentFile ? await parseIntentMdSummary(intentFile) : null;
         const tasksCount = tasks.length;
         const backlogCount = backlog.length;
         const totalCount = tasksCount + backlogCount;
@@ -159,14 +188,15 @@ export async function POST(request: NextRequest) {
             upsertedBacklog = data || [];
         }
 
-        if (status) {
+        if (status || intentSummary) {
+            const stage = status?.current_stage || deriveStage(status?.current_status);
             const { error: projectUpdateError } = await supabase
                 .from('project')
                 .update({
-                    current_stage: status.current_status,
-                    blockers: status.blockers,
-                    pending_decisions: status.pending_decisions,
-                    focus: status.focus || null,
+                    current_stage: stage,
+                    blockers: status?.blockers || [],
+                    pending_decisions: status?.pending_decisions || [],
+                    focus: status?.focus || intentSummary || null,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', project_id);

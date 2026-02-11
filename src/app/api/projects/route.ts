@@ -81,6 +81,16 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: backlogError.message }, { status: 500 });
     }
 
+    const { data: connectors, error: connectorError } = await supabase
+        .from('connector')
+        .select('project_id, status, last_sync_at')
+        .eq('connector_type', 'adf')
+        .in('project_id', projectIds);
+
+    if (connectorError) {
+        return NextResponse.json({ error: connectorError.message }, { status: 500 });
+    }
+
     // Build task->project map to roll up task activity into project activity.
     const taskToProject = (tasks || []).reduce((acc, task) => {
         acc[task.id] = task.project_id;
@@ -148,6 +158,10 @@ export async function GET(request: NextRequest) {
         if (item.priority === 'P3') acc[item.project_id].p3 += 1;
         return acc;
     }, {} as Record<string, { total_active: number; p1: number; p2: number; p3: number }>);
+    const connectorByProject = (connectors || []).reduce((acc, item) => {
+        acc[item.project_id] = item;
+        return acc;
+    }, {} as Record<string, { project_id: string; status: string; last_sync_at: string | null }>);
 
     // Compute health and shape response
     const results = filteredProjects.map(project => {
@@ -173,18 +187,26 @@ export async function GET(request: NextRequest) {
 
         // Task counts
         const projectTasks = tasksByProject[project.id] || [];
+        const now = Date.now();
         const counts = {
             pending: projectTasks.filter(t => t.status === 'pending').length,
             in_progress: projectTasks.filter(t => t.status === 'in_progress').length,
             blocked: projectTasks.filter(t => t.status === 'blocked').length,
+            overdue: projectTasks.filter(t => t.deadline_at && new Date(t.deadline_at).getTime() < now).length,
             // done is not fetched in the optimization above, so checking "total active"
             total_active: projectTasks.length
         };
+        const lastActivityAt = latestIso(
+            projectActivityByProject[project.id] || null,
+            taskActivityByProject[project.id] || null
+        );
 
         return {
             ...project,
             health,
             health_reason: healthReason,
+            last_activity_at: lastActivityAt,
+            connector_summary: connectorByProject[project.id] || null,
             task_summary: counts,
             backlog_summary: backlogByProject[project.id] || { total_active: 0, p1: 0, p2: 0, p3: 0 }
         };

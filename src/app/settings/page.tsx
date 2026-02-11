@@ -265,7 +265,7 @@ export default function SettingsPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${project.project_type === "native" ? badgeClass("muted") : badgeClass("green")}`}>
+                        <span className={`inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${badgeClass("muted")}`}>
                           {project.project_type === "native" ? "Native" : "ADF"}
                         </span>
                       </td>

@@ -11,9 +11,50 @@ export interface AdfTask {
 
 export interface AdfStatus {
     current_status: string; // The main status line
+    current_stage?: string;
     blockers: string[];
     pending_decisions: string[];
     focus?: string;
+}
+
+const ADF_STAGE_KEYWORDS = [
+    "discover",
+    "design",
+    "develop",
+    "development",
+    "build",
+    "validate",
+    "deliver",
+    "operate",
+    "improve",
+] as const;
+
+function toTitle(input: string): string {
+    return input
+        .split(/[\s_-]+/)
+        .filter(Boolean)
+        .map((part) => part[0].toUpperCase() + part.slice(1).toLowerCase())
+        .join(" ");
+}
+
+function normalizeStage(raw: string): string | null {
+    const cleaned = stripWrappingQuotes(raw);
+    const lower = cleaned.toLowerCase();
+    for (const key of ADF_STAGE_KEYWORDS) {
+        if (lower.includes(key)) {
+            if (key === "development") return "Develop";
+            return toTitle(key);
+        }
+    }
+    return null;
+}
+
+function stripWrappingQuotes(value: string): string {
+    const trimmed = value.trim();
+    if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+        return trimmed.slice(1, -1).trim();
+    }
+    return trimmed;
 }
 
 export interface AdfBacklogItem {
@@ -106,22 +147,24 @@ function mapBacklogStatus(rawStatus: string, currentSection: string): AdfBacklog
 export async function parseStatusMd(filePath: string): Promise<AdfStatus> {
     try {
         const content = await fs.readFile(filePath, "utf-8");
-        let current_status = "Active";
+        let current_status = "Unknown";
+        let current_stage: string | undefined;
         const blockers: string[] = [];
         const pending_decisions: string[] = [];
         let focus: string | undefined;
-        let section: "none" | "status" | "blockers" | "pending_decisions" | "focus" = "none";
+        let section: "none" | "status" | "stage" | "blockers" | "pending_decisions" | "focus" = "none";
 
         const lines = content.split("\n");
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             const trimmed = line.trim();
 
-            const keyValueMatch = trimmed.match(/^(current_status|status|focus)\s*:\s*(.+)$/i);
+            const keyValueMatch = trimmed.match(/^(current_status|status|current_stage|stage|focus)\s*:\s*(.+)$/i);
             if (keyValueMatch) {
                 const key = keyValueMatch[1].toLowerCase();
-                const value = keyValueMatch[2].trim();
+                const value = stripWrappingQuotes(keyValueMatch[2].trim());
                 if (key === "focus") focus = value;
+                else if (key === "current_stage" || key === "stage") current_stage = value;
                 else current_status = value;
                 continue;
             }
@@ -130,6 +173,7 @@ export async function parseStatusMd(filePath: string): Promise<AdfStatus> {
             if (headingMatch) {
                 const heading = headingMatch[1].toLowerCase();
                 if (heading.includes("current status") || heading === "status") section = "status";
+                else if (heading.includes("current stage") || heading === "stage") section = "stage";
                 else if (heading.includes("blocker")) section = "blockers";
                 else if (heading.includes("pending decision")) section = "pending_decisions";
                 else if (heading === "focus" || heading.includes("current focus")) section = "focus";
@@ -141,7 +185,15 @@ export async function parseStatusMd(filePath: string): Promise<AdfStatus> {
 
             if (section === "status") {
                 if (!trimmed.startsWith("- ")) {
-                    current_status = trimmed.replace(/^[-*]\s*/, "").trim();
+                    current_status = stripWrappingQuotes(trimmed.replace(/^[-*]\s*/, "").trim());
+                    section = "none";
+                }
+                continue;
+            }
+
+            if (section === "stage") {
+                if (!trimmed.startsWith("- ")) {
+                    current_stage = stripWrappingQuotes(trimmed.replace(/^[-*]\s*/, "").trim());
                     section = "none";
                 }
                 continue;
@@ -168,9 +220,43 @@ export async function parseStatusMd(filePath: string): Promise<AdfStatus> {
             }
         }
 
-        return { current_status, blockers, pending_decisions, focus };
+        const normalizedFromStatus = normalizeStage(current_status);
+        const normalizedFromStage = current_stage ? normalizeStage(current_stage) : null;
+        return {
+            current_status,
+            current_stage: normalizedFromStage || normalizedFromStatus || current_stage,
+            blockers,
+            pending_decisions,
+            focus
+        };
     } catch (e) {
         return { current_status: "Unknown", blockers: [], pending_decisions: [] };
+    }
+}
+
+export async function parseIntentMdSummary(filePath: string): Promise<string | null> {
+    try {
+        const content = await fs.readFile(filePath, "utf-8").then((raw) => raw.replace(/\r/g, ""));
+        const lines = content.split("\n");
+        let inFrontmatter = false;
+
+        for (const rawLine of lines) {
+            const line = rawLine.trim();
+            if (!line) continue;
+            if (line === "---") {
+                inFrontmatter = !inFrontmatter;
+                continue;
+            }
+            if (inFrontmatter) continue;
+            if (line.startsWith("#")) continue;
+
+            const cleaned = line.replace(/^[-*]\s+/, "").trim();
+            if (/^[a-z0-9_]+\s*:/i.test(cleaned)) continue;
+            if (cleaned.length >= 24) return cleaned.slice(0, 220);
+        }
+        return null;
+    } catch {
+        return null;
     }
 }
 
