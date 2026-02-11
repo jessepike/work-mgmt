@@ -120,7 +120,7 @@ export async function GET(
             connector: connectorInfo,
             task_summary: counts,
             active_blockers: activeBlockers,
-            current_plan: currentPlan
+            current_plan: currentPlan || null
         }
     });
 }
