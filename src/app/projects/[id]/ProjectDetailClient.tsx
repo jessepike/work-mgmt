@@ -326,6 +326,26 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel, i
                             />
                         )}
                     </div>
+                    <nav className="hidden lg:flex items-center gap-1 bg-zed-active/50 p-1 rounded-sm border border-zed-border/50">
+                        <Link
+                            href={`/projects/${project.id}`}
+                            className="px-2 py-1 text-[10px] font-bold tracking-widest uppercase bg-zed-active text-primary rounded-sm shadow-sm"
+                        >
+                            Overview
+                        </Link>
+                        <Link
+                            href={`/projects/${project.id}/priority`}
+                            className="px-2 py-1 text-[10px] font-bold tracking-widest uppercase text-text-muted hover:text-text-secondary"
+                        >
+                            Priority
+                        </Link>
+                        <Link
+                            href={`/projects/${project.id}/deadlines`}
+                            className="px-2 py-1 text-[10px] font-bold tracking-widest uppercase text-text-muted hover:text-text-secondary"
+                        >
+                            Deadlines
+                        </Link>
+                    </nav>
                     <div className="flex items-center gap-3">
                         {isConnected && project.connector && (
                             <button
