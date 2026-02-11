@@ -4,7 +4,7 @@ import { useState } from "react";
 import { IconChevronDown, IconCircle, IconCircleCheckFilled } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { PriorityChip } from "@/components/ui/PriorityChip";
-import type { Phase, Task, PriorityLevel } from "@/lib/types/api";
+import type { Phase, Task } from "@/lib/types/api";
 
 interface PhaseAccordionProps {
     phase: Phase;
@@ -14,7 +14,8 @@ interface PhaseAccordionProps {
 
 export function PhaseAccordion({ phase, tasks, onTaskClick }: PhaseAccordionProps) {
     const [expanded, setExpanded] = useState(phase.status === "active" || phase.status === "pending");
-    const doneCount = tasks.filter((t) => t.status === "done").length;
+    const sortedTasks = [...tasks].sort(compareTasksForPhase);
+    const doneCount = sortedTasks.filter((t) => t.status === "done").length;
 
     return (
         <section>
@@ -38,7 +39,7 @@ export function PhaseAccordion({ phase, tasks, onTaskClick }: PhaseAccordionProp
 
             {expanded && (
                 <div className="space-y-1">
-                    {tasks.map((task) => (
+                    {sortedTasks.map((task) => (
                         <div
                             key={task.id}
                             onClick={() => onTaskClick?.(task)}
@@ -77,4 +78,22 @@ export function PhaseAccordion({ phase, tasks, onTaskClick }: PhaseAccordionProp
             )}
         </section>
     );
+}
+
+function compareTasksForPhase(a: Task, b: Task): number {
+    const statusRank = (status: Task["status"]) => {
+        if (status === "blocked") return 0;
+        if (status === "in_progress") return 1;
+        if (status === "pending") return 2;
+        if (status === "done") return 3;
+        return 4;
+    };
+    const priorityRank = (p: Task["priority"]) => (p === "P1" ? 0 : p === "P2" ? 1 : 2);
+    const aStatus = statusRank(a.status);
+    const bStatus = statusRank(b.status);
+    if (aStatus !== bStatus) return aStatus - bStatus;
+    const aPriority = priorityRank(a.priority);
+    const bPriority = priorityRank(b.priority);
+    if (aPriority !== bPriority) return aPriority - bPriority;
+    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
 }

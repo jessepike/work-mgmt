@@ -65,7 +65,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
     ).sort((a, b) => a.localeCompare(b));
     const categoryOptions = [
         { label: "All", value: "" },
-        ...categoryValues.map((value) => ({ label: value, value })),
+        ...categoryValues.map((value) => ({ label: normalizeCategoryLabel(value), value })),
     ];
 
     return (
@@ -84,7 +84,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                                 key={project.id}
                                 id={project.id}
                                 name={project.name}
-                                category={project.categories[0]?.toUpperCase() || "UNCATEGORIZED"}
+                                category={normalizeCategoryLabel(project.categories[0] || "uncategorized")}
                                 tasksCount={project.task_summary?.total_active || 0}
                                 blockedCount={project.task_summary?.blocked || 0}
                                 overdueCount={project.task_summary?.overdue || 0}
@@ -130,4 +130,16 @@ function normalizeStageLabel(stage: string | null): string {
     const lower = s.toLowerCase();
     if (lower === "active" || lower === "in progress" || lower === "unknown") return "Stage Not Set";
     return s;
+}
+
+function normalizeCategoryLabel(category: string): string {
+    const c = category.trim().toLowerCase();
+    if (!c) return "UNCATEGORIZED";
+    if (c === "infra") return "INFRASTRUCTURE";
+    if (c === "infrastructure") return "INFRASTRUCTURE";
+    if (c === "dev") return "DEVELOPMENT";
+    if (c === "development") return "DEVELOPMENT";
+    if (c === "core") return "CORE";
+    if (c === "personal") return "PERSONAL";
+    return c.toUpperCase();
 }

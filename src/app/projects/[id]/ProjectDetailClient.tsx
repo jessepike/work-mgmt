@@ -36,6 +36,7 @@ interface ProjectDetailClientProps {
 
 export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps) {
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+    const [showCompleted, setShowCompleted] = useState(false);
     const isConnected = project.project_type === "connected";
     const isPlanned = project.workflow_type === "planned";
     const completionPct = project.task_summary.total > 0
@@ -46,9 +47,13 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
         .sort((a, b) => new Date(b.completed_at || b.updated_at).getTime() - new Date(a.completed_at || a.updated_at).getTime())
         .slice(0, 3);
 
+    const orderedTasks = [...tasks]
+        .sort((a, b) => compareTaskSort(a, b, showCompleted));
+
     // Group tasks by phase for planned, or by status for flat
     const tasksByPhase = new Map<string | null, Task[]>();
-    for (const task of tasks) {
+    for (const task of orderedTasks) {
+        if (!showCompleted && task.status === "done") continue;
         const key = isPlanned ? (task.phase_id || "__unphased") : null;
         if (!tasksByPhase.has(key)) tasksByPhase.set(key, []);
         tasksByPhase.get(key)!.push(task);
@@ -100,6 +105,15 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
                         <span>{completionPct}% complete</span>
                         <span>updated {new Date(project.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
                     </div>
+                    <label className="ml-auto text-[10px] font-bold text-text-muted tracking-widest uppercase flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={showCompleted}
+                            onChange={(e) => setShowCompleted(e.target.checked)}
+                            className="accent-primary"
+                        />
+                        Show Completed
+                    </label>
                     <div className="h-1.5 w-32 bg-zed-border rounded-full overflow-hidden flex-shrink-0">
                         <div
                             className={cn("h-full rounded-full", project.health === "red" ? "bg-status-red" : project.health === "yellow" ? "bg-status-yellow" : "bg-primary")}
@@ -139,7 +153,8 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
                     ) : (
                         // Flat: grouped by status
                         statusGroups.map((status) => {
-                            const statusTasks = tasks.filter((t) => t.status === status);
+                            if (!showCompleted && status === "done") return null;
+                            const statusTasks = orderedTasks.filter((t) => t.status === status);
                             if (statusTasks.length === 0) return null;
                             return (
                                 <section key={status}>
@@ -190,6 +205,34 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
             )}
         </div>
     );
+}
+
+function compareTaskSort(a: Task, b: Task, showCompleted: boolean): number {
+    const statusRank = (status: Task["status"]) => {
+        if (status === "blocked") return 0;
+        if (status === "in_progress") return 1;
+        if (status === "pending") return 2;
+        if (status === "done") return showCompleted ? 3 : 99;
+        return 10;
+    };
+    const priorityRank = (p: Task["priority"]) => (p === "P1" ? 0 : p === "P2" ? 1 : 2);
+    const aStatus = statusRank(a.status);
+    const bStatus = statusRank(b.status);
+    if (aStatus !== bStatus) return aStatus - bStatus;
+
+    const aOverdue = a.deadline_at ? new Date(a.deadline_at).getTime() < Date.now() : false;
+    const bOverdue = b.deadline_at ? new Date(b.deadline_at).getTime() < Date.now() : false;
+    if (aOverdue !== bOverdue) return aOverdue ? -1 : 1;
+
+    const aPriority = priorityRank(a.priority);
+    const bPriority = priorityRank(b.priority);
+    if (aPriority !== bPriority) return aPriority - bPriority;
+
+    const aDeadline = a.deadline_at ? new Date(a.deadline_at).getTime() : Number.MAX_SAFE_INTEGER;
+    const bDeadline = b.deadline_at ? new Date(b.deadline_at).getTime() : Number.MAX_SAFE_INTEGER;
+    if (aDeadline !== bDeadline) return aDeadline - bDeadline;
+
+    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
 }
 
 function TaskListFlat({ tasks, onTaskClick }: { tasks: Task[]; onTaskClick: (t: Task) => void }) {
