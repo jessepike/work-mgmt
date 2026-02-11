@@ -3,16 +3,11 @@
 import { FilterBar } from "@/components/ui/FilterBar";
 import { IconPlus } from "@tabler/icons-react";
 
-const categoryOptions = [
-    { label: "All", value: "" },
-    { label: "Dev", value: "dev" },
-    { label: "Business", value: "business" },
-    { label: "Personal", value: "personal" },
-    { label: "Board", value: "board" },
-    { label: "Consulting", value: "consulting" },
-];
+interface PortfolioHeaderProps {
+    categoryOptions: Array<{ label: string; value: string }>;
+}
 
-export function PortfolioHeader() {
+export function PortfolioHeader({ categoryOptions }: PortfolioHeaderProps) {
     return (
         <header className="px-8 h-14 flex items-center justify-between border-b border-zed-border bg-zed-header/30 backdrop-blur-md sticky top-0 z-20">
             <FilterBar paramName="category" options={categoryOptions} />

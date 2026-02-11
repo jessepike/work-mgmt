@@ -14,6 +14,7 @@ const navItems = [
     { label: "Today", href: "/", icon: IconHome },
     { label: "Portfolio", href: "/portfolio", icon: IconBriefcase },
     { label: "Kanban", href: "/tasks/kanban", icon: IconLayoutKanban },
+    { label: "Settings", href: "/settings", icon: IconSettings },
 ];
 
 export function Sidebar() {
@@ -53,9 +54,9 @@ export function Sidebar() {
 
             <div className="p-4 border-t border-zed-border text-text-muted text-xs flex items-center justify-between">
                 <span className="font-mono opacity-50">V1.4.2</span>
-                <button className="hover:text-text-secondary transition-colors">
+                <Link href="/settings" className="hover:text-text-secondary transition-colors">
                     <IconSettings className="w-4 h-4" />
-                </button>
+                </Link>
             </div>
         </aside>
     );

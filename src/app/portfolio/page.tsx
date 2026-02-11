@@ -47,11 +47,18 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
 
     const projects = projectsRes.data;
     const status = statusRes.data;
+    const categoryValues = Array.from(
+        new Set(projects.flatMap((p) => p.categories || []).filter(Boolean))
+    ).sort((a, b) => a.localeCompare(b));
+    const categoryOptions = [
+        { label: "All", value: "" },
+        ...categoryValues.map((value) => ({ label: value, value })),
+    ];
 
     return (
         <div className="flex flex-col min-h-full bg-zed-main">
             <Suspense>
-                <PortfolioHeader />
+                <PortfolioHeader categoryOptions={categoryOptions} />
             </Suspense>
 
             <div className="p-8 lg:p-12 flex-1">
