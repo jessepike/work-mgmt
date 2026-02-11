@@ -21,10 +21,18 @@ const project_tools_js_1 = require("./tools/project-tools.js");
 const task_tools_js_1 = require("./tools/task-tools.js");
 const search_tools_js_1 = require("./tools/search-tools.js");
 const adf_tools_js_1 = require("./tools/adf-tools.js");
+const plan_tools_js_1 = require("./tools/plan-tools.js");
+const phase_tools_js_1 = require("./tools/phase-tools.js");
+const backlog_tools_js_1 = require("./tools/backlog-tools.js");
+const query_tools_js_1 = require("./tools/query-tools.js");
 (0, project_tools_js_1.registerProjectTools)(server);
 (0, task_tools_js_1.registerTaskTools)(server);
 (0, search_tools_js_1.registerSearchTools)(server);
 (0, adf_tools_js_1.registerAdfTools)(server);
+(0, plan_tools_js_1.registerPlanTools)(server);
+(0, phase_tools_js_1.registerPhaseTools)(server);
+(0, backlog_tools_js_1.registerBacklogTools)(server);
+(0, query_tools_js_1.registerQueryTools)(server);
 async function main() {
     const mode = process.argv[2]; // 'stdio' or 'http'
     if (mode === 'http') {

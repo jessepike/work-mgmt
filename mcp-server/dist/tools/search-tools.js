@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerSearchTools = registerSearchTools;
 const zod_1 = require("zod");
 const axios_1 = __importDefault(require("axios"));
-const API_BASE_URL = process.env.API_URL || "http://localhost:3000/api";
+const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
 function registerSearchTools(server) {
     server.tool("search_work", "Search for tasks and backlog items using full text search", {
         query: zod_1.z.string().min(1)

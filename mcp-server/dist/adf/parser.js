@@ -49,23 +49,23 @@ async function parseTasksMd(filePath) {
         const content = await promises_1.default.readFile(filePath, "utf-8");
         const lines = content.split("\n");
         const tasks = [];
-        // Regex for standard checkbox task: - [ ] Task title
-        // Extended: - [x] Task title <!-- id: 123 --> (we might ignore ID for now and use content hash or line)
-        let priority = "P2"; // Default
+        // Track if we are in a table
+        let inTable = false;
+        let tableHeader = [];
         lines.forEach((line, index) => {
             const trimmed = line.trim();
+            // 1. Handle Checkboxes (Standard List)
             const checkboxMatch = trimmed.match(/^- \[(x| )\] (.*)/);
             if (checkboxMatch) {
                 const isChecked = checkboxMatch[1] === "x";
                 let text = checkboxMatch[2];
                 let status = isChecked ? "done" : "pending";
-                // Extract priority tags if any (e.g. (P1))
                 const prioMatch = text.match(/\((P[1-3])\)/);
+                let priority = "P2";
                 if (prioMatch) {
                     priority = prioMatch[1];
                     text = text.replace(/\(P[1-3]\)/, "").trim();
                 }
-                // Remove HTML comments
                 text = text.replace(/<!--.*?-->/g, "").trim();
                 tasks.push({
                     title: text,
@@ -73,6 +73,49 @@ async function parseTasksMd(filePath) {
                     source_id: `${filePath}:${index + 1}`,
                     priority
                 });
+                return;
+            }
+            // 2. Handle Markdown Tables
+            if (trimmed.startsWith("|") && trimmed.includes("|")) {
+                const parts = trimmed.split("|").map(p => p.trim()).filter((p, i, a) => i > 0 && i < a.length - 1);
+                if (trimmed.includes("---")) {
+                    // Separator line
+                    return;
+                }
+                if (!inTable) {
+                    // Assume first line is header if it contains "Task" or "Status"
+                    if (parts.some(p => p.toLowerCase().includes("task") || p.toLowerCase().includes("status"))) {
+                        inTable = true;
+                        tableHeader = parts.map(p => p.toLowerCase());
+                        return;
+                    }
+                }
+                if (inTable) {
+                    const taskIndex = tableHeader.findIndex(h => h.includes("task") || h === "item");
+                    const statusIndex = tableHeader.findIndex(h => h.includes("status"));
+                    const idIndex = tableHeader.findIndex(h => h === "id");
+                    if (taskIndex !== -1) {
+                        const title = parts[taskIndex];
+                        const rawStatus = statusIndex !== -1 ? parts[statusIndex].toLowerCase() : "pending";
+                        const id = idIndex !== -1 ? parts[idIndex] : `${index + 1}`;
+                        let status = "pending";
+                        if (rawStatus.includes("done") || rawStatus.includes("complete") || rawStatus === "x")
+                            status = "done";
+                        else if (rawStatus.includes("progress"))
+                            status = "in_progress";
+                        else if (rawStatus.includes("block"))
+                            status = "blocked";
+                        tasks.push({
+                            title,
+                            status,
+                            source_id: `${filePath}:${id}`,
+                            priority: "P2" // Default for table items unless we see a prio column
+                        });
+                    }
+                }
+            }
+            else {
+                inTable = false;
             }
         });
         return tasks;

@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import axios from "axios";
 
-const API_BASE_URL = process.env.API_URL || "http://localhost:3000/api";
+const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
 
 export function registerTaskTools(server: McpServer) {
     server.tool(

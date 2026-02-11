@@ -18,11 +18,19 @@ import { registerProjectTools } from "./tools/project-tools.js";
 import { registerTaskTools } from "./tools/task-tools.js";
 import { registerSearchTools } from "./tools/search-tools.js";
 import { registerAdfTools } from "./tools/adf-tools.js";
+import { registerPlanTools } from "./tools/plan-tools.js";
+import { registerPhaseTools } from "./tools/phase-tools.js";
+import { registerBacklogTools } from "./tools/backlog-tools.js";
+import { registerQueryTools } from "./tools/query-tools.js";
 
 registerProjectTools(server);
 registerTaskTools(server);
 registerSearchTools(server);
 registerAdfTools(server);
+registerPlanTools(server);
+registerPhaseTools(server);
+registerBacklogTools(server);
+registerQueryTools(server);
 
 async function main() {
     const mode = process.argv[2]; // 'stdio' or 'http'

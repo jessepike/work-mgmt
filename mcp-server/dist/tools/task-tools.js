@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerTaskTools = registerTaskTools;
 const zod_1 = require("zod");
 const axios_1 = __importDefault(require("axios"));
-const API_BASE_URL = process.env.API_URL || "http://localhost:3000/api";
+const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
 function registerTaskTools(server) {
     server.tool("list_tasks", "List tasks with filtering options", {
         project_id: zod_1.z.string().uuid().optional(),
