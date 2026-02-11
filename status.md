@@ -10,13 +10,46 @@ last_session: "2026-02-11T23:00"
 ## Current State
 
 - **Phase:** Develop — Phases 1-5 complete (MVP scope)
-- **Focus:** Dashboard CRUD implementation (task editing, creation, completion) — top priority from browser review
+- **Focus:** Review-driven execution: finish CRUD + trust/quality fixes from browser audit
 - **Build:** Passing (Next.js build + TypeScript clean)
 - **API:** Core REST surface implemented (projects, plans, phases, tasks, backlog, queries, connectors)
 - **MCP:** Stdio server + tool modules wired and smoke-tested against local API
 - **Portfolio:** 8 projects, 587 tasks synced
 - **Dashboard:** All 4 views verified working (Today, Portfolio, Kanban, Project Detail)
 - **Known bugs:** 0 open (see BACKLOG.md)
+
+## Review Response Plan (2026-02-11 Browser Audit)
+
+### Wave 1 — Critical Usability (P1)
+- B32 Task property editing in detail panel (`status`, `priority`, `owner`, `due date`)
+- B33 Task creation flows fully wired (`global`, `project`, `quick add`)
+- B34 Single-task completion interaction on list rows
+- B35 Task detail depth (`description`, `notes`) for actionable context
+
+Exit criteria:
+- User can create, edit, and complete tasks without MCP.
+- Every primary CTA has clear success/error/loading feedback.
+
+### Wave 2 — Data Trust + Quality (P1)
+- B36 Duplicate synced-task remediation (`source_id` normalization + dedupe safety checks)
+- B37 Smoke/test data cleanup and guardrails
+- B39 Health model calibration for stagnant/high-volume backlog states
+
+Exit criteria:
+- No duplicate visible task rows for synced projects.
+- No synthetic smoke artifacts in live views.
+- Health distribution reflects actual risk, not uniformly green.
+
+### Wave 3 — Scalability + Navigation (P1/P2)
+- B38 Sidebar project quick-nav
+- B40 Kanban default scoping + high-volume UX guardrails
+- B41 Today prioritization improvements (not all work in `Later`)
+- B43 Activity readability upgrades (entity names/titles in feed rows)
+- B44 Interaction feedback polish hardening
+
+Exit criteria:
+- Portfolio-scale datasets remain navigable without overwhelm.
+- Activity feeds are interpretable without drilling into each entity.
 
 ## Implementation Progress
 
