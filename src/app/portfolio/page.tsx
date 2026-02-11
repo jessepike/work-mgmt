@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { apiFetch } from "@/lib/api/fetch";
 import { ProjectCard } from "@/components/ui/ProjectCard";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -64,13 +65,14 @@ interface PortfolioTrustFromApi {
 }
 
 interface PortfolioPageProps {
-    searchParams: Promise<{ category?: string; preset?: string }>;
+    searchParams: Promise<{ category?: string; preset?: string; trust?: "green" | "yellow" | "red" }>;
 }
 
 export default async function PortfolioPage({ searchParams }: PortfolioPageProps) {
     const params = await searchParams;
     const categoryFilter = params.category || "";
     const preset = params.preset || "";
+    const trustFilter = params.trust || "";
 
     let apiPath = "/api/projects?status=active&scope=enabled";
     if (categoryFilter) {
@@ -92,13 +94,12 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
         apiFetch<ApiResponse<PortfolioTrustFromApi>>("/api/portfolio-trust?scope=enabled"),
     ]);
 
-    const projects = applyPresetFilter(projectsRes.data, preset);
     const allProjects = projectsRes.data;
     const status = statusRes.data;
     const trust = trustRes.data;
     const tasks = tasksRes.data || [];
     const categoryValues = Array.from(
-        new Set(projects.flatMap((p) => p.categories || []).filter(Boolean))
+        new Set(allProjects.flatMap((p) => p.categories || []).filter(Boolean))
     ).sort((a, b) => a.localeCompare(b));
     const categoryOptions = [
         { label: "All", value: "" },
@@ -111,10 +112,17 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
         { label: "Heavy Backlog", value: "backlog" },
         { label: "Stale", value: "stale" },
     ];
-    const nextTasksByProject = buildNextTasksByProject(tasks);
     const trustByProject = new Map(
         (trust.sync_quality?.rows || []).map((row) => [row.project_id, row])
     );
+    const projects = applyFilters(allProjects, preset, trustFilter, trustByProject);
+    const nextTasksByProject = buildNextTasksByProject(tasks);
+    const trustOptions = [
+        { label: "Trust All", value: "" },
+        { label: "Trust Red", value: "red" },
+        { label: "Trust Yellow", value: "yellow" },
+        { label: "Trust Green", value: "green" },
+    ];
 
     return (
         <div className="flex flex-col min-h-full bg-zed-main">
@@ -122,6 +130,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                 <PortfolioHeader
                     categoryOptions={categoryOptions}
                     presetOptions={presetOptions}
+                    trustOptions={trustOptions}
                     projectOptions={allProjects.map((p) => ({ id: p.id, name: p.name }))}
                     trustHighlights={trust.highlights}
                 />
@@ -136,7 +145,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                             <ProjectCard
                                 key={project.id}
                                 id={project.id}
-                                href={buildProjectHref(project.id, { category: categoryFilter, preset })}
+                                href={buildProjectHref(project.id, { category: categoryFilter, preset, trust: trustFilter })}
                                 name={project.name}
                                 category={normalizeCategoryLabel(project.categories[0] || "uncategorized")}
                                 tasksCount={project.task_summary?.total_active || 0}
@@ -175,14 +184,14 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                         <span className="w-1.5 h-1.5 rounded-full bg-status-yellow" />
                         {status.by_health.at_risk} At Risk
                     </span>
-                    <span className="flex items-center gap-2 text-status-red">
+                    <Link href="/portfolio?trust=red" className="flex items-center gap-2 text-status-red hover:underline decoration-dotted">
                         <span className="w-1.5 h-1.5 rounded-full bg-status-red" />
                         {trust.highlights.sync_red_projects} Sync Red
-                    </span>
-                    <span className="flex items-center gap-2 text-status-yellow">
+                    </Link>
+                    <Link href="/portfolio?trust=yellow" className="flex items-center gap-2 text-status-yellow hover:underline decoration-dotted">
                         <span className="w-1.5 h-1.5 rounded-full bg-status-yellow" />
                         {trust.highlights.sync_yellow_projects} Sync Yellow
-                    </span>
+                    </Link>
                 </div>
             </footer>
         </div>
@@ -253,6 +262,25 @@ function applyPresetFilter(projects: ProjectFromApi[], preset: string): ProjectF
     return projects;
 }
 
+function applyTrustFilter(
+    projects: ProjectFromApi[],
+    trust: string,
+    trustByProject: Map<string, { severity: "green" | "yellow" | "red" }>
+): ProjectFromApi[] {
+    if (!trust) return projects;
+    return projects.filter((project) => trustByProject.get(project.id)?.severity === trust);
+}
+
+function applyFilters(
+    projects: ProjectFromApi[],
+    preset: string,
+    trust: string,
+    trustByProject: Map<string, { severity: "green" | "yellow" | "red" }>
+): ProjectFromApi[] {
+    const presetFiltered = applyPresetFilter(projects, preset);
+    return applyTrustFilter(presetFiltered, trust, trustByProject);
+}
+
 function buildNextTasksByProject(tasks: Array<{
     id: string;
     title: string;
@@ -299,10 +327,11 @@ function isProjectStale(project: Pick<ProjectFromApi, "last_activity_at" | "crea
     return ageDays >= 7;
 }
 
-function buildProjectHref(projectId: string, context: { category?: string; preset?: string }): string {
+function buildProjectHref(projectId: string, context: { category?: string; preset?: string; trust?: string }): string {
     const params = new URLSearchParams();
     params.set("from", "portfolio");
     if (context.category) params.set("category", context.category);
     if (context.preset) params.set("preset", context.preset);
+    if (context.trust) params.set("trust", context.trust);
     return `/projects/${projectId}?${params.toString()}`;
 }

@@ -4,11 +4,12 @@ import { useState } from "react";
 import { FilterBar } from "@/components/ui/FilterBar";
 import { IconPlus } from "@tabler/icons-react";
 import { TaskCreateModal } from "@/components/features/TaskCreateModal";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 interface PortfolioHeaderProps {
     categoryOptions: Array<{ label: string; value: string }>;
     presetOptions: Array<{ label: string; value: string }>;
+    trustOptions: Array<{ label: string; value: string }>;
     projectOptions: Array<{ id: string; name: string }>;
     trustHighlights?: {
         at_risk_projects: number;
@@ -19,9 +20,18 @@ interface PortfolioHeaderProps {
     };
 }
 
-export function PortfolioHeader({ categoryOptions, presetOptions, projectOptions, trustHighlights }: PortfolioHeaderProps) {
+export function PortfolioHeader({ categoryOptions, presetOptions, trustOptions, projectOptions, trustHighlights }: PortfolioHeaderProps) {
     const [newTaskOpen, setNewTaskOpen] = useState(false);
     const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
+    function setTrustFilter(value: string) {
+        const params = new URLSearchParams(searchParams.toString());
+        if (value) params.set("trust", value);
+        else params.delete("trust");
+        router.push(`${pathname}?${params.toString()}`);
+    }
 
     return (
         <header className="border-b border-zed-border bg-zed-header/30 backdrop-blur-md sticky top-0 z-20">
@@ -29,6 +39,7 @@ export function PortfolioHeader({ categoryOptions, presetOptions, projectOptions
                 <div className="flex items-center gap-3">
                     <FilterBar paramName="preset" options={presetOptions} />
                     <FilterBar paramName="category" options={categoryOptions} />
+                    <FilterBar paramName="trust" options={trustOptions} />
                 </div>
                 <div className="flex items-center gap-3">
                     <button
@@ -45,8 +56,18 @@ export function PortfolioHeader({ categoryOptions, presetOptions, projectOptions
                     <div className="mb-3 flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest">
                         <span className="text-status-red">Health Red {trustHighlights.unhealthy_projects}</span>
                         <span className="text-status-yellow">Health Yellow {trustHighlights.at_risk_projects}</span>
-                        <span className="text-status-red">Sync Red {trustHighlights.sync_red_projects}</span>
-                        <span className="text-status-yellow">Sync Yellow {trustHighlights.sync_yellow_projects}</span>
+                        <button
+                            onClick={() => setTrustFilter("red")}
+                            className="text-status-red hover:underline decoration-dotted"
+                        >
+                            Sync Red {trustHighlights.sync_red_projects}
+                        </button>
+                        <button
+                            onClick={() => setTrustFilter("yellow")}
+                            className="text-status-yellow hover:underline decoration-dotted"
+                        >
+                            Sync Yellow {trustHighlights.sync_yellow_projects}
+                        </button>
                     </div>
                 )}
                 <details className="text-[10px] text-text-muted">
