@@ -85,14 +85,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch task activity and roll it up to project.
+    // Batch in chunks to avoid Supabase URI length limits with many task IDs.
     let taskActivityByProject: Record<string, string | null> = {};
     const taskIds = Object.keys(taskToProject);
-    if (taskIds.length > 0) {
+    const BATCH_SIZE = 100;
+    for (let i = 0; i < taskIds.length; i += BATCH_SIZE) {
+        const batch = taskIds.slice(i, i + BATCH_SIZE);
         const { data: taskActivityRows, error: taskActivityError } = await supabase
             .from('activity_log')
             .select('entity_id, created_at')
             .eq('entity_type', 'task')
-            .in('entity_id', taskIds);
+            .in('entity_id', batch);
 
         if (taskActivityError) {
             return NextResponse.json({ error: taskActivityError.message }, { status: 500 });

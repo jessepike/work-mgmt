@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
         .from('task')
         .select(`
         *,
-        project:project_id(status, current_phase_id),
+        project:project_id(name, status, current_phase_id),
         phase:phase_id(status)
     `)
         .neq('status', 'done')

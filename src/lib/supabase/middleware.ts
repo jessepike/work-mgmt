@@ -37,25 +37,13 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    if (
-        !user &&
-        !request.nextUrl.pathname.startsWith('/login') &&
-        !request.nextUrl.pathname.startsWith('/auth') &&
-        request.nextUrl.pathname !== '/' // Allow public access to landing if needed, but for this app it's likely guarded
-    ) {
-        // no user, potentially redirect to login
-        // For now, we allow unrestricted access as per "single user MVP" simplicity,
-        // but in a real app we'd redirect.
-        // Given the brief says "Supabase Auth UI for login", we should probably redirect
-        // unauthenticated users to /auth/login
-
-        // Check if it's an API route or a page
-        if (!request.nextUrl.pathname.startsWith('/api')) {
-            const url = request.nextUrl.clone()
-            url.pathname = '/auth/login'
-            return NextResponse.redirect(url)
-        }
-    }
+    // Auth redirect disabled for single-user MVP (B20 deferred).
+    // Re-enable when auth is implemented:
+    // if (!user && !request.nextUrl.pathname.startsWith('/auth') && !request.nextUrl.pathname.startsWith('/api')) {
+    //     const url = request.nextUrl.clone()
+    //     url.pathname = '/auth/login'
+    //     return NextResponse.redirect(url)
+    // }
 
     return supabaseResponse
 }
