@@ -35,6 +35,55 @@ export function registerPhaseTools(server: McpServer) {
         }
     );
 
+    const updatePhaseHandler = async ({
+        id,
+        ...updates
+    }: {
+        id: string;
+        name?: string;
+        description?: string;
+        sort_order?: number;
+        deadline_at?: string;
+        status?: "pending" | "active" | "completed";
+        handoff_notes?: string;
+    }) => {
+        const response = await axios.patch(`${API_BASE_URL}/phases/${id}`, updates);
+        return {
+            content: [{ type: "text", text: `Phase updated successfully: ${response.data.data.id}` }]
+        };
+    };
+
+    server.tool(
+        "patch_phase",
+        "Update an existing phase",
+        {
+            id: z.string().uuid(),
+            name: z.string().optional(),
+            description: z.string().optional(),
+            sort_order: z.number().optional(),
+            deadline_at: z.string().optional(),
+            status: z.enum(["pending", "active", "completed"]).optional(),
+            handoff_notes: z.string().optional()
+        },
+        updatePhaseHandler
+    );
+
+    // Alias for design parity naming.
+    server.tool(
+        "update_phase",
+        "Update an existing phase",
+        {
+            id: z.string().uuid(),
+            name: z.string().optional(),
+            description: z.string().optional(),
+            sort_order: z.number().optional(),
+            deadline_at: z.string().optional(),
+            status: z.enum(["pending", "active", "completed"]).optional(),
+            handoff_notes: z.string().optional()
+        },
+        updatePhaseHandler
+    );
+
     server.tool(
         "start_phase",
         "Start a phase",

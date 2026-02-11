@@ -44,6 +44,40 @@ export function registerTaskTools(server: McpServer) {
         }
     );
 
+    const getTaskHandler = async ({ id }: { id: string }) => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/tasks/${id}`);
+            const task = response.data?.data ?? response.data;
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: JSON.stringify(task, null, 2)
+                    }
+                ]
+            };
+        } catch (error: any) {
+            return {
+                content: [
+                    {
+                        type: "text",
+                        text: `Error getting task: ${error.response?.data?.error || error.message}`
+                    }
+                ],
+                isError: true
+            };
+        }
+    };
+
+    server.tool(
+        "get_task",
+        "Get details for a specific task",
+        {
+            id: z.string().uuid()
+        },
+        getTaskHandler
+    );
+
     server.tool(
         "create_task",
         "Create a new task",
