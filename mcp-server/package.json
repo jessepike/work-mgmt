@@ -7,7 +7,9 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "start:http": "node dist/index.js http",
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "smoke:contract": "npm run build && node scripts/mcp-tool-contract-smoke.mjs",
+    "smoke:e2e": "npm run build && node scripts/mcp-e2e-smoke.mjs"
   },
   "keywords": [],
   "author": "",

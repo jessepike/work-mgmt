@@ -60,3 +60,23 @@ npm run dev
 ```
 
 This uses `tsx` to run the TypeScript source directly. The MCP server will connect to the main application at `http://localhost:3005/api`.
+
+## Smoke Checks
+
+Tool contract smoke (validates expected MCP tool names are registered):
+
+```bash
+npm run smoke:contract
+```
+
+End-to-end MCP smoke (calls key tools: `get_project`, `update_plan`, `get_task`, `whats_next`, `search`, `get_activity`):
+
+```bash
+npm run smoke:e2e
+```
+
+`smoke:e2e` input behavior:
+- Uses `SMOKE_PROJECT_ID` if provided.
+- Otherwise uses the first project from `list_projects`.
+- If no projects exist, attempts bootstrap only when `SMOKE_OWNER_ID` is set.
+- If no project context can be resolved, script exits as `SKIPPED` (exit 0). Set `SMOKE_STRICT=1` to make that a failure.
