@@ -8,7 +8,9 @@
     "start": "next start -p 3005",
     "lint": "eslint",
     "test:api-contract": "node tests/api-contract-smoke.mjs",
-    "test:adf-sync": "node scripts/adf-sync-validation.mjs"
+    "test:adf-sync": "node scripts/adf-sync-validation.mjs",
+    "cleanup:smoke-data": "node scripts/cleanup-smoke-data.mjs --apply",
+    "cleanup:smoke-data:dry": "node scripts/cleanup-smoke-data.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
