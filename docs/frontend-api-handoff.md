@@ -109,3 +109,9 @@ node tests/api-mutation-smoke.mjs
 For automatic cleanup, ensure these env vars are set in the shell:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
+
+Additional backend safety checks:
+```bash
+node tests/api-workflow-rules-smoke.mjs
+node tests/api-idempotency-smoke.mjs
+```
