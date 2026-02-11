@@ -26,7 +26,7 @@ updated: "2026-02-11"
 | B13 | Backlog endpoints: GET list, POST, PATCH, POST promote (creates task, links, validates plan_id for planned) | New spec | API | P1 | M | Done |
 | B14 | Cross-cutting query endpoints: status, whats-next, blockers, deadlines, search (FTS), activity | New spec | API | P1 | L | Done |
 | B15 | Connector endpoints: GET list, POST, POST sync | New spec | API | P2 | S | Done |
-| B16 | MCP server: stdio transport, tool definitions for all CRUD + query tools | New spec | MCP | P1 | L | Partial |
+| B16 | MCP server: stdio transport, tool definitions for all CRUD + query tools | New spec | MCP | P1 | L | Done |
 | B17 | ADF connector: markdown parser for status.md, tasks.md, backlog.md | New spec | MCP | P1 | M | Done |
 | B18 | ADF connector: sync_project tool — parse, map to entities, upsert via REST (source_id) | New spec | MCP | P1 | M | Done |
 | B19 | Dashboard shell: root layout, sidebar, header, auth gate, view switcher | New spec | Dashboard | P1 | M | Pending |
@@ -51,8 +51,8 @@ Seed has 3 actors + 3 projects. Spec called for 5-8 projects with mix of connect
 ### B14 — Done
 Status, blockers, deadlines, search, whats-next, and activity endpoints are implemented.
 
-### B16 — Partial (integration aligned)
-Plan/phase/backlog/query tools are implemented and route-aligned. Remaining gap is full parity for optional task validation tooling and broader connector test coverage.
+### B16 — Done
+CRUD/query tool coverage is implemented with interface-parity aliases. Contract/e2e smoke scripts and CI workflow are in place for MCP validation.
 
 ## Known Issues
 

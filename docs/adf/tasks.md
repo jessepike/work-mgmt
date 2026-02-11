@@ -9,18 +9,18 @@ updated: "2026-02-11"
 
 | Field | Value |
 |-------|-------|
-| Phase | 5. Environment Setup |
-| Status | Complete |
-| Next | 6. Build |
+| Phase | 6. Build |
+| Status | In Progress |
+| Next | 7. Verify |
 | Blocker | None |
 
 **Done this phase:**
-- Environment verified on port 3005.
-- Capability access (KB, Memory) registered.
-- ADF artifacts aligned.
+- Query APIs implemented and integrated (`status`, `blockers`, `deadlines`, `search`, `whats-next`, `activity`).
+- MCP parity aliases + missing read tools implemented.
+- MCP smoke scripts added (contract + e2e) and CI workflow added.
 
 **Next phase requires:**
-- Implementation of B14 query endpoints.
+- Seed/deploy hardening and connector validation prep.
 
 ---
 
@@ -31,7 +31,9 @@ updated: "2026-02-11"
 | T14.1 | Implement Portfolio Status API | done | GET /api/projects/status returns aggregated health and task counts | curl test | - | backend |
 | T14.2 | Implement Blockers API | done | GET /api/blockers returns list of blocked tasks with project context | curl test | - | backend |
 | T14.3 | Implement Deadlines API | done | GET /api/deadlines returns upcoming deadlines across portfolio | curl test | - | backend |
-| T14.4 | Verify B14 via MCP | pending | Ensure adf-server (or custom tool) can expose these summaries | MCP debug | T14.1-3 | mcp |
+| T14.4 | Verify B14 via MCP | done | MCP exposes and returns results for status/blockers/deadlines/search/activity tools | `npm --prefix mcp-server run smoke:contract` + `smoke:e2e` | T14.1-3 | mcp |
+| T30.1 | Validate ADF sync against 3+ repos | pending | `sync_adf_project` tested against real repos and outcomes logged | manual runbook | B18 | mcp |
+| T31.1 | Deployment readiness checklist | pending | Env vars, migration sequence, and smoke gates documented | checklist review | B31 | ops |
 
 # Completed Tasks
 
