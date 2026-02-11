@@ -9,7 +9,11 @@ ON CONFLICT (id) DO UPDATE SET active = excluded.active;
 INSERT INTO project (id, name, project_type, categories, workflow_type, owner_id, status, description) VALUES
   ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'Work Management', 'connected', ARRAY['dev', 'meta'], 'planned', 'jess', 'active', 'Central work tracking system'),
   ('b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 'ADF', 'connected', ARRAY['dev', 'core'], 'planned', 'jess', 'active', 'Agentic Development Framework'),
-  ('c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13', 'Personal', 'native', ARRAY['personal'], 'flat', 'jess', 'active', 'Personal tasks and errands')
+  ('c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13', 'Personal', 'native', ARRAY['personal'], 'flat', 'jess', 'active', 'Personal tasks and errands'),
+  ('d0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14', 'Krypton', 'connected', ARRAY['ops', 'agent'], 'planned', 'jess', 'active', 'Chief of staff agent orchestration'),
+  ('e0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15', 'Knowledge Base', 'connected', ARRAY['knowledge', 'infra'], 'planned', 'jess', 'active', 'Knowledge retrieval and indexing'),
+  ('f0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16', 'Capabilities Registry', 'connected', ARRAY['platform', 'infra'], 'planned', 'jess', 'active', 'Agent capability catalog and metadata'),
+  ('10eebc99-9c0b-4ef8-bb6d-6bb9bd380a17', 'Business Ops', 'native', ARRAY['business'], 'flat', 'jess', 'active', 'Business operations and planning')
 ON CONFLICT (id) DO UPDATE SET 
   name = excluded.name,
   description = excluded.description,

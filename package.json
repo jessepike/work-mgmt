@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start -p 3005",
     "lint": "eslint",
-    "test:api-contract": "node tests/api-contract-smoke.mjs"
+    "test:api-contract": "node tests/api-contract-smoke.mjs",
+    "test:adf-sync": "node scripts/adf-sync-validation.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
