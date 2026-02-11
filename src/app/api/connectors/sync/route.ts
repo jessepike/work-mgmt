@@ -165,6 +165,8 @@ export async function POST(request: NextRequest) {
                 .update({
                     current_stage: status.current_status,
                     blockers: status.blockers,
+                    pending_decisions: status.pending_decisions,
+                    focus: status.focus || null,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', project_id);
