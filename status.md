@@ -15,6 +15,7 @@ last_session: "2026-02-11T21:00"
 - **API:** Core REST surface implemented (projects, plans, phases, tasks, backlog, queries, connectors)
 - **MCP:** Stdio server + tool modules wired and smoke-tested against local API
 - **Portfolio:** 8 projects, 587 tasks synced
+- **Dashboard:** All 4 views verified working (Today, Portfolio, Kanban, Project Detail)
 - **Known bugs:** 0 open (see BACKLOG.md)
 
 ## Implementation Progress
@@ -171,3 +172,4 @@ last_session: "2026-02-11T21:00"
 | 2026-02-11 | **Dashboard implementation complete.** 5 commits across 5 phases: (1) Foundation — cn() utility, API types, 6 shared UI primitives. (2) Today view — live /api/whats-next data, deadline buckets, loading/error. (3) Portfolio — category filtering, live stats footer. (4) Project Detail — adaptive flat/planned layout, PhaseAccordion, TaskDetailPanel, QuickAdd, BacklogSection, SyncIndicator, data_origin enforcement. (5) Kanban — HTML5 DnD, project filter, optimistic updates, synced item protection. ~18 new files, ~8 modified. TypeScript clean, Next.js build passing. |
 | 2026-02-11 | **Visual validation attempt.** Started dev server (port 3005, responding 200). Attempted Chrome browser automation via claude-in-chrome MCP — server connected but Chrome extension not linked. Committed parallel MCP agent changes (ADF parser improvements, connector sync fixes). |
 | 2026-02-11 | **Chrome browser tool test.** Attempted claude-in-chrome connection after Chrome restart — extension still not connecting ("No Chrome extension connected"). Needs further debugging of extension ↔ MCP link. |
+| 2026-02-11 | **Dashboard visual testing & bug fixes.** Connected Chrome browser tools (via `/chrome` command). Fixed 4 blockers: (1) SSR fetch failure — NEXT_PUBLIC_APP_URL pointed to wrong port. (2) Auth middleware redirect disabled for MVP. (3) Project name missing from whats-next join. (4) Portfolio 500 — batched task activity queries to avoid Supabase URI length limit. All 4 views verified working: Today, Portfolio, Kanban, Project Detail. KB entry added for chrome extension troubleshooting. |
