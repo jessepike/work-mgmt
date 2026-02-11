@@ -20,7 +20,7 @@ Develop
 | File | Load When | Purpose |
 |------|-----------|---------|
 | docs/intent.md | Always | North Star |
-| docs/status.md | Always | Session state — review at start, update at end |
+| status.md | Always | Session state — review at start, update at end |
 | docs/discover-brief.md | Reference | Project contract, success criteria |
 | docs/design.md | Develop | Design overview, decisions, handoff notes |
 | docs/design-architecture.md | Develop | System architecture, auth, project structure |

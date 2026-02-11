@@ -5,7 +5,7 @@ This MCP server exposes tools to interact with the Work Management application, 
 ## Prerequisites
 
 - Node.js (v18 or higher)
-- The Work Management application running locally (usually on port 3000)
+- The Work Management application running locally on port 3005
 
 ## Installation & Build
 

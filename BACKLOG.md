@@ -59,7 +59,7 @@ Implemented: project CRUD (4), task CRUD + complete (4), search (1), whats-next 
 | ID | Issue | Severity | Status |
 |----|-------|----------|--------|
 | BUG-1 | ~~GET /api/tasks referenced nonexistent `display_id_prefix` column on project~~ | High | Fixed |
-| BUG-2 | Actor ID hardcoded as 'jess' in all activity logging — needs JWT extraction | Medium | Open |
+| BUG-2 | ~~Actor ID hardcoded as 'jess' in activity logging~~. Replaced with request actor resolution + actor_registry validation. | Medium | Fixed |
 | BUG-3 | data_origin enforcement not integrated in PATCH endpoints (validation exists but unused) | Medium | Fixed |
 | BUG-4 | package.json name is "temp_next_app" — should be "work-management" | Low | Fixed |
 
