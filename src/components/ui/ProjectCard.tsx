@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { IconRefresh } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
 interface ProjectCardProps {
+    id?: string;
     name: string;
     category: string;
     tasksCount: number;
@@ -21,6 +23,7 @@ const healthColors = {
 };
 
 export function ProjectCard({
+    id,
     name,
     category,
     tasksCount,
@@ -30,8 +33,11 @@ export function ProjectCard({
     health,
     syncing
 }: ProjectCardProps) {
+    const Wrapper = id ? Link : "div";
+    const wrapperProps = id ? { href: `/projects/${id}` } : {};
+
     return (
-        <div className="bg-zed-sidebar border border-zed-border rounded-md hover:border-zed-border/60 hover:bg-zed-hover group transition-all flex flex-col h-fit overflow-hidden cursor-pointer shadow-sm hover:shadow-md">
+        <Wrapper {...wrapperProps as any} className="bg-zed-sidebar border border-zed-border rounded-md hover:border-zed-border/60 hover:bg-zed-hover group transition-all flex flex-col h-fit overflow-hidden cursor-pointer shadow-sm hover:shadow-md">
             <div className="p-5 flex-1">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2.5">
@@ -73,6 +79,6 @@ export function ProjectCard({
                     />
                 </div>
             </div>
-        </div>
+        </Wrapper>
     );
 }
