@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { IconCircle, IconCircleCheckFilled } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
+import { showToast } from "@/components/ui/Toast";
 
 interface TaskItemProps {
     title: string;
@@ -11,6 +13,7 @@ interface TaskItemProps {
     status: "pending" | "done" | "blocked" | "in_progress";
     dueDate?: string;
     href?: string;
+    taskId?: string;
 }
 
 const priorityColors = {
@@ -26,23 +29,59 @@ const statusColors = {
     in_progress: "bg-status-yellow",
 };
 
-export function TaskItem({ title, project, priority, status, href }: TaskItemProps) {
+export function TaskItem({ title, project, priority, status, href, taskId }: TaskItemProps) {
+    const [localStatus, setLocalStatus] = useState(status);
+    const [busy, setBusy] = useState(false);
+
+    useEffect(() => {
+        setLocalStatus(status);
+    }, [status]);
+
+    async function toggleComplete(e: React.MouseEvent) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!taskId || busy) return;
+        const next = localStatus === "done" ? "pending" : "done";
+        setLocalStatus(next);
+        setBusy(true);
+        try {
+            const res = await fetch(`/api/tasks/${taskId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: next }),
+            });
+            const body = await res.json();
+            if (!res.ok) throw new Error(body?.error || "Failed to update task");
+            setLocalStatus(body.data.status);
+            showToast("success", next === "done" ? "Task completed" : "Task reopened");
+        } catch (error) {
+            setLocalStatus(status);
+            showToast("error", error instanceof Error ? error.message : "Failed to update task");
+        } finally {
+            setBusy(false);
+        }
+    }
+
     const content = (
         <>
             <div className="flex items-center gap-4 flex-1 min-w-0">
-                <span className="flex-shrink-0 text-text-muted hover:text-text-secondary transition-colors">
-                    {status === "done" ? (
+                <button
+                    onClick={toggleComplete}
+                    disabled={!taskId || busy}
+                    className="flex-shrink-0 text-text-muted hover:text-text-secondary transition-colors disabled:opacity-40"
+                >
+                    {localStatus === "done" ? (
                         <IconCircleCheckFilled className="w-4 h-4 text-status-green" />
                     ) : (
                         <IconCircle className="w-4 h-4" />
                     )}
-                </span>
+                </button>
 
-                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", statusColors[status])} />
+                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", statusColors[localStatus])} />
 
                 <span className={cn(
                     "text-sm truncate flex-1",
-                    status === "done" ? "text-text-muted line-through" : "text-text-primary"
+                    localStatus === "done" ? "text-text-muted line-through" : "text-text-primary"
                 )}>
                     {title}
                 </span>

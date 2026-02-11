@@ -70,6 +70,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
     ]);
 
     const projects = applyPresetFilter(projectsRes.data, preset);
+    const allProjects = projectsRes.data;
     const status = statusRes.data;
     const tasks = tasksRes.data || [];
     const categoryValues = Array.from(
@@ -91,7 +92,11 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
     return (
         <div className="flex flex-col min-h-full bg-zed-main">
             <Suspense>
-                <PortfolioHeader categoryOptions={categoryOptions} presetOptions={presetOptions} />
+                <PortfolioHeader
+                    categoryOptions={categoryOptions}
+                    presetOptions={presetOptions}
+                    projectOptions={allProjects.map((p) => ({ id: p.id, name: p.name }))}
+                />
             </Suspense>
 
             <div className="p-8 lg:p-12 flex-1">

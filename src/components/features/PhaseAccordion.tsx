@@ -13,6 +13,7 @@ interface PhaseAccordionProps {
     selectedTaskIds?: Set<string>;
     onToggleTaskSelection?: (taskId: string) => void;
     selectionEnabled?: boolean;
+    onToggleComplete?: (task: Task) => void;
 }
 
 export function PhaseAccordion({
@@ -22,6 +23,7 @@ export function PhaseAccordion({
     selectedTaskIds,
     onToggleTaskSelection,
     selectionEnabled = false,
+    onToggleComplete,
 }: PhaseAccordionProps) {
     const [expanded, setExpanded] = useState(phase.status === "active" || phase.status === "pending");
     const sortedTasks = [...tasks].sort(compareTasksForPhase);
@@ -64,13 +66,19 @@ export function PhaseAccordion({
                                     className="mr-3 accent-primary"
                                 />
                             )}
-                            <span className="mr-4 text-text-muted">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onToggleComplete?.(task);
+                                }}
+                                className="mr-4 text-text-muted hover:text-text-secondary transition-colors"
+                            >
                                 {task.status === "done" ? (
                                     <IconCircleCheckFilled className="w-4 h-4 text-status-green" />
                                 ) : (
                                     <IconCircle className="w-4 h-4" />
                                 )}
-                            </span>
+                            </button>
                             <span className={cn(
                                 "text-xs flex-1 truncate",
                                 task.status === "done" ? "text-text-muted line-through" : "text-text-primary"

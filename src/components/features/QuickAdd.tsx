@@ -10,9 +10,10 @@ interface QuickAddProps {
     planId?: string | null;
     phaseId?: string | null;
     disabled?: boolean;
+    onCreated?: (task: any) => void;
 }
 
-export function QuickAdd({ projectId, planId, phaseId, disabled }: QuickAddProps) {
+export function QuickAdd({ projectId, planId, phaseId, disabled, onCreated }: QuickAddProps) {
     const [title, setTitle] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const router = useRouter();
@@ -26,23 +27,25 @@ export function QuickAdd({ projectId, planId, phaseId, disabled }: QuickAddProps
 
         setSubmitting(true);
         try {
-            const body: Record<string, string> = { project_id: projectId, title: trimmed };
-            if (planId) body.plan_id = planId;
-            if (phaseId) body.phase_id = phaseId;
+            const payload: Record<string, string> = { project_id: projectId, title: trimmed };
+            if (planId) payload.plan_id = planId;
+            if (phaseId) payload.phase_id = phaseId;
 
             const res = await fetch("/api/tasks", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
+                body: JSON.stringify(payload),
             });
 
             if (!res.ok) {
                 const err = await res.json();
                 throw new Error(err.error || "Failed to create task");
             }
+            const responseBody = await res.json();
 
             setTitle("");
             showToast("success", "Task created");
+            onCreated?.(responseBody.data);
             router.refresh();
         } catch (err) {
             showToast("error", err instanceof Error ? err.message : "Failed to create task");

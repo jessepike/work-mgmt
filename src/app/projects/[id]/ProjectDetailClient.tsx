@@ -11,6 +11,7 @@ import { PhaseAccordion } from "@/components/features/PhaseAccordion";
 import { TaskDetailPanel } from "@/components/features/TaskDetailPanel";
 import { QuickAdd } from "@/components/features/QuickAdd";
 import { BacklogSection } from "@/components/features/BacklogSection";
+import { TaskCreateModal } from "@/components/features/TaskCreateModal";
 import { showToast } from "@/components/ui/Toast";
 import type { Task, Phase, ProjectHealth } from "@/lib/types/api";
 
@@ -61,6 +62,7 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
     const [bulkBusy, setBulkBusy] = useState(false);
     const [bulkFeedback, setBulkFeedback] = useState<{ skippedIds: string[]; skippedReasons: Record<string, string> } | null>(null);
     const [activity, setActivity] = useState<ActivityItem[]>([]);
+    const [newTaskOpen, setNewTaskOpen] = useState(false);
 
     const isConnected = project.project_type === "connected";
     const isPlanned = project.workflow_type === "planned";
@@ -123,6 +125,25 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
             else next.add(taskId);
             return next;
         });
+    }
+
+    async function toggleTaskComplete(task: Task) {
+        const nextStatus: Task["status"] = task.status === "done" ? "pending" : "done";
+        try {
+            const res = await fetch(`/api/tasks/${task.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: nextStatus }),
+            });
+            const body = await res.json();
+            if (!res.ok) throw new Error(body?.error || "Failed to update task");
+            setTaskRows((prev) =>
+                prev.map((row) => row.id === task.id ? body.data : row)
+            );
+            showToast("success", nextStatus === "done" ? "Task completed" : "Task reopened");
+        } catch (error) {
+            showToast("error", error instanceof Error ? error.message : "Failed to update task");
+        }
     }
 
     async function runBulkUpdate(updates: { status?: Task["status"]; priority?: Task["priority"] }) {
@@ -322,11 +343,12 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
                                 {syncing ? "Syncing..." : "Sync Now"}
                             </button>
                         )}
-                        {!isConnected && (
-                            <button className="px-3 py-1.5 bg-zed-active border border-zed-border text-[10px] font-bold tracking-widest uppercase hover:bg-zed-hover transition-colors rounded">
-                                New Task
-                            </button>
-                        )}
+                        <button
+                            onClick={() => setNewTaskOpen(true)}
+                            className="px-3 py-1.5 bg-zed-active border border-zed-border text-[10px] font-bold tracking-widest uppercase hover:bg-zed-hover transition-colors rounded"
+                        >
+                            New Task
+                        </button>
                         <IconDots className="w-4 h-4 text-text-muted cursor-pointer" />
                     </div>
                 </header>
@@ -549,6 +571,7 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
                                 <QuickAdd
                                     projectId={project.id}
                                     planId={project.current_plan?.id}
+                                    onCreated={(createdTask) => setTaskRows((prev) => [createdTask, ...prev])}
                                 />
                             )}
 
@@ -563,6 +586,7 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
                                             selectionEnabled={true}
                                             selectedTaskIds={selectedTaskIds}
                                             onToggleTaskSelection={toggleTaskSelection}
+                                            onToggleComplete={toggleTaskComplete}
                                         />
                                     ))}
                                     {(activeTasksByPhase.get("__unphased") || []).length > 0 && (
@@ -574,6 +598,7 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
                                                 selectionEnabled={true}
                                                 selectedTaskIds={selectedTaskIds}
                                                 onToggleTaskSelection={toggleTaskSelection}
+                                                onToggleComplete={toggleTaskComplete}
                                             />
                                         </section>
                                     )}
@@ -602,6 +627,7 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
                                                 selectionEnabled={true}
                                                 selectedTaskIds={selectedTaskIds}
                                                 onToggleTaskSelection={toggleTaskSelection}
+                                                onToggleComplete={toggleTaskComplete}
                                             />
                                         </section>
                                     );
@@ -628,6 +654,7 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
                                         selectionEnabled={true}
                                         selectedTaskIds={selectedTaskIds}
                                         onToggleTaskSelection={toggleTaskSelection}
+                                        onToggleComplete={toggleTaskComplete}
                                     />
                                 ) : (
                                     <div className="h-10 px-4 flex items-center text-xs text-text-muted italic opacity-50">
@@ -678,9 +705,23 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
                     task={selectedTask}
                     projectName={project.name}
                     phaseName={findPhaseName(selectedTask)}
+                    onTaskUpdated={(updated) => {
+                        setTaskRows((prev) => prev.map((task) => task.id === updated.id ? updated : task));
+                        setSelectedTask(updated);
+                    }}
                     onClose={() => setSelectedTask(null)}
                 />
             )}
+
+            <TaskCreateModal
+                open={newTaskOpen}
+                onClose={() => setNewTaskOpen(false)}
+                projects={[{ id: project.id, name: project.name }]}
+                defaultProjectId={project.id}
+                onCreated={(createdTask) => {
+                    setTaskRows((prev) => [createdTask, ...prev]);
+                }}
+            />
         </div>
     );
 }
@@ -765,12 +806,14 @@ function TaskListFlat({
     selectionEnabled = false,
     selectedTaskIds,
     onToggleTaskSelection,
+    onToggleComplete,
 }: {
     tasks: Task[];
     onTaskClick: (t: Task) => void;
     selectionEnabled?: boolean;
     selectedTaskIds?: Set<string>;
     onToggleTaskSelection?: (taskId: string) => void;
+    onToggleComplete?: (task: Task) => void;
 }) {
     return (
         <div className="space-y-1">
@@ -789,13 +832,19 @@ function TaskListFlat({
                             className="mr-3 accent-primary"
                         />
                     )}
-                    <span className="mr-4 text-text-muted">
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleComplete?.(task);
+                        }}
+                        className="mr-4 text-text-muted hover:text-text-secondary transition-colors"
+                    >
                         {task.status === "done" ? (
                             <IconCircleCheckFilled className="w-4 h-4 text-status-green" />
                         ) : (
                             <IconCircle className="w-4 h-4" />
                         )}
-                    </span>
+                    </button>
                     <span className={cn(
                         "text-xs flex-1 truncate",
                         task.status === "done" ? "text-text-muted line-through" : "text-text-primary"
