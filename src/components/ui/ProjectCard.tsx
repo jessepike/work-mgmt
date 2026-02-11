@@ -22,6 +22,8 @@ interface ProjectCardProps {
     lastSyncAt?: string | null;
     nextTasks?: Array<{ id: string; title: string; priority: "P1" | "P2" | "P3" | null }>;
     isStale?: boolean;
+    syncTrustSeverity?: "green" | "yellow" | "red";
+    syncTrustNote?: string;
 }
 
 const healthColors = {
@@ -48,7 +50,9 @@ export function ProjectCard({
     connectorStatus,
     lastSyncAt,
     nextTasks = [],
-    isStale = false
+    isStale = false,
+    syncTrustSeverity,
+    syncTrustNote
 }: ProjectCardProps) {
     const Wrapper = id ? Link : "div";
     const wrapperProps = id ? { href: href || `/projects/${id}` } : {};
@@ -60,6 +64,11 @@ export function ProjectCard({
         : connectorStatus === "paused"
             ? "text-status-yellow"
             : "text-text-muted";
+    const trustClass = syncTrustSeverity === "red"
+        ? "text-status-red border-status-red/40"
+        : syncTrustSeverity === "yellow"
+            ? "text-status-yellow border-status-yellow/40"
+            : "text-status-green border-status-green/40";
 
     return (
         <Wrapper {...wrapperProps as any} className="bg-zed-sidebar border border-zed-border rounded-md hover:border-zed-border/60 hover:bg-zed-hover group transition-all flex flex-col h-fit overflow-hidden cursor-pointer shadow-sm hover:shadow-md">
@@ -137,9 +146,19 @@ export function ProjectCard({
                 <div className="mt-4 pt-3 border-t border-zed-border/40 flex items-center justify-between">
                     <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Updated {activityLabel}</span>
                     {projectType === "connected" && (
-                        <span className={`text-[10px] font-bold uppercase tracking-widest ${syncClass}`}>
-                            Sync {syncLabel}
-                        </span>
+                        <div className="flex items-center gap-2">
+                            {syncTrustSeverity && (
+                                <span
+                                    title={syncTrustNote || "Sync trust status"}
+                                    className={cn("text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded border", trustClass)}
+                                >
+                                    Trust {syncTrustSeverity}
+                                </span>
+                            )}
+                            <span className={`text-[10px] font-bold uppercase tracking-widest ${syncClass}`}>
+                                Sync {syncLabel}
+                            </span>
+                        </div>
                     )}
                 </div>
             </div>

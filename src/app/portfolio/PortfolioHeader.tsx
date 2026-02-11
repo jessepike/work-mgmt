@@ -10,9 +10,16 @@ interface PortfolioHeaderProps {
     categoryOptions: Array<{ label: string; value: string }>;
     presetOptions: Array<{ label: string; value: string }>;
     projectOptions: Array<{ id: string; name: string }>;
+    trustHighlights?: {
+        at_risk_projects: number;
+        unhealthy_projects: number;
+        sync_red_projects: number;
+        sync_yellow_projects: number;
+        needs_attention: boolean;
+    };
 }
 
-export function PortfolioHeader({ categoryOptions, presetOptions, projectOptions }: PortfolioHeaderProps) {
+export function PortfolioHeader({ categoryOptions, presetOptions, projectOptions, trustHighlights }: PortfolioHeaderProps) {
     const [newTaskOpen, setNewTaskOpen] = useState(false);
     const router = useRouter();
 
@@ -34,6 +41,14 @@ export function PortfolioHeader({ categoryOptions, presetOptions, projectOptions
                 </div>
             </div>
             <div className="px-8 pb-3">
+                {trustHighlights && (
+                    <div className="mb-3 flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest">
+                        <span className="text-status-red">Health Red {trustHighlights.unhealthy_projects}</span>
+                        <span className="text-status-yellow">Health Yellow {trustHighlights.at_risk_projects}</span>
+                        <span className="text-status-red">Sync Red {trustHighlights.sync_red_projects}</span>
+                        <span className="text-status-yellow">Sync Yellow {trustHighlights.sync_yellow_projects}</span>
+                    </div>
+                )}
                 <details className="text-[10px] text-text-muted">
                     <summary className="cursor-pointer uppercase tracking-widest font-bold">Card Legend</summary>
                     <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px] text-text-secondary">

@@ -41,6 +41,28 @@ interface StatusFromApi {
     task_summary: { pending: number; in_progress: number; blocked: number; overdue: number; total_active: number };
 }
 
+interface PortfolioTrustFromApi {
+    highlights: {
+        at_risk_projects: number;
+        unhealthy_projects: number;
+        sync_red_projects: number;
+        sync_yellow_projects: number;
+        needs_attention: boolean;
+    };
+    sync_quality: {
+        totals: { projects: number; red: number; yellow: number; green: number; synced_tasks: number; synced_backlog: number };
+        rows: Array<{
+            project_id: string;
+            severity: "green" | "yellow" | "red";
+            duplicate_titles: number;
+            duplicate_source_ids: number;
+            synced_without_source: number;
+            absolute_source_ids: number;
+            last_sync_age_hours: number | null;
+        }>;
+    };
+}
+
 interface PortfolioPageProps {
     searchParams: Promise<{ category?: string; preset?: string }>;
 }
@@ -55,7 +77,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
         apiPath += `&categories=${encodeURIComponent(categoryFilter)}`;
     }
 
-    const [projectsRes, statusRes, tasksRes] = await Promise.all([
+    const [projectsRes, statusRes, tasksRes, trustRes] = await Promise.all([
         apiFetch<ApiResponse<ProjectFromApi[]>>(apiPath),
         apiFetch<ApiResponse<StatusFromApi>>("/api/projects/status?scope=enabled"),
         apiFetch<ApiResponse<Array<{
@@ -67,11 +89,13 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
             updated_at: string;
             project_id: string;
         }>>>("/api/tasks?scope=enabled&status=pending,in_progress,blocked"),
+        apiFetch<ApiResponse<PortfolioTrustFromApi>>("/api/portfolio-trust?scope=enabled"),
     ]);
 
     const projects = applyPresetFilter(projectsRes.data, preset);
     const allProjects = projectsRes.data;
     const status = statusRes.data;
+    const trust = trustRes.data;
     const tasks = tasksRes.data || [];
     const categoryValues = Array.from(
         new Set(projects.flatMap((p) => p.categories || []).filter(Boolean))
@@ -88,6 +112,9 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
         { label: "Stale", value: "stale" },
     ];
     const nextTasksByProject = buildNextTasksByProject(tasks);
+    const trustByProject = new Map(
+        (trust.sync_quality?.rows || []).map((row) => [row.project_id, row])
+    );
 
     return (
         <div className="flex flex-col min-h-full bg-zed-main">
@@ -96,6 +123,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                     categoryOptions={categoryOptions}
                     presetOptions={presetOptions}
                     projectOptions={allProjects.map((p) => ({ id: p.id, name: p.name }))}
+                    trustHighlights={trust.highlights}
                 />
             </Suspense>
 
@@ -125,6 +153,8 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                                 lastSyncAt={project.connector_summary?.last_sync_at || null}
                                 nextTasks={nextTasksByProject.get(project.id) || []}
                                 isStale={isProjectStale(project)}
+                                syncTrustSeverity={trustByProject.get(project.id)?.severity}
+                                syncTrustNote={buildSyncTrustNote(trustByProject.get(project.id))}
                             />
                         ))}
                     </div>
@@ -145,10 +175,35 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                         <span className="w-1.5 h-1.5 rounded-full bg-status-yellow" />
                         {status.by_health.at_risk} At Risk
                     </span>
+                    <span className="flex items-center gap-2 text-status-red">
+                        <span className="w-1.5 h-1.5 rounded-full bg-status-red" />
+                        {trust.highlights.sync_red_projects} Sync Red
+                    </span>
+                    <span className="flex items-center gap-2 text-status-yellow">
+                        <span className="w-1.5 h-1.5 rounded-full bg-status-yellow" />
+                        {trust.highlights.sync_yellow_projects} Sync Yellow
+                    </span>
                 </div>
             </footer>
         </div>
     );
+}
+
+function buildSyncTrustNote(row: {
+    duplicate_titles: number;
+    duplicate_source_ids: number;
+    synced_without_source: number;
+    absolute_source_ids: number;
+    last_sync_age_hours: number | null;
+} | undefined): string | undefined {
+    if (!row) return undefined;
+    const notes: string[] = [];
+    if (row.duplicate_source_ids > 0) notes.push(`${row.duplicate_source_ids} duplicate source IDs`);
+    if (row.synced_without_source > 0) notes.push(`${row.synced_without_source} synced items missing source ID`);
+    if (row.absolute_source_ids > 0) notes.push(`${row.absolute_source_ids} absolute source paths`);
+    if (row.duplicate_titles > 0) notes.push(`${row.duplicate_titles} duplicate titles`);
+    if ((row.last_sync_age_hours ?? 0) > 24) notes.push(`last sync ${Math.floor(row.last_sync_age_hours || 0)}h ago`);
+    return notes.length > 0 ? notes.join(" • ") : "No sync trust issues detected";
 }
 
 function normalizeStageLabel(stage: string | null): string {

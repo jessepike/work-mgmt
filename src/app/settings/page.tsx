@@ -21,6 +21,16 @@ interface ConnectorRow {
   config: { path?: string } | null;
 }
 
+interface SyncQualityRow {
+  project_id: string;
+  severity: "green" | "yellow" | "red";
+  duplicate_titles: number;
+  duplicate_source_ids: number;
+  synced_without_source: number;
+  absolute_source_ids: number;
+  last_sync_age_hours: number | null;
+}
+
 type ConnectionState = "configured" | "missing_path" | "not_configured" | "native";
 type FreshnessState = "healthy" | "aging" | "stale" | "never" | "not_ready" | "n/a";
 
@@ -68,6 +78,7 @@ function getFreshnessState(
 export default function SettingsPage() {
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [connectors, setConnectors] = useState<ConnectorRow[]>([]);
+  const [syncQualityRows, setSyncQualityRows] = useState<SyncQualityRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyProject, setBusyProject] = useState<string | null>(null);
   const [pathDraft, setPathDraft] = useState<Record<string, string>>({});
@@ -76,13 +87,15 @@ export default function SettingsPage() {
   async function load() {
     setLoading(true);
     try {
-      const [projectsRes, connectorsRes] = await Promise.all([
+      const [projectsRes, connectorsRes, syncQualityRes] = await Promise.all([
         fetch("/api/projects?status=active").then((r) => r.json()),
         fetch("/api/connectors?connector_type=adf").then((r) => r.json()),
+        fetch("/api/sync-quality?include_unconfigured=1").then((r) => r.json()),
       ]);
 
       setProjects(projectsRes.data || []);
       setConnectors(connectorsRes.data || []);
+      setSyncQualityRows(syncQualityRes.data?.rows || []);
     } catch {
       showToast("error", "Failed to load settings data");
     } finally {
@@ -100,19 +113,33 @@ export default function SettingsPage() {
     return map;
   }, [connectors]);
 
+  const syncQualityByProject = useMemo(() => {
+    const map = new Map<string, SyncQualityRow>();
+    for (const row of syncQualityRows) map.set(row.project_id, row);
+    return map;
+  }, [syncQualityRows]);
+
   const visibleProjects = useMemo(() => {
     const healthRank: Record<string, number> = { red: 0, yellow: 1, green: 2 };
 
     const withMeta = projects.map((project) => {
       const connector = connectorByProject.get(project.id);
+      const syncQuality = syncQualityByProject.get(project.id);
       const connection = getConnectionState(project.project_type, connector);
       const freshness = getFreshnessState(project.project_type, connection, connector?.last_sync_at || null);
       const enabled = connector?.status === "active";
       const needsAttention =
         project.project_type === "connected" &&
-        (connection === "not_configured" || connection === "missing_path" || freshness === "stale" || freshness === "never");
+        (
+          connection === "not_configured" ||
+          connection === "missing_path" ||
+          freshness === "stale" ||
+          freshness === "never" ||
+          syncQuality?.severity === "red" ||
+          syncQuality?.severity === "yellow"
+        );
 
-      return { project, connector, connection, freshness, enabled, needsAttention };
+      return { project, connector, syncQuality, connection, freshness, enabled, needsAttention };
     });
 
     const filtered = withMeta.filter((row) => {
@@ -131,7 +158,7 @@ export default function SettingsPage() {
       if (aRank !== bRank) return aRank - bRank;
       return a.project.name.localeCompare(b.project.name);
     });
-  }, [projects, connectorByProject, filterMode]);
+  }, [projects, connectorByProject, syncQualityByProject, filterMode]);
 
   async function toggleProject(project: ProjectRow, enabled: boolean) {
     if (project.project_type !== "connected") return;
@@ -239,12 +266,13 @@ export default function SettingsPage() {
                   <th className="px-4 py-3">Sync Control</th>
                   <th className="px-4 py-3">Last Synced</th>
                   <th className="px-4 py-3">Freshness</th>
+                  <th className="px-4 py-3">Trust</th>
                   <th className="px-4 py-3">Repo Path</th>
                   <th className="px-4 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {visibleProjects.map(({ project, connector, enabled, connection, freshness, needsAttention }) => {
+                {visibleProjects.map(({ project, connector, syncQuality, enabled, connection, freshness, needsAttention }) => {
                   const isConnected = project.project_type === "connected";
                   const busy = busyProject === project.id;
 
@@ -315,6 +343,28 @@ export default function SettingsPage() {
                           <span className={`inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${badgeClass("yellow")}`}>Never Synced</span>
                         ) : (
                           <span className={`inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${badgeClass("red")}`}>Not Ready</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {project.project_type === "native" ? (
+                          <span className="text-text-muted">—</span>
+                        ) : !syncQuality ? (
+                          <span className={`inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${badgeClass("muted")}`}>Unknown</span>
+                        ) : (
+                          <div className="flex flex-col gap-1">
+                            <span className={`inline-flex items-center w-fit px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${
+                              syncQuality.severity === "red"
+                                ? badgeClass("red")
+                                : syncQuality.severity === "yellow"
+                                  ? badgeClass("yellow")
+                                  : badgeClass("green")
+                            }`}>
+                              {syncQuality.severity}
+                            </span>
+                            <span className="text-[10px] text-text-muted">
+                              dup-title {syncQuality.duplicate_titles} • dup-id {syncQuality.duplicate_source_ids}
+                            </span>
+                          </div>
                         )}
                       </td>
                       <td className="px-4 py-3">
