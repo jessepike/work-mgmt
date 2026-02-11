@@ -63,7 +63,8 @@ export function PhaseAccordion({
                                     checked={selectedTaskIds?.has(task.id) || false}
                                     onChange={() => onToggleTaskSelection?.(task.id)}
                                     onClick={(e) => e.stopPropagation()}
-                                    className="mr-3 accent-primary"
+                                    disabled={task.data_origin === "synced"}
+                                    className="mr-3 accent-primary disabled:opacity-40"
                                 />
                             )}
                             <button
@@ -71,7 +72,8 @@ export function PhaseAccordion({
                                     e.stopPropagation();
                                     onToggleComplete?.(task);
                                 }}
-                                className="mr-4 text-text-muted hover:text-text-secondary transition-colors"
+                                disabled={task.data_origin === "synced"}
+                                className="mr-4 text-text-muted hover:text-text-secondary transition-colors disabled:opacity-40"
                             >
                                 {task.status === "done" ? (
                                     <IconCircleCheckFilled className="w-4 h-4 text-status-green" />

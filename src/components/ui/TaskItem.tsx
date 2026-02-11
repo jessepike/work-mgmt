@@ -14,6 +14,7 @@ interface TaskItemProps {
     dueDate?: string;
     href?: string;
     taskId?: string;
+    isReadOnly?: boolean;
 }
 
 const priorityColors = {
@@ -29,7 +30,7 @@ const statusColors = {
     in_progress: "bg-status-yellow",
 };
 
-export function TaskItem({ title, project, priority, status, href, taskId }: TaskItemProps) {
+export function TaskItem({ title, project, priority, status, href, taskId, isReadOnly = false }: TaskItemProps) {
     const [localStatus, setLocalStatus] = useState(status);
     const [busy, setBusy] = useState(false);
 
@@ -40,7 +41,7 @@ export function TaskItem({ title, project, priority, status, href, taskId }: Tas
     async function toggleComplete(e: React.MouseEvent) {
         e.preventDefault();
         e.stopPropagation();
-        if (!taskId || busy) return;
+        if (!taskId || busy || isReadOnly) return;
         const next = localStatus === "done" ? "pending" : "done";
         setLocalStatus(next);
         setBusy(true);
@@ -67,7 +68,7 @@ export function TaskItem({ title, project, priority, status, href, taskId }: Tas
             <div className="flex items-center gap-4 flex-1 min-w-0">
                 <button
                     onClick={toggleComplete}
-                    disabled={!taskId || busy}
+                    disabled={!taskId || busy || isReadOnly}
                     className="flex-shrink-0 text-text-muted hover:text-text-secondary transition-colors disabled:opacity-40"
                 >
                     {localStatus === "done" ? (

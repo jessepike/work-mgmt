@@ -70,6 +70,10 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
     const activeTasks = orderedTasks.filter((task) => task.status !== "done");
     const completedTasks = orderedTasks.filter((task) => task.status === "done");
     const overdueCount = activeTasks.filter((task) => task.deadline_at && new Date(task.deadline_at).getTime() < Date.now()).length;
+    const selectedHasSynced = Array.from(selectedTaskIds).some((taskId) => {
+        const task = taskRows.find((row) => row.id === taskId);
+        return task?.data_origin === "synced";
+    });
 
     const activeTasksByPhase = new Map<string | null, Task[]>();
     for (const task of activeTasks) {
@@ -128,6 +132,10 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
     }
 
     async function toggleTaskComplete(task: Task) {
+        if (task.data_origin === "synced") {
+            showToast("error", "Synced tasks are read-only in the dashboard");
+            return;
+        }
         const nextStatus: Task["status"] = task.status === "done" ? "pending" : "done";
         try {
             const res = await fetch(`/api/tasks/${task.id}`, {
@@ -427,49 +435,49 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
                             <div className="flex items-center gap-1 flex-wrap">
                                 <button
                                     onClick={() => runBulkUpdate({ status: "done" })}
-                                    disabled={bulkBusy}
+                                    disabled={bulkBusy || selectedHasSynced}
                                     className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover disabled:opacity-40"
                                 >
                                     Mark Done
                                 </button>
                                 <button
                                     onClick={() => runBulkUpdate({ status: "in_progress" })}
-                                    disabled={bulkBusy}
+                                    disabled={bulkBusy || selectedHasSynced}
                                     className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover disabled:opacity-40"
                                 >
                                     Move In Progress
                                 </button>
                                 <button
                                     onClick={() => runBulkUpdate({ status: "pending" })}
-                                    disabled={bulkBusy}
+                                    disabled={bulkBusy || selectedHasSynced}
                                     className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover disabled:opacity-40"
                                 >
                                     Move Pending
                                 </button>
                                 <button
                                     onClick={() => runBulkUpdate({ status: "blocked" })}
-                                    disabled={bulkBusy}
+                                    disabled={bulkBusy || selectedHasSynced}
                                     className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover disabled:opacity-40"
                                 >
                                     Move Blocked
                                 </button>
                                 <button
                                     onClick={() => runBulkUpdate({ priority: "P1" })}
-                                    disabled={bulkBusy}
+                                    disabled={bulkBusy || selectedHasSynced}
                                     className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover disabled:opacity-40"
                                 >
                                     Set P1
                                 </button>
                                 <button
                                     onClick={() => runBulkUpdate({ priority: "P2" })}
-                                    disabled={bulkBusy}
+                                    disabled={bulkBusy || selectedHasSynced}
                                     className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover disabled:opacity-40"
                                 >
                                     Set P2
                                 </button>
                                 <button
                                     onClick={() => runBulkUpdate({ priority: "P3" })}
-                                    disabled={bulkBusy}
+                                    disabled={bulkBusy || selectedHasSynced}
                                     className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover disabled:opacity-40"
                                 >
                                     Set P3
@@ -482,6 +490,11 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
                                     Clear
                                 </button>
                             </div>
+                        </div>
+                    )}
+                    {selectedTaskIds.size > 0 && selectedHasSynced && (
+                        <div className="text-[11px] text-status-yellow">
+                            Synced tasks are read-only. Deselect synced items to use bulk actions.
                         </div>
                     )}
 
@@ -829,7 +842,8 @@ function TaskListFlat({
                             checked={selectedTaskIds?.has(task.id) || false}
                             onChange={() => onToggleTaskSelection?.(task.id)}
                             onClick={(e) => e.stopPropagation()}
-                            className="mr-3 accent-primary"
+                            disabled={task.data_origin === "synced"}
+                            className="mr-3 accent-primary disabled:opacity-40"
                         />
                     )}
                     <button
@@ -837,7 +851,8 @@ function TaskListFlat({
                             e.stopPropagation();
                             onToggleComplete?.(task);
                         }}
-                        className="mr-4 text-text-muted hover:text-text-secondary transition-colors"
+                        disabled={task.data_origin === "synced"}
+                        className="mr-4 text-text-muted hover:text-text-secondary transition-colors disabled:opacity-40"
                     >
                         {task.status === "done" ? (
                             <IconCircleCheckFilled className="w-4 h-4 text-status-green" />

@@ -26,6 +26,7 @@ export function TaskCreateModal({ open, onClose, projects, defaultProjectId, onC
     const [formError, setFormError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<{ title?: string; project?: string }>({});
     const sortedProjects = useMemo(() => [...projects].sort((a, b) => a.name.localeCompare(b.name)), [projects]);
+    const hasProjects = sortedProjects.length > 0;
 
     useEffect(() => {
         if (!open) return;
@@ -78,13 +79,16 @@ export function TaskCreateModal({ open, onClose, projects, defaultProjectId, onC
             <div className="space-y-4">
                 <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-text-muted">Project</label>
+                    {!hasProjects && (
+                        <p className="mt-1 text-[11px] text-status-red">No enabled projects available. Enable a project in Settings first.</p>
+                    )}
                     <select
                         value={projectId}
                         onChange={(e) => {
                             setProjectId(e.target.value);
                             setFieldErrors((prev) => ({ ...prev, project: undefined }));
                         }}
-                        disabled={submitting}
+                        disabled={submitting || !hasProjects}
                         className={`
                             mt-1 w-full bg-zed-main border rounded px-2 py-2 text-sm text-text-primary disabled:opacity-50
                             ${fieldErrors.project ? "border-status-red" : "border-zed-border"}
@@ -153,7 +157,7 @@ export function TaskCreateModal({ open, onClose, projects, defaultProjectId, onC
                     </button>
                     <button
                         onClick={submit}
-                        disabled={submitting || !title.trim() || !projectId}
+                        disabled={submitting || !title.trim() || !projectId || !hasProjects}
                         className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded bg-primary text-white disabled:opacity-40"
                     >
                         {submitting ? "Creating..." : "Create Task"}

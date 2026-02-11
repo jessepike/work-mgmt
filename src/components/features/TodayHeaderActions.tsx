@@ -12,12 +12,15 @@ interface TodayHeaderActionsProps {
 export function TodayHeaderActions({ projects }: TodayHeaderActionsProps) {
     const [open, setOpen] = useState(false);
     const router = useRouter();
+    const disabled = projects.length === 0;
 
     return (
         <>
             <button
                 onClick={() => setOpen(true)}
-                className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase bg-primary text-white px-3 py-1.5 rounded hover:opacity-90 transition-all shadow-sm shadow-primary/20"
+                disabled={disabled}
+                title={disabled ? "No enabled projects available" : "Create task"}
+                className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase bg-primary text-white px-3 py-1.5 rounded hover:opacity-90 transition-all shadow-sm shadow-primary/20 disabled:opacity-40 disabled:cursor-not-allowed"
             >
                 <IconPlus className="w-3.5 h-3.5" />
                 New Task

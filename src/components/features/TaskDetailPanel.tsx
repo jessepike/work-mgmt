@@ -123,16 +123,22 @@ export function TaskDetailPanel({ task, projectName, phaseName, onClose, onTaskU
                     )}
                     <button
                         onClick={() => {
+                            if (isReadOnly) return;
                             const next = isDone ? "pending" : "done";
                             setDraft((prev) => ({ ...prev, status: next as Task["status"] }));
                             void patchTask({ status: next }, "status");
                         }}
-                        disabled={savingField !== null}
+                        disabled={savingField !== null || isReadOnly}
                         className="px-2 py-1 border rounded text-[9px] font-bold uppercase tracking-tight bg-zed-active border-zed-border text-text-secondary disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                         {savingField === "status" ? "Saving..." : isDone ? "Reopen" : "Mark Done"}
                     </button>
                 </div>
+                {isReadOnly && (
+                    <div className="mb-4 rounded border border-zed-border/50 bg-zed-main/40 px-3 py-2 text-[11px] text-text-secondary">
+                        This task is synced from source files and can only be updated in the source project.
+                    </div>
+                )}
 
                 <section className="mb-6">
                     <h4 className="text-[10px] font-bold text-text-muted tracking-widest uppercase mb-3">Properties</h4>
@@ -141,12 +147,13 @@ export function TaskDetailPanel({ task, projectName, phaseName, onClose, onTaskU
                             <select
                                 value={draft.status}
                                 onChange={(e) => {
+                                    if (isReadOnly) return;
                                     const value = e.target.value as Task["status"];
                                     setDraft((prev) => ({ ...prev, status: value }));
                                     void patchTask({ status: value }, "status");
                                 }}
-                                disabled={savingField !== null}
-                                className="w-full bg-zed-main border border-zed-border rounded px-2 py-1.5 text-xs text-text-primary"
+                                disabled={savingField !== null || isReadOnly}
+                                className="w-full bg-zed-main border border-zed-border rounded px-2 py-1.5 text-xs text-text-primary disabled:opacity-50"
                             >
                                 <option value="pending">Pending</option>
                                 <option value="in_progress">In Progress</option>
