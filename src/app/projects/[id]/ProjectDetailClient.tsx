@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IconDots, IconCircle, IconCircleCheckFilled } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { HealthBadge } from "@/components/ui/HealthBadge";
@@ -45,10 +45,13 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
     const [sortMode, setSortMode] = useState<TaskSortMode>("smart");
     const [syncing, setSyncing] = useState(false);
     const [lastSyncAt, setLastSyncAt] = useState<string | null>(project.connector?.last_sync_at || null);
+    const [taskRows, setTaskRows] = useState<Task[]>(tasks);
+    const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
+    const [bulkBusy, setBulkBusy] = useState(false);
 
     const isConnected = project.project_type === "connected";
     const isPlanned = project.workflow_type === "planned";
-    const orderedTasks = useMemo(() => [...tasks].sort((a, b) => compareTaskSort(a, b, sortMode)), [tasks, sortMode]);
+    const orderedTasks = useMemo(() => [...taskRows].sort((a, b) => compareTaskSort(a, b, sortMode)), [taskRows, sortMode]);
     const activeTasks = orderedTasks.filter((task) => task.status !== "done");
     const completedTasks = orderedTasks.filter((task) => task.status === "done");
     const overdueCount = activeTasks.filter((task) => task.deadline_at && new Date(task.deadline_at).getTime() < Date.now()).length;
@@ -62,9 +65,63 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
 
     const activeStatusGroups = ["blocked", "in_progress", "pending"] as const;
 
+    useEffect(() => {
+        setSelectedTaskIds(new Set());
+    }, [selectedTab, sortMode]);
+
     function findPhaseName(task: Task): string | undefined {
         const phase = project.phases.find((p) => p.id === task.phase_id);
         return phase?.name;
+    }
+
+    function toggleTaskSelection(taskId: string) {
+        setSelectedTaskIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(taskId)) next.delete(taskId);
+            else next.add(taskId);
+            return next;
+        });
+    }
+
+    async function runBulkUpdate(updates: { status?: Task["status"]; priority?: Task["priority"] }) {
+        if (selectedTaskIds.size === 0 || bulkBusy) return;
+        const taskIds = Array.from(selectedTaskIds);
+        setBulkBusy(true);
+        try {
+            const res = await fetch("/api/tasks/bulk-update", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    task_ids: taskIds,
+                    updates,
+                }),
+            });
+            const body = await res.json();
+            if (!res.ok) throw new Error(body?.error || "Bulk update failed");
+
+            setTaskRows((prev) =>
+                prev.map((task) => {
+                    if (!taskIds.includes(task.id)) return task;
+                    const nextStatus = updates.status ?? task.status;
+                    return {
+                        ...task,
+                        ...updates,
+                        status: nextStatus,
+                        completed_at: nextStatus === "done" ? new Date().toISOString() : null,
+                        updated_at: new Date().toISOString(),
+                    };
+                })
+            );
+
+            setSelectedTaskIds(new Set());
+            const skipped = body?.data?.skipped_ids?.length || 0;
+            const updated = body?.data?.updated_count || taskIds.length;
+            showToast("success", `Updated ${updated} tasks${skipped ? ` (${skipped} skipped)` : ""}`);
+        } catch (error) {
+            showToast("error", error instanceof Error ? error.message : "Bulk update failed");
+        } finally {
+            setBulkBusy(false);
+        }
     }
 
     return (
@@ -97,6 +154,11 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
                                         if (!res.ok) throw new Error(body?.error || "Sync failed");
                                         const nowIso = new Date().toISOString();
                                         setLastSyncAt(nowIso);
+                                        const tasksRes = await fetch(`/api/tasks?project_id=${project.id}`);
+                                        const tasksBody = await tasksRes.json();
+                                        if (tasksRes.ok && Array.isArray(tasksBody?.data)) {
+                                            setTaskRows(tasksBody.data);
+                                        }
                                         showToast("success", `Synced ${body?.count || 0} items`);
                                     } catch (error) {
                                         showToast("error", error instanceof Error ? error.message : "Sync failed");
@@ -184,6 +246,72 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
                             ))}
                         </div>
                     </div>
+
+                    {selectedTaskIds.size > 0 && (
+                        <div className="flex items-center justify-between gap-3 p-2 rounded border border-primary/30 bg-primary/5">
+                            <span className="text-[11px] font-bold text-text-secondary uppercase tracking-widest">
+                                {selectedTaskIds.size} selected
+                            </span>
+                            <div className="flex items-center gap-1 flex-wrap">
+                                <button
+                                    onClick={() => runBulkUpdate({ status: "done" })}
+                                    disabled={bulkBusy}
+                                    className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover disabled:opacity-40"
+                                >
+                                    Mark Done
+                                </button>
+                                <button
+                                    onClick={() => runBulkUpdate({ status: "in_progress" })}
+                                    disabled={bulkBusy}
+                                    className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover disabled:opacity-40"
+                                >
+                                    Move In Progress
+                                </button>
+                                <button
+                                    onClick={() => runBulkUpdate({ status: "pending" })}
+                                    disabled={bulkBusy}
+                                    className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover disabled:opacity-40"
+                                >
+                                    Move Pending
+                                </button>
+                                <button
+                                    onClick={() => runBulkUpdate({ status: "blocked" })}
+                                    disabled={bulkBusy}
+                                    className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover disabled:opacity-40"
+                                >
+                                    Move Blocked
+                                </button>
+                                <button
+                                    onClick={() => runBulkUpdate({ priority: "P1" })}
+                                    disabled={bulkBusy}
+                                    className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover disabled:opacity-40"
+                                >
+                                    Set P1
+                                </button>
+                                <button
+                                    onClick={() => runBulkUpdate({ priority: "P2" })}
+                                    disabled={bulkBusy}
+                                    className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover disabled:opacity-40"
+                                >
+                                    Set P2
+                                </button>
+                                <button
+                                    onClick={() => runBulkUpdate({ priority: "P3" })}
+                                    disabled={bulkBusy}
+                                    className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover disabled:opacity-40"
+                                >
+                                    Set P3
+                                </button>
+                                <button
+                                    onClick={() => setSelectedTaskIds(new Set())}
+                                    disabled={bulkBusy}
+                                    className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border text-text-muted hover:text-text-secondary disabled:opacity-40"
+                                >
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-10">
@@ -204,12 +332,21 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
                                             phase={phase}
                                             tasks={activeTasksByPhase.get(phase.id) || []}
                                             onTaskClick={setSelectedTask}
+                                            selectionEnabled={true}
+                                            selectedTaskIds={selectedTaskIds}
+                                            onToggleTaskSelection={toggleTaskSelection}
                                         />
                                     ))}
                                     {(activeTasksByPhase.get("__unphased") || []).length > 0 && (
                                         <section>
                                             <h3 className="text-[10px] font-bold tracking-widest uppercase text-text-muted mb-4 px-2">Unphased</h3>
-                                            <TaskListFlat tasks={activeTasksByPhase.get("__unphased")!} onTaskClick={setSelectedTask} />
+                                            <TaskListFlat
+                                                tasks={activeTasksByPhase.get("__unphased")!}
+                                                onTaskClick={setSelectedTask}
+                                                selectionEnabled={true}
+                                                selectedTaskIds={selectedTaskIds}
+                                                onToggleTaskSelection={toggleTaskSelection}
+                                            />
                                         </section>
                                     )}
                                 </>
@@ -231,7 +368,13 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
                                                 <span className="text-[10px] text-text-muted font-bold font-mono">({statusTasks.length})</span>
                                                 <div className="h-[1px] flex-1 bg-zed-border/50" />
                                             </div>
-                                            <TaskListFlat tasks={statusTasks} onTaskClick={setSelectedTask} />
+                                            <TaskListFlat
+                                                tasks={statusTasks}
+                                                onTaskClick={setSelectedTask}
+                                                selectionEnabled={true}
+                                                selectedTaskIds={selectedTaskIds}
+                                                onToggleTaskSelection={toggleTaskSelection}
+                                            />
                                         </section>
                                     );
                                 })
@@ -251,7 +394,13 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
                                     <div className="h-[1px] flex-1 bg-zed-border/50" />
                                 </div>
                                 {completedTasks.length > 0 ? (
-                                    <TaskListFlat tasks={completedTasks} onTaskClick={setSelectedTask} />
+                                    <TaskListFlat
+                                        tasks={completedTasks}
+                                        onTaskClick={setSelectedTask}
+                                        selectionEnabled={true}
+                                        selectedTaskIds={selectedTaskIds}
+                                        onToggleTaskSelection={toggleTaskSelection}
+                                    />
                                 ) : (
                                     <div className="h-10 px-4 flex items-center text-xs text-text-muted italic opacity-50">
                                         No completed tasks...
@@ -356,7 +505,19 @@ function Stat({ label, value, alert, muted }: { label: string; value: string; al
     );
 }
 
-function TaskListFlat({ tasks, onTaskClick }: { tasks: Task[]; onTaskClick: (t: Task) => void }) {
+function TaskListFlat({
+    tasks,
+    onTaskClick,
+    selectionEnabled = false,
+    selectedTaskIds,
+    onToggleTaskSelection,
+}: {
+    tasks: Task[];
+    onTaskClick: (t: Task) => void;
+    selectionEnabled?: boolean;
+    selectedTaskIds?: Set<string>;
+    onToggleTaskSelection?: (taskId: string) => void;
+}) {
     return (
         <div className="space-y-1">
             {tasks.map((task) => (
@@ -365,6 +526,15 @@ function TaskListFlat({ tasks, onTaskClick }: { tasks: Task[]; onTaskClick: (t: 
                     onClick={() => onTaskClick(task)}
                     className="flex items-center h-10 px-4 hover:bg-zed-hover rounded group transition-colors cursor-pointer"
                 >
+                    {selectionEnabled && (
+                        <input
+                            type="checkbox"
+                            checked={selectedTaskIds?.has(task.id) || false}
+                            onChange={() => onToggleTaskSelection?.(task.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="mr-3 accent-primary"
+                        />
+                    )}
                     <span className="mr-4 text-text-muted">
                         {task.status === "done" ? (
                             <IconCircleCheckFilled className="w-4 h-4 text-status-green" />

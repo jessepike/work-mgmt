@@ -20,6 +20,7 @@ interface ProjectCardProps {
     connectorStatus?: "active" | "paused" | "error";
     lastSyncAt?: string | null;
     nextTasks?: Array<{ id: string; title: string; priority: "P1" | "P2" | "P3" | null }>;
+    isStale?: boolean;
 }
 
 const healthColors = {
@@ -44,7 +45,8 @@ export function ProjectCard({
     projectType,
     connectorStatus,
     lastSyncAt,
-    nextTasks = []
+    nextTasks = [],
+    isStale = false
 }: ProjectCardProps) {
     const Wrapper = id ? Link : "div";
     const wrapperProps = id ? { href: `/projects/${id}` } : {};
@@ -64,6 +66,11 @@ export function ProjectCard({
                     <div className="flex items-center gap-2.5">
                         <div className={cn("w-2 h-2 rounded-full", healthColors[health])} />
                         <h3 className="font-semibold text-text-primary text-sm tracking-tight group-hover:text-primary transition-colors">{name}</h3>
+                        {isStale && (
+                            <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded border border-status-yellow/40 text-status-yellow">
+                                Stale
+                            </span>
+                        )}
                     </div>
                     <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">{projectType}</span>
                 </div>

@@ -10,9 +10,19 @@ interface PhaseAccordionProps {
     phase: Phase;
     tasks: Task[];
     onTaskClick?: (task: Task) => void;
+    selectedTaskIds?: Set<string>;
+    onToggleTaskSelection?: (taskId: string) => void;
+    selectionEnabled?: boolean;
 }
 
-export function PhaseAccordion({ phase, tasks, onTaskClick }: PhaseAccordionProps) {
+export function PhaseAccordion({
+    phase,
+    tasks,
+    onTaskClick,
+    selectedTaskIds,
+    onToggleTaskSelection,
+    selectionEnabled = false,
+}: PhaseAccordionProps) {
     const [expanded, setExpanded] = useState(phase.status === "active" || phase.status === "pending");
     const sortedTasks = [...tasks].sort(compareTasksForPhase);
     const doneCount = sortedTasks.filter((t) => t.status === "done").length;
@@ -45,6 +55,15 @@ export function PhaseAccordion({ phase, tasks, onTaskClick }: PhaseAccordionProp
                             onClick={() => onTaskClick?.(task)}
                             className="flex items-center h-10 px-4 hover:bg-zed-hover rounded group transition-colors cursor-pointer"
                         >
+                            {selectionEnabled && (
+                                <input
+                                    type="checkbox"
+                                    checked={selectedTaskIds?.has(task.id) || false}
+                                    onChange={() => onToggleTaskSelection?.(task.id)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="mr-3 accent-primary"
+                                />
+                            )}
                             <span className="mr-4 text-text-muted">
                                 {task.status === "done" ? (
                                     <IconCircleCheckFilled className="w-4 h-4 text-status-green" />

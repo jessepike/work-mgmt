@@ -8,6 +8,7 @@ import type { ApiResponse } from "@/lib/types/api";
 interface ProjectFromApi {
     id: string;
     name: string;
+    created_at: string;
     categories: string[];
     focus: string | null;
     current_stage: string | null;
@@ -83,6 +84,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
         { label: "Needs Attention", value: "attention" },
         { label: "Execution Today", value: "execution" },
         { label: "Heavy Backlog", value: "backlog" },
+        { label: "Stale", value: "stale" },
     ];
     const nextTasksByProject = buildNextTasksByProject(tasks);
 
@@ -116,6 +118,7 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                                 connectorStatus={project.connector_summary?.status}
                                 lastSyncAt={project.connector_summary?.last_sync_at || null}
                                 nextTasks={nextTasksByProject.get(project.id) || []}
+                                isStale={isProjectStale(project)}
                             />
                         ))}
                     </div>
@@ -183,6 +186,9 @@ function applyPresetFilter(projects: ProjectFromApi[], preset: string): ProjectF
     if (preset === "backlog") {
         return projects.filter((p) => (p.backlog_summary?.total_active || 0) >= 10);
     }
+    if (preset === "stale") {
+        return projects.filter((p) => isProjectStale(p));
+    }
     return projects;
 }
 
@@ -222,4 +228,12 @@ function buildNextTasksByProject(tasks: Array<{
     }
 
     return out;
+}
+
+function isProjectStale(project: Pick<ProjectFromApi, "last_activity_at" | "created_at">): boolean {
+    const now = Date.now();
+    const reference = project.last_activity_at || project.created_at;
+    if (!reference) return false;
+    const ageDays = (now - new Date(reference).getTime()) / (1000 * 60 * 60 * 24);
+    return ageDays >= 7;
 }

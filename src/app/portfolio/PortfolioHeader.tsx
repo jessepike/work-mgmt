@@ -33,6 +33,7 @@ export function PortfolioHeader({ categoryOptions, presetOptions }: PortfolioHea
                         <div><span className="font-bold uppercase text-text-muted">Backlog:</span> Unpromoted backlog items (`captured`, `triaged`, `prioritized`).</div>
                         <div><span className="font-bold uppercase text-text-muted">P1:</span> High-priority backlog count.</div>
                         <div><span className="font-bold uppercase text-text-muted">Sync:</span> Last connector sync freshness and connector status.</div>
+                        <div><span className="font-bold uppercase text-text-muted">Stale:</span> No project activity for 7+ days.</div>
                     </div>
                 </details>
             </div>
