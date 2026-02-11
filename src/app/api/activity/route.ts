@@ -1,13 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
 
+const VALID_ENTITY_TYPES = new Set([
+    'project',
+    'plan',
+    'phase',
+    'task',
+    'backlog_item',
+    'connector'
+]);
+
 export async function GET(request: NextRequest) {
     const supabase = await createServiceClient();
     const searchParams = request.nextUrl.searchParams;
 
     const projectId = searchParams.get('project_id');
     const actorId = searchParams.get('actor_id');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const entityType = searchParams.get('entity_type');
+    const entityId = searchParams.get('entity_id');
+    const rawLimit = parseInt(searchParams.get('limit') || '50', 10);
+    const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(rawLimit, 200)) : 50;
+
+    if (entityType && !VALID_ENTITY_TYPES.has(entityType)) {
+        return NextResponse.json(
+            { error: `Invalid entity_type. Expected one of: ${Array.from(VALID_ENTITY_TYPES).join(', ')}` },
+            { status: 400 }
+        );
+    }
 
     let query = supabase
         .from('activity_log')
@@ -15,22 +34,19 @@ export async function GET(request: NextRequest) {
         .order('created_at', { ascending: false })
         .limit(limit);
 
-    // If filtering by project, we need activity where entity_type='project' AND entity_id=projectId
-    // OR entity_type='task' AND task.project_id=projectId (requires join or separate query)
-    // Simplify: For project filter, just match explicit project logs?
-    // Or: UI usually asks for "All activity". 
-    // Let's implement basic filters supported by the table columns.
-    // The table doesn't have a `project_id` column for polymorphic entities.
-
-    // If we really need project-scoped activity, we'd need to fetch all task IDs for the project
-    // and query `entity_id IN (project_id, ...task_ids)`.
-    // For now, let's just support simple filtering or no filtering.
-
     if (actorId) {
         query = query.eq('actor_id', actorId);
     }
-    // Supporting basic equality on entity_id if provided
-    const entityId = searchParams.get('entity_id');
+
+    if (entityType) {
+        query = query.eq('entity_type', entityType);
+    }
+
+    // Compatibility alias: project_id is treated as entity_type=project + entity_id=project_id
+    if (projectId && !entityId && !entityType) {
+        query = query.eq('entity_type', 'project').eq('entity_id', projectId);
+    }
+
     if (entityId) {
         query = query.eq('entity_id', entityId);
     }
