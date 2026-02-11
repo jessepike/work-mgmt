@@ -28,7 +28,8 @@ const EXPECTED_TOOLS = [
   'get_blockers',
   'get_deadlines',
   'search',
-  'get_activity'
+  'get_activity',
+  'get_sync_quality'
 ];
 
 async function main() {

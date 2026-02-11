@@ -63,6 +63,20 @@ async function main() {
   );
   assert.ok(Array.isArray(portfolioStatus.body.data.upcoming_deadlines), 'projects/status upcoming_deadlines should be an array');
 
+  const syncQuality = await getJson('/sync-quality?scope=enabled');
+  assertEnvelope(syncQuality, '/sync-quality');
+  hasKeys(
+    syncQuality.body.data,
+    ['generated_at', 'stale_hours_threshold', 'totals', 'rows'],
+    'sync-quality'
+  );
+  hasKeys(
+    syncQuality.body.data.totals,
+    ['projects', 'red', 'yellow', 'green', 'synced_tasks', 'synced_backlog'],
+    'sync-quality totals'
+  );
+  assert.ok(Array.isArray(syncQuality.body.data.rows), 'sync-quality rows should be an array');
+
   console.log('API contract smoke test passed for critical UI endpoints.');
   console.log(`Base URL: ${BASE_URL}`);
 }

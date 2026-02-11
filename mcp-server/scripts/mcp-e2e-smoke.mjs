@@ -100,7 +100,10 @@ async function main() {
     const activityRes = await callAndParse(client, 'get_activity', { limit: 5 });
     assert(Array.isArray(activityRes.json), 'get_activity response is not an array');
 
-    console.log('E2E smoke passed for tools: get_project, update_plan, get_task, whats_next, search, get_activity.');
+    const syncQualityRes = await callAndParse(client, 'get_sync_quality', { scope: 'enabled' });
+    assert(syncQualityRes.json && typeof syncQualityRes.json === 'object', 'get_sync_quality response is not an object');
+
+    console.log('E2E smoke passed for tools: get_project, update_plan, get_task, whats_next, search, get_activity, get_sync_quality.');
   } finally {
     await client.stop();
   }

@@ -81,4 +81,24 @@ function registerQueryTools(server) {
             content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };
     });
+    server.tool("get_sync_quality", "Get sync-quality trust metrics for connected projects (freshness, source-id integrity, duplicate signals)", {
+        project_id: zod_1.z.string().uuid().optional(),
+        scope: zod_1.z.enum(['enabled']).optional(),
+        stale_hours: zod_1.z.number().int().positive().max(24 * 30).optional(),
+        include_unconfigured: zod_1.z.boolean().optional()
+    }, async ({ project_id, scope, stale_hours, include_unconfigured }) => {
+        const params = {};
+        if (project_id)
+            params.project_id = project_id;
+        if (scope)
+            params.scope = scope;
+        if (stale_hours)
+            params.stale_hours = stale_hours;
+        if (include_unconfigured)
+            params.include_unconfigured = 1;
+        const response = await axios_1.default.get(`${API_BASE_URL}/sync-quality`, { params });
+        return {
+            content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
+        };
+    });
 }
