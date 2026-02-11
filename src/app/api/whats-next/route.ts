@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
+import { getEnabledProjectIds } from '@/lib/api/enabled-projects';
 
 // GET /api/whats-next
 // Algorithm:
@@ -9,6 +10,7 @@ import { createServiceClient } from '@/lib/supabase/server';
 // 4. Recently unblocked? (Hard to track "recently unblocked" without specific timestamp, but we can prioritize active unblocked tasks)
 export async function GET(request: NextRequest) {
     const supabase = await createServiceClient();
+    const enabledProjectIds = await getEnabledProjectIds(supabase);
 
     // Fetch candidate tasks (Active, not done)
     // We need to fetch tasks and join project/phase to check active status
@@ -20,7 +22,7 @@ export async function GET(request: NextRequest) {
         .from('task')
         .select(`
         *,
-        project:project_id(name, status, current_phase_id),
+        project:project_id(id, name, status, current_phase_id),
         phase:phase_id(status)
     `)
         .neq('status', 'done')
@@ -31,7 +33,9 @@ export async function GET(request: NextRequest) {
     const now = new Date().getTime();
 
     // Score tasks
-    const scoredTasks = tasks.map(task => {
+    const scoredTasks = tasks
+        .filter((task) => enabledProjectIds.has(task.project_id))
+        .map(task => {
         let score = 0;
         let reasons: string[] = [];
 
@@ -75,8 +79,8 @@ export async function GET(request: NextRequest) {
             reasons.push('Approaching Deadline');
         }
 
-        return { ...task, score, match_reasons: reasons };
-    });
+            return { ...task, score, match_reasons: reasons };
+        });
 
     // Sort by score desc, then created_at asc (FIFO)
     scoredTasks.sort((a, b) => {

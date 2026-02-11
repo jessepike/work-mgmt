@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { IconCircle, IconCircleCheckFilled } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +10,7 @@ interface TaskItemProps {
     priority: "P1" | "P2" | "P3";
     status: "pending" | "done" | "blocked" | "in_progress";
     dueDate?: string;
+    href?: string;
 }
 
 const priorityColors = {
@@ -24,17 +26,17 @@ const statusColors = {
     in_progress: "bg-status-yellow",
 };
 
-export function TaskItem({ title, project, priority, status }: TaskItemProps) {
-    return (
-        <div className="flex items-center group h-10 px-6 hover:bg-zed-hover transition-colors cursor-pointer border-b border-zed-border/30 last:border-none">
+export function TaskItem({ title, project, priority, status, href }: TaskItemProps) {
+    const content = (
+        <>
             <div className="flex items-center gap-4 flex-1 min-w-0">
-                <button className="flex-shrink-0 text-text-muted hover:text-text-secondary transition-colors">
+                <span className="flex-shrink-0 text-text-muted hover:text-text-secondary transition-colors">
                     {status === "done" ? (
                         <IconCircleCheckFilled className="w-4 h-4 text-status-green" />
                     ) : (
                         <IconCircle className="w-4 h-4" />
                     )}
-                </button>
+                </span>
 
                 <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", statusColors[status])} />
 
@@ -54,6 +56,20 @@ export function TaskItem({ title, project, priority, status }: TaskItemProps) {
                     {priority}
                 </span>
             </div>
+        </>
+    );
+
+    if (href) {
+        return (
+            <Link href={href} className="flex items-center group h-10 px-6 hover:bg-zed-hover transition-colors cursor-pointer border-b border-zed-border/30 last:border-none">
+                {content}
+            </Link>
+        );
+    }
+
+    return (
+        <div className="flex items-center group h-10 px-6 hover:bg-zed-hover transition-colors cursor-pointer border-b border-zed-border/30 last:border-none">
+            {content}
         </div>
     );
 }

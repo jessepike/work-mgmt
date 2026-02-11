@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server';
 import { logActivity } from '@/lib/api/activity';
 import { computeProjectHealth } from '@/lib/api/health';
 import { resolveActor } from '@/lib/api/actor';
+import { getEnabledProjectIds } from '@/lib/api/enabled-projects';
 
 function latestIso(a: string | null, b: string | null): string | null {
     if (!a) return b;
@@ -18,6 +19,7 @@ export async function GET(request: NextRequest) {
     const statusFilter = searchParams.get('status')?.split(',') || [];
     const categoriesFilter = searchParams.get('categories')?.split(',') || [];
     const healthFilter = searchParams.get('health')?.split(',') || [];
+    const scope = searchParams.get('scope');
 
     // 1. Fetch projects
     let query = supabase.from('project').select('*');
@@ -44,7 +46,17 @@ export async function GET(request: NextRequest) {
 
     // For MVP simplicity: Fetch all tasks for these projects. 
     // Optimization: In a real app, we'd use a view or RPC.
-    const projectIds = projects.map(p => p.id);
+    let filteredProjects = projects || [];
+    if (scope === 'enabled') {
+        const enabledIds = await getEnabledProjectIds(supabase, filteredProjects.map(p => p.id));
+        filteredProjects = filteredProjects.filter((p) => enabledIds.has(p.id));
+    }
+
+    const projectIds = filteredProjects.map(p => p.id);
+
+    if (projectIds.length === 0) {
+        return NextResponse.json({ data: [] });
+    }
 
     const { data: tasks, error: tasksError } = await supabase
         .from('task')
@@ -57,6 +69,16 @@ export async function GET(request: NextRequest) {
 
     if (tasksError) {
         return NextResponse.json({ error: tasksError.message }, { status: 500 });
+    }
+
+    const { data: backlogItems, error: backlogError } = await supabase
+        .from('backlog_item')
+        .select('project_id, status, priority')
+        .in('project_id', projectIds)
+        .in('status', ['captured', 'triaged', 'prioritized']);
+
+    if (backlogError) {
+        return NextResponse.json({ error: backlogError.message }, { status: 500 });
     }
 
     // Build task->project map to roll up task activity into project activity.
@@ -116,8 +138,19 @@ export async function GET(request: NextRequest) {
         return acc;
     }, {} as Record<string, typeof tasks>);
 
+    const backlogByProject = (backlogItems || []).reduce((acc, item) => {
+        if (!acc[item.project_id]) {
+            acc[item.project_id] = { total_active: 0, p1: 0, p2: 0, p3: 0 };
+        }
+        acc[item.project_id].total_active += 1;
+        if (item.priority === 'P1') acc[item.project_id].p1 += 1;
+        if (item.priority === 'P2') acc[item.project_id].p2 += 1;
+        if (item.priority === 'P3') acc[item.project_id].p3 += 1;
+        return acc;
+    }, {} as Record<string, { total_active: number; p1: number; p2: number; p3: number }>);
+
     // Compute health and shape response
-    const results = projects.map(project => {
+    const results = filteredProjects.map(project => {
         // Determine health
         let health = project.health_override;
         let healthReason = project.health_reason;
@@ -152,7 +185,8 @@ export async function GET(request: NextRequest) {
             ...project,
             health,
             health_reason: healthReason,
-            task_summary: counts
+            task_summary: counts,
+            backlog_summary: backlogByProject[project.id] || { total_active: 0, p1: 0, p2: 0, p3: 0 }
         };
     }).filter(Boolean);
 

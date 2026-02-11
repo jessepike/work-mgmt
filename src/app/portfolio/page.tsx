@@ -10,6 +10,7 @@ interface ProjectFromApi {
     name: string;
     categories: string[];
     focus: string | null;
+    current_stage: string | null;
     health: "green" | "yellow" | "red";
     health_reason: string | null;
     project_type: "connected" | "native";
@@ -18,6 +19,12 @@ interface ProjectFromApi {
         in_progress: number;
         blocked: number;
         total_active: number;
+    };
+    backlog_summary?: {
+        total_active: number;
+        p1: number;
+        p2: number;
+        p3: number;
     };
 }
 
@@ -35,14 +42,14 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
     const params = await searchParams;
     const categoryFilter = params.category || "";
 
-    let apiPath = "/api/projects?status=active";
+    let apiPath = "/api/projects?status=active&scope=enabled";
     if (categoryFilter) {
         apiPath += `&categories=${encodeURIComponent(categoryFilter)}`;
     }
 
     const [projectsRes, statusRes] = await Promise.all([
         apiFetch<ApiResponse<ProjectFromApi[]>>(apiPath),
-        apiFetch<ApiResponse<StatusFromApi>>("/api/projects/status"),
+        apiFetch<ApiResponse<StatusFromApi>>("/api/projects/status?scope=enabled"),
     ]);
 
     const projects = projectsRes.data;
@@ -74,7 +81,10 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
                                 category={project.categories[0]?.toUpperCase() || "UNCATEGORIZED"}
                                 tasksCount={project.task_summary?.total_active || 0}
                                 blockedCount={project.task_summary?.blocked || 0}
+                                backlogCount={project.backlog_summary?.total_active || 0}
+                                p1Count={project.backlog_summary?.p1 || 0}
                                 currentFocus={project.focus || "No focus set"}
+                                stage={project.current_stage || "unknown"}
                                 progress={calculateProgress(project.task_summary)}
                                 health={project.health}
                                 syncing={project.project_type === "connected"}

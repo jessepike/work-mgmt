@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
 import { computeProjectHealth } from '@/lib/api/health';
+import { getEnabledProjectIds } from '@/lib/api/enabled-projects';
 
 // GET /api/projects/status
 // Returns a high-level summary of the entire portfolio
 export async function GET(request: NextRequest) {
     const supabase = await createServiceClient();
+    const scope = request.nextUrl.searchParams.get('scope');
 
     // 1. Fetch all active projects
     const { data: projects, error: projectsError } = await supabase
@@ -17,8 +19,25 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: projectsError.message }, { status: 500 });
     }
 
+    let scopedProjects = projects || [];
+    if (scope === 'enabled') {
+        const enabledIds = await getEnabledProjectIds(supabase, scopedProjects.map((p) => p.id));
+        scopedProjects = scopedProjects.filter((p) => enabledIds.has(p.id));
+    }
+
     // 2. Fetch all active tasks for these projects to compute health
-    const projectIds = projects.map(p => p.id);
+    const projectIds = scopedProjects.map(p => p.id);
+    if (projectIds.length === 0) {
+        return NextResponse.json({
+            data: {
+                total_projects: 0,
+                by_status: { active: 0, on_hold: 0, archived: 0 },
+                by_health: { healthy: 0, at_risk: 0, unhealthy: 0 },
+                task_summary: { pending: 0, in_progress: 0, blocked: 0, overdue: 0, total_active: 0 },
+                upcoming_deadlines: []
+            }
+        });
+    }
     const { data: tasks, error: tasksError } = await supabase
         .from('task')
         .select('id, project_id, status, deadline_at')
@@ -37,7 +56,7 @@ export async function GET(request: NextRequest) {
     }, {} as Record<string, any[]>);
 
     // 3. Compute stats
-    const by_status: Record<string, number> = { active: projects.length, on_hold: 0, archived: 0 };
+    const by_status: Record<string, number> = { active: scopedProjects.length, on_hold: 0, archived: 0 };
     const by_health: Record<string, number> = { healthy: 0, at_risk: 0, unhealthy: 0 };
 
     // Task aggregation
@@ -62,7 +81,7 @@ export async function GET(request: NextRequest) {
 
     const deadlines: any[] = [];
 
-    projects.forEach(project => {
+    scopedProjects.forEach(project => {
         let health = project.health_override;
         if (!health) {
             const projectTasks = tasksByProject[project.id] || [];
@@ -95,23 +114,32 @@ export async function GET(request: NextRequest) {
         .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime())
         .slice(0, 5);
 
-    // Fetch on_hold (paused in DB) /archived counts separately for completeness
-    const { count: onHoldCount } = await supabase
-        .from('project')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'paused');
+    let onHoldCount = 0;
+    let archivedCount = 0;
+    if (scope !== 'enabled') {
+        // Fetch on_hold (paused in DB) /archived counts separately for completeness
+        const { count: onHold } = await supabase
+            .from('project')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'paused');
 
-    const { count: archivedCount } = await supabase
-        .from('project')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'archived');
+        const { count: archived } = await supabase
+            .from('project')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'archived');
 
-    by_status.on_hold = onHoldCount || 0;
-    by_status.archived = archivedCount || 0;
+        onHoldCount = onHold || 0;
+        archivedCount = archived || 0;
+    }
+
+    by_status.on_hold = onHoldCount;
+    by_status.archived = archivedCount;
 
     return NextResponse.json({
         data: {
-            total_projects: projects.length + (onHoldCount || 0) + (archivedCount || 0),
+            total_projects: scope === 'enabled'
+                ? scopedProjects.length
+                : scopedProjects.length + (onHoldCount || 0) + (archivedCount || 0),
             by_status,
             by_health,
             task_summary,

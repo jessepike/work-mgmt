@@ -15,9 +15,11 @@ import type { Task, Phase, ProjectHealth } from "@/lib/types/api";
 interface ProjectInfo {
     id: string;
     name: string;
+    updated_at: string;
     workflow_type: "flat" | "planned";
     project_type: "connected" | "native";
     categories: string[];
+    current_stage: string | null;
     focus: string | null;
     health: ProjectHealth;
     health_reason: string | null;
@@ -39,6 +41,10 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
     const completionPct = project.task_summary.total > 0
         ? Math.round((project.task_summary.done / project.task_summary.total) * 100)
         : 0;
+    const recentCompleted = tasks
+        .filter((task) => task.status === "done")
+        .sort((a, b) => new Date(b.completed_at || b.updated_at).getTime() - new Date(a.completed_at || a.updated_at).getTime())
+        .slice(0, 3);
 
     // Group tasks by phase for planned, or by status for flat
     const tasksByPhase = new Map<string | null, Task[]>();
@@ -87,10 +93,12 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
                     </div>
                     <div className="flex items-center gap-4 text-[10px] font-bold text-text-muted tracking-widest uppercase">
                         <span>{project.task_summary.total} tasks</span>
+                        <span>{project.current_stage || "unknown stage"}</span>
                         {project.task_summary.blocked > 0 && (
                             <span className="text-status-red">{project.task_summary.blocked} blocked</span>
                         )}
                         <span>{completionPct}% complete</span>
+                        <span>updated {new Date(project.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
                     </div>
                     <div className="h-1.5 w-32 bg-zed-border rounded-full overflow-hidden flex-shrink-0">
                         <div
@@ -156,6 +164,18 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
 
                     {/* Backlog section */}
                     <BacklogSection projectId={project.id} />
+
+                    {recentCompleted.length > 0 && (
+                        <section>
+                            <div className="flex items-center gap-3 mb-4 px-2">
+                                <h3 className="text-[10px] font-bold tracking-widest uppercase text-status-green">
+                                    Recently Completed
+                                </h3>
+                                <div className="h-[1px] flex-1 bg-zed-border/50" />
+                            </div>
+                            <TaskListFlat tasks={recentCompleted} onTaskClick={setSelectedTask} />
+                        </section>
+                    )}
                 </div>
             </div>
 

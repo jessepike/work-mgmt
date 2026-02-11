@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server';
 import { logActivity } from '@/lib/api/activity';
 import { validateWorkflowType } from '@/lib/api/validation';
 import { resolveActor } from '@/lib/api/actor';
+import { getEnabledProjectIds } from '@/lib/api/enabled-projects';
 
 // GET /api/tasks
 export async function GET(request: NextRequest) {
@@ -15,6 +16,7 @@ export async function GET(request: NextRequest) {
     const statuses = searchParams.get('status')?.split(',') || [];
     const assigneeId = searchParams.get('assignee_id'); // maps to owner_id
     const priority = searchParams.get('priority');
+    const scope = searchParams.get('scope');
 
     let query = supabase.from('task').select(`
     *,
@@ -36,6 +38,12 @@ export async function GET(request: NextRequest) {
 
     if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    if (scope === 'enabled') {
+        const enabledProjectIds = await getEnabledProjectIds(supabase);
+        const scoped = (data || []).filter((task) => enabledProjectIds.has(task.project_id));
+        return NextResponse.json({ data: scoped });
     }
 
     return NextResponse.json({ data });

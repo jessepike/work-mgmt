@@ -6,9 +6,11 @@ import type { Task, Phase, ApiResponse } from "@/lib/types/api";
 interface ProjectDetail {
     id: string;
     name: string;
+    updated_at: string;
     workflow_type: "flat" | "planned";
     project_type: "connected" | "native";
     categories: string[];
+    current_stage: string | null;
     focus: string | null;
     health: "green" | "yellow" | "red";
     health_reason: string | null;

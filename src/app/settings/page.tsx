@@ -9,6 +9,7 @@ interface ProjectRow {
   project_type: "connected" | "native";
   workflow_type: "flat" | "planned";
   status: string;
+  health?: "green" | "yellow" | "red";
 }
 
 interface ConnectorRow {
@@ -70,6 +71,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [busyProject, setBusyProject] = useState<string | null>(null);
   const [pathDraft, setPathDraft] = useState<Record<string, string>>({});
+  const [filterMode, setFilterMode] = useState<"all" | "attention" | "enabled">("all");
 
   async function load() {
     setLoading(true);
@@ -97,6 +99,39 @@ export default function SettingsPage() {
     for (const c of connectors) map.set(c.project_id, c);
     return map;
   }, [connectors]);
+
+  const visibleProjects = useMemo(() => {
+    const healthRank: Record<string, number> = { red: 0, yellow: 1, green: 2 };
+
+    const withMeta = projects.map((project) => {
+      const connector = connectorByProject.get(project.id);
+      const connection = getConnectionState(project.project_type, connector);
+      const freshness = getFreshnessState(project.project_type, connection, connector?.last_sync_at || null);
+      const enabled = connector?.status === "active";
+      const needsAttention =
+        project.project_type === "connected" &&
+        (connection === "not_configured" || connection === "missing_path" || freshness === "stale" || freshness === "never");
+
+      return { project, connector, connection, freshness, enabled, needsAttention };
+    });
+
+    const filtered = withMeta.filter((row) => {
+      if (filterMode === "attention") return row.needsAttention;
+      if (filterMode === "enabled") {
+        if (row.project.project_type === "native") return true;
+        return row.enabled;
+      }
+      return true;
+    });
+
+    return filtered.sort((a, b) => {
+      if (a.needsAttention !== b.needsAttention) return a.needsAttention ? -1 : 1;
+      const aRank = healthRank[a.project.health || "green"] ?? 2;
+      const bRank = healthRank[b.project.health || "green"] ?? 2;
+      if (aRank !== bRank) return aRank - bRank;
+      return a.project.name.localeCompare(b.project.name);
+    });
+  }, [projects, connectorByProject, filterMode]);
 
   async function toggleProject(project: ProjectRow, enabled: boolean) {
     if (project.project_type !== "connected") return;
@@ -174,10 +209,31 @@ export default function SettingsPage() {
           <div className="text-sm text-text-muted">Loading settings...</div>
         ) : (
           <div className="rounded-lg border border-zed-border overflow-hidden bg-zed-sidebar/20">
+            <div className="px-4 py-3 border-b border-zed-border bg-zed-header/30 flex items-center gap-2">
+              <button
+                onClick={() => setFilterMode("all")}
+                className={`px-2 py-1 text-[10px] font-bold uppercase tracking-widest border rounded ${filterMode === "all" ? "bg-zed-active text-primary border-zed-border" : "text-text-muted border-zed-border/50"}`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setFilterMode("attention")}
+                className={`px-2 py-1 text-[10px] font-bold uppercase tracking-widest border rounded ${filterMode === "attention" ? "bg-zed-active text-primary border-zed-border" : "text-text-muted border-zed-border/50"}`}
+              >
+                Needs Attention
+              </button>
+              <button
+                onClick={() => setFilterMode("enabled")}
+                className={`px-2 py-1 text-[10px] font-bold uppercase tracking-widest border rounded ${filterMode === "enabled" ? "bg-zed-active text-primary border-zed-border" : "text-text-muted border-zed-border/50"}`}
+              >
+                Enabled
+              </button>
+            </div>
             <table className="w-full text-left text-xs">
               <thead className="bg-zed-header/40 border-b border-zed-border text-text-muted uppercase tracking-widest text-[10px]">
                 <tr>
                   <th className="px-4 py-3">Project</th>
+                  <th className="px-4 py-3">Health</th>
                   <th className="px-4 py-3">Source</th>
                   <th className="px-4 py-3">Connection</th>
                   <th className="px-4 py-3">Sync Control</th>
@@ -188,16 +244,9 @@ export default function SettingsPage() {
                 </tr>
               </thead>
               <tbody>
-                {projects.map((project) => {
-                  const connector = connectorByProject.get(project.id);
-                  const enabled = connector?.status === "active";
+                {visibleProjects.map(({ project, connector, enabled, connection, freshness, needsAttention }) => {
                   const isConnected = project.project_type === "connected";
                   const busy = busyProject === project.id;
-                  const connection = getConnectionState(project.project_type, connector);
-                  const freshness = getFreshnessState(project.project_type, connection, connector?.last_sync_at || null);
-                  const needsAttention =
-                    isConnected &&
-                    (connection === "not_configured" || connection === "missing_path" || freshness === "stale" || freshness === "never");
 
                   return (
                     <tr
@@ -207,6 +256,13 @@ export default function SettingsPage() {
                       <td className="px-4 py-3">
                         <div className="text-text-primary font-medium">{project.name}</div>
                         <div className="text-text-muted text-[10px] mt-1">{project.id}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${
+                          project.health === "red" ? badgeClass("red") : project.health === "yellow" ? badgeClass("yellow") : badgeClass("green")
+                        }`}>
+                          {project.health || "green"}
+                        </span>
                       </td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded border ${project.project_type === "native" ? badgeClass("muted") : badgeClass("green")}`}>

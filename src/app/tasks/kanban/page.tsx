@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { StatusColumn } from "@/components/ui/StatusColumn";
 import { TaskCard } from "@/components/ui/TaskCard";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { FilterBar } from "@/components/ui/FilterBar";
 import { showToast } from "@/components/ui/Toast";
 import type { TaskStatus, ProjectHealth } from "@/lib/types/api";
 
@@ -40,12 +39,12 @@ export default function KanbanPage() {
 
     const fetchData = useCallback(async () => {
         try {
-            let tasksUrl = "/api/tasks";
-            if (selectedProject) tasksUrl += `?project_id=${selectedProject}`;
+            let tasksUrl = "/api/tasks?scope=enabled";
+            if (selectedProject) tasksUrl = `/api/tasks?scope=enabled&project_id=${selectedProject}`;
 
             const [tasksRes, projectsRes] = await Promise.all([
                 fetch(tasksUrl).then((r) => r.json()),
-                fetch("/api/projects?status=active").then((r) => r.json()),
+                fetch("/api/projects?status=active&scope=enabled").then((r) => r.json()),
             ]);
 
             const projectMap = new Map<string, { name: string; health: ProjectHealth }>();
@@ -53,7 +52,11 @@ export default function KanbanPage() {
                 projectMap.set(p.id, { name: p.name, health: p.health || "green" });
             }
 
-            setProjects((projectsRes.data || []).map((p: any) => ({ id: p.id, name: p.name })));
+            const nextProjects = (projectsRes.data || []).map((p: any) => ({ id: p.id, name: p.name }));
+            setProjects(nextProjects);
+            if (selectedProject && !nextProjects.some((p: ProjectOption) => p.id === selectedProject)) {
+                setSelectedProject("");
+            }
             setTasks(
                 (tasksRes.data || []).map((t: any) => ({
                     id: t.id,

@@ -10,7 +10,10 @@ interface ProjectCardProps {
     category: string;
     tasksCount: number;
     blockedCount: number;
+    backlogCount: number;
+    p1Count: number;
     currentFocus: string;
+    stage: string;
     progress: number;
     health: "green" | "yellow" | "red";
     syncing?: boolean;
@@ -28,7 +31,10 @@ export function ProjectCard({
     category,
     tasksCount,
     blockedCount,
+    backlogCount,
+    p1Count,
     currentFocus,
+    stage,
     progress,
     health,
     syncing
@@ -51,8 +57,19 @@ export function ProjectCard({
                     <span className="bg-zed-header px-2 py-0.5 rounded text-[10px] text-text-secondary font-bold tracking-tight border border-zed-border uppercase">
                         {category}
                     </span>
+                    <span className="bg-zed-main px-2 py-0.5 rounded text-[10px] text-text-muted font-bold tracking-tight border border-zed-border uppercase">
+                        {stage}
+                    </span>
                     <div className="flex items-center gap-2 transition-opacity">
                         <span className="text-[10px] font-bold text-text-muted">{tasksCount} tasks</span>
+                        <span className="w-1 h-1 rounded-full bg-text-muted opacity-30"></span>
+                        <span className="text-[10px] font-bold text-text-muted">{backlogCount} backlog</span>
+                        {p1Count > 0 && (
+                            <>
+                                <span className="w-1 h-1 rounded-full bg-text-muted opacity-30"></span>
+                                <span className="text-[10px] font-bold text-status-red">{p1Count} P1</span>
+                            </>
+                        )}
                         {blockedCount > 0 && (
                             <>
                                 <span className="w-1 h-1 rounded-full bg-text-muted opacity-30"></span>
