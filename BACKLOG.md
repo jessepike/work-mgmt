@@ -25,7 +25,7 @@ updated: "2026-02-11"
 | B12 | Task endpoints: GET list/detail, POST (workflow validation, display_id trigger), PATCH, POST complete, POST validate | New spec | API | P1 | L | Done |
 | B13 | Backlog endpoints: GET list, POST, PATCH, POST promote (creates task, links, validates plan_id for planned) | New spec | API | P1 | M | Done |
 | B14 | Cross-cutting query endpoints: status, whats-next, blockers, deadlines, search (FTS), activity | New spec | API | P1 | L | Done |
-| B15 | Connector endpoints: GET list, POST, POST sync | New spec | API | P2 | S | Pending |
+| B15 | Connector endpoints: GET list, POST, POST sync | New spec | API | P2 | S | Done |
 | B16 | MCP server: stdio transport, tool definitions for all CRUD + query tools | New spec | MCP | P1 | L | Partial |
 | B17 | ADF connector: markdown parser for status.md, tasks.md, backlog.md | New spec | MCP | P1 | M | Done |
 | B18 | ADF connector: sync_project tool — parse, map to entities, upsert via REST (source_id) | New spec | MCP | P1 | M | Done |
@@ -48,11 +48,11 @@ updated: "2026-02-11"
 ### B4 — Partial
 Seed has 3 actors + 3 projects. Spec called for 5-8 projects with mix of connected/native.
 
-### B14 — Partial (3/7 endpoints)
-Implemented: whats-next, search (FTS), activity. Missing: status (portfolio summary), blockers, deadlines.
+### B14 — Done
+Status, blockers, deadlines, search, whats-next, and activity endpoints are implemented.
 
-### B16 — Partial (11/20+ tools)
-Implemented: project CRUD (4), task CRUD + complete (4), search (1), whats-next (1), sync_adf_project (1). Missing: plan tools, phase tools, backlog tools, validate_task, status/blockers/deadlines queries.
+### B16 — Partial (integration aligned)
+Plan/phase/backlog/query tools are implemented and route-aligned. Remaining gap is full parity for optional task validation tooling and broader connector test coverage.
 
 ## Known Issues
 

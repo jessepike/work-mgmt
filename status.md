@@ -11,10 +11,10 @@ updated: "2026-02-11"
 - **Phase:** Develop — Phases 1-4 complete
 - **Focus:** Dashboard Implementation (Phase 5)
 - **Build:** Passing (Next.js build + TypeScript clean)
-- **API:** 23/25 endpoints implemented (+connectors)
-- **MCP:** 28+ tools implemented (Discovery & Connection added)
+- **API:** Core REST surface implemented (projects, plans, phases, tasks, backlog, queries, connectors)
+- **MCP:** Stdio server + tool modules wired and smoke-tested against local API
 - **Portfolio:** 8 projects, 587 tasks synced
-- **Known bugs:** 3 open (see BACKLOG.md)
+- **Known bugs:** 0 open (see BACKLOG.md)
 
 ## Implementation Progress
 
@@ -25,17 +25,17 @@ updated: "2026-02-11"
 - B4 Partial — 3 actors + 3 projects seeded (spec: 5-8 projects)
 - B5 Done — Service role client, anon client, SSR middleware
 
-### Phase 2: REST API — Mostly Complete
+### Phase 2: REST API — Complete (MVP Scope)
 - B6-B8 Done — Validation, activity logging, health computation
 - B9-B12 Done — Project, Plan, Phase, Task endpoints (15 route handlers)
-- B13 Pending — Backlog endpoints (0/4)
-- B14 Partial — 3/7 query endpoints (whats-next, search, activity). Missing: status, blockers, deadlines
-- B15 Pending — Connector endpoints (0/3)
+- B13 Done — Backlog endpoints
+- B14 Done — Query endpoints (status, whats-next, blockers, deadlines, search, activity)
+- B15 Done — Connector endpoints (GET, upsert, sync)
 
 ### Phase 3: MCP Server — Partial
-- B16 Partial — 11 tools (project CRUD, task CRUD, search, whats-next, ADF sync). Missing: plan, phase, backlog, validate tools
+- B16 Partial — Plan/phase/backlog/query tools added and route-aligned; stdio smoke tests passing
 - B17-B18 Done — ADF parser + sync_project tool
-- B29 Pending — Claude Desktop wiring
+- B29 Done — Claude Desktop wiring
 - B30 Pending — ADF connector testing
 
 ### Phase 4: ADF Connector — Done (via MCP)
@@ -135,11 +135,11 @@ updated: "2026-02-11"
 - [x] Finalization and Develop stage transition
 - [x] Phase 1: Data Foundation — scaffold, migrations, seed
 - [x] Phase 2: REST API — core endpoints (projects, plans, phases, tasks, backlog, queries)
-- [ ] **Phase 2 remaining: Connector endpoints (B15)**
-- [ ] **Phase 3 remaining: MCP plan/phase/backlog tools (B16), Claude Desktop wiring (B29)**
+- [x] **Phase 2 remaining: Connector endpoints (B15)**
+- [ ] **Phase 3 remaining: Validate_task MCP parity and broader connector trials (B16/B30)**
 - [ ] **Phase 5: Dashboard — views, components, auth, deploy**
-- [ ] Fix open bugs: actor ID hardcoding (BUG-2)
-- [/] Portfolio Status API (/api/projects/status) <!-- id: 24 -->
+- [x] Fix open bugs: actor ID hardcoding (BUG-2)
+- [x] Portfolio Status API (/api/projects/status) <!-- id: 24 -->
 
 ## Blockers
 
@@ -154,4 +154,3 @@ updated: "2026-02-11"
 | 2026-02-11 | **Port reconfiguration.** Main app moved to port 3005. MCP server updated to connect to 3005. Verified connection via Claude Desktop. |
 | 2026-02-11 | **Capability Access.** Registered Memory Layer and Knowledge Base via `capabilities-registry`. Fixed relative path issues with `memory-layer`. |
 | 2026-02-11 | **ADF Alignment.** Moved `status.md` to root, linked `brief.md`. Resumed Develop Phase 6 (Build). |
-
