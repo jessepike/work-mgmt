@@ -41,6 +41,13 @@ interface ProjectDetailClientProps {
 
 type ProjectTab = "active" | "backlog" | "completed";
 type TaskSortMode = "smart" | "priority" | "due_date" | "updated";
+interface ActivityItem {
+    id: string;
+    created_at: string;
+    entity_type: string;
+    action: string;
+    detail: Record<string, any> | null;
+}
 
 export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }: ProjectDetailClientProps) {
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -49,9 +56,11 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
     const [syncing, setSyncing] = useState(false);
     const [lastSyncAt, setLastSyncAt] = useState<string | null>(project.connector?.last_sync_at || null);
     const [taskRows, setTaskRows] = useState<Task[]>(tasks);
+    const [backlogSummary, setBacklogSummary] = useState(project.backlog_summary);
     const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
     const [bulkBusy, setBulkBusy] = useState(false);
     const [bulkFeedback, setBulkFeedback] = useState<{ skippedIds: string[]; skippedReasons: Record<string, string> } | null>(null);
+    const [activity, setActivity] = useState<ActivityItem[]>([]);
 
     const isConnected = project.project_type === "connected";
     const isPlanned = project.workflow_type === "planned";
@@ -73,6 +82,35 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
         setSelectedTaskIds(new Set());
     }, [selectedTab, sortMode]);
 
+    useEffect(() => {
+        const key = `wm.projectPrefs.${project.id}`;
+        try {
+            const raw = localStorage.getItem(key);
+            if (!raw) return;
+            const parsed = JSON.parse(raw) as { tab?: ProjectTab; sort?: TaskSortMode };
+            if (parsed.tab && ["active", "backlog", "completed"].includes(parsed.tab)) {
+                setSelectedTab(parsed.tab);
+            }
+            if (parsed.sort && ["smart", "priority", "due_date", "updated"].includes(parsed.sort)) {
+                setSortMode(parsed.sort);
+            }
+        } catch {
+            // ignore parse errors
+        }
+    }, [project.id]);
+
+    useEffect(() => {
+        const key = `wm.projectPrefs.${project.id}`;
+        localStorage.setItem(key, JSON.stringify({ tab: selectedTab, sort: sortMode }));
+    }, [project.id, selectedTab, sortMode]);
+
+    useEffect(() => {
+        fetch(`/api/projects/${project.id}/activity?limit=12`)
+            .then((r) => r.json())
+            .then((res) => setActivity(res.data || []))
+            .catch(() => setActivity([]));
+    }, [project.id, lastSyncAt]);
+
     function findPhaseName(task: Task): string | undefined {
         const phase = project.phases.find((p) => p.id === task.phase_id);
         return phase?.name;
@@ -90,6 +128,10 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
     async function runBulkUpdate(updates: { status?: Task["status"]; priority?: Task["priority"] }) {
         if (selectedTaskIds.size === 0 || bulkBusy) return;
         const taskIds = Array.from(selectedTaskIds);
+        if (taskIds.length >= 20) {
+            const confirmed = window.confirm(`Apply this change to ${taskIds.length} tasks?`);
+            if (!confirmed) return;
+        }
         const previousById = new Map(
             taskRows
                 .filter((task) => taskIds.includes(task.id))
@@ -142,10 +184,13 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
                     for (const taskId of reverseIds.filter((id) => updatedTaskIds.includes(id))) {
                         const prev = previousById.get(taskId);
                         if (!prev) continue;
+                        const undoPayload: Record<string, any> = {};
+                        if (updates.status) undoPayload.status = prev.status;
+                        if (updates.priority) undoPayload.priority = prev.priority;
                         await fetch(`/api/tasks/${taskId}`, {
                             method: "PATCH",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ status: prev.status, priority: prev.priority }),
+                            body: JSON.stringify(undoPayload),
                         });
                     }
                     setTaskRows((prev) =>
@@ -168,6 +213,56 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
             showToast("error", error instanceof Error ? error.message : "Bulk update failed");
         } finally {
             setBulkBusy(false);
+        }
+    }
+
+    async function promoteTopBacklogItem() {
+        try {
+            const backlogRes = await fetch(`/api/backlog?project_id=${project.id}`);
+            const backlogBody = await backlogRes.json();
+            if (!backlogRes.ok) throw new Error(backlogBody?.error || "Failed to load backlog");
+
+            const activeItems = (backlogBody?.data || [])
+                .filter((item: any) => item.status !== "promoted" && item.status !== "archived")
+                .sort((a: any, b: any) => {
+                    const statusRank = (status: string) => status === "prioritized" ? 0 : status === "triaged" ? 1 : 2;
+                    const priorityRank = (p: string | null) => p === "P1" ? 0 : p === "P2" ? 1 : 2;
+                    const aStatus = statusRank(a.status);
+                    const bStatus = statusRank(b.status);
+                    if (aStatus !== bStatus) return aStatus - bStatus;
+                    const aPriority = priorityRank(a.priority);
+                    const bPriority = priorityRank(b.priority);
+                    if (aPriority !== bPriority) return aPriority - bPriority;
+                    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+                });
+
+            const top = activeItems[0];
+            if (!top) {
+                showToast("error", "No promotable backlog items found");
+                return;
+            }
+
+            const promoteRes = await fetch("/api/backlog/promote", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    backlog_item_id: top.id,
+                    plan_id: project.current_plan?.id || null,
+                }),
+            });
+            const promoteBody = await promoteRes.json();
+            if (!promoteRes.ok) throw new Error(promoteBody?.error || "Failed to promote backlog item");
+
+            setTaskRows((prev) => [promoteBody.data, ...prev]);
+            setBacklogSummary((prev) => ({
+                active: Math.max(0, prev.active - 1),
+                completed: prev.completed + 1,
+                p1_active: top.priority === "P1" ? Math.max(0, prev.p1_active - 1) : prev.p1_active,
+            }));
+            setSelectedTab("active");
+            showToast("success", `Promoted: ${top.title}`);
+        } catch (error) {
+            showToast("error", error instanceof Error ? error.message : "Promotion failed");
         }
     }
 
@@ -253,17 +348,17 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
                         <Stat label="Open Tasks" value={String(activeTasks.length)} />
                         <Stat label="Blocked" value={String(project.task_summary.blocked)} alert={project.task_summary.blocked > 0} />
                         <Stat label="Overdue" value={String(overdueCount)} alert={overdueCount > 0} />
-                        <Stat label="P1 Backlog" value={String(project.backlog_summary.p1_active)} alert={project.backlog_summary.p1_active > 0} />
+                        <Stat label="P1 Backlog" value={String(backlogSummary.p1_active)} alert={backlogSummary.p1_active > 0} />
                         <Stat label="Last Sync" value={formatRelativeTime(lastSyncAt)} muted={!project.connector} />
                     </div>
 
                     <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-1 bg-zed-active/50 p-1 rounded-sm border border-zed-border/50">
-                            {([
-                                { id: "active", label: `Active (${activeTasks.length})` },
-                                { id: "backlog", label: `Backlog (${project.backlog_summary.active})` },
-                                { id: "completed", label: `Completed (${completedTasks.length + project.backlog_summary.completed})` },
-                            ] as const).map((tab) => (
+                                {([
+                                    { id: "active", label: `Active (${activeTasks.length})` },
+                                    { id: "backlog", label: `Backlog (${backlogSummary.active})` },
+                                    { id: "completed", label: `Completed (${completedTasks.length + backlogSummary.completed})` },
+                                ] as const).map((tab) => (
                                 <button
                                     key={tab.id}
                                     onClick={() => setSelectedTab(tab.id)}
@@ -397,6 +492,12 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
                                         Promote a backlog item or create a new task to start execution.
                                     </div>
                                     <div className="mt-3 flex items-center gap-2">
+                                        <button
+                                            onClick={promoteTopBacklogItem}
+                                            className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover"
+                                        >
+                                            Promote Top Backlog Item
+                                        </button>
                                         <button
                                             onClick={() => setSelectedTab("backlog")}
                                             className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded border border-zed-border bg-zed-active hover:bg-zed-hover"
@@ -543,6 +644,32 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel }:
                             </section>
                         </>
                     )}
+
+                    <section>
+                        <div className="flex items-center gap-3 mb-4 px-2">
+                            <h3 className="text-[10px] font-bold tracking-widest uppercase text-text-muted">Recent Activity</h3>
+                            <div className="h-[1px] flex-1 bg-zed-border/50" />
+                        </div>
+                        {activity.length === 0 ? (
+                            <div className="h-10 px-4 flex items-center text-xs text-text-muted italic opacity-50">
+                                No recent activity...
+                            </div>
+                        ) : (
+                            <div className="space-y-1">
+                                {activity.map((item) => (
+                                    <div key={item.id} className="flex items-center justify-between gap-3 h-9 px-3 rounded border border-zed-border/40 bg-zed-sidebar/20">
+                                        <div className="text-[11px] text-text-secondary truncate">
+                                            <span className="uppercase text-text-muted mr-2">{item.entity_type}</span>
+                                            {item.action.replaceAll("_", " ")}
+                                        </div>
+                                        <div className="text-[10px] font-mono text-text-muted whitespace-nowrap">
+                                            {formatRelativeTime(item.created_at)}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
                 </div>
             </div>
 
