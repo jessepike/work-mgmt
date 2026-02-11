@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
 import { logActivity } from '@/lib/api/activity';
+import { resolveActor } from '@/lib/api/actor';
 
 function isValidUUID(uuid: string) {
     const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -16,16 +17,19 @@ export async function POST(
 
     const supabase = await createServiceClient();
     const body = await request.json(); // { validated_by, status: 'passed' | 'failed' }
+    const actor = await resolveActor(request, supabase);
 
     if (!body.status || !['passed', 'failed'].includes(body.status)) {
         return NextResponse.json({ error: 'Invalid validation status' }, { status: 400 });
     }
 
+    const validatedBy = body.validated_by || actor.actorId;
+
     const { data, error } = await supabase
         .from('task')
         .update({
             validation_status: body.status,
-            validated_by: body.validated_by || 'jess',
+            validated_by: validatedBy,
             validated_at: new Date().toISOString()
         })
         .eq('id', id)
@@ -37,8 +41,8 @@ export async function POST(
     await logActivity({
         entityType: 'task',
         entityId: id,
-        actorType: 'human',
-        actorId: body.validated_by || 'jess',
+        actorType: actor.actorType,
+        actorId: validatedBy,
         action: 'validated',
         detail: { status: body.status }
     });

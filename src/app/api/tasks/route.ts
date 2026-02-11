@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
 import { logActivity } from '@/lib/api/activity';
 import { validateWorkflowType } from '@/lib/api/validation';
+import { resolveActor } from '@/lib/api/actor';
 
 // GET /api/tasks
 export async function GET(request: NextRequest) {
@@ -44,6 +45,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     const supabase = await createServiceClient();
     const body = await request.json();
+    const actor = await resolveActor(request, supabase, { actorId: body.owner_id, actorType: 'human' });
 
     if (!body.project_id || !body.title) {
         return NextResponse.json({ error: 'project_id and title are required' }, { status: 400 });
@@ -99,8 +101,8 @@ export async function POST(request: NextRequest) {
     await logActivity({
         entityType: 'task',
         entityId: data.id,
-        actorType: 'human',
-        actorId: body.owner_id, // If undefined, logActivity will fall back to 'jess' for now
+        actorType: actor.actorType,
+        actorId: actor.actorId,
         action: 'created',
         detail: { title: body.title }
     });

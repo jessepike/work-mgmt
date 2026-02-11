@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
 import { logActivity } from '@/lib/api/activity';
+import { resolveActor } from '@/lib/api/actor';
 
 // GET /api/backlog
 export async function GET(request: NextRequest) {
@@ -21,6 +22,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     const supabase = await createServiceClient();
     const body = await request.json();
+    const actor = await resolveActor(request, supabase);
 
     if (!body.project_id || !body.title) {
         return NextResponse.json({ error: 'project_id and title are required' }, { status: 400 });
@@ -46,6 +48,8 @@ export async function POST(request: NextRequest) {
     await logActivity({
         entityType: 'backlog_item',
         entityId: data.id,
+        actorType: actor.actorType,
+        actorId: actor.actorId,
         action: 'captured',
         detail: { title: data.title }
     });

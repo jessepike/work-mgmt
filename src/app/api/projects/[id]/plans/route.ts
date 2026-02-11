@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
 import { logActivity } from '@/lib/api/activity';
+import { resolveActor } from '@/lib/api/actor';
 
 // Helper to validate UUID
 function isValidUUID(uuid: string) {
@@ -45,6 +46,7 @@ export async function POST(
 
     const supabase = await createServiceClient();
     const body = await request.json();
+    const actor = await resolveActor(request, supabase);
 
     if (!body.name) {
         return NextResponse.json({ error: 'Plan name is required' }, { status: 400 });
@@ -101,8 +103,8 @@ export async function POST(
     await logActivity({
         entityType: 'plan',
         entityId: data.id,
-        actorType: 'human',
-        actorId: 'jess', // Placeholder
+        actorType: actor.actorType,
+        actorId: actor.actorId,
         action: 'created',
         detail: { name: body.name }
     });

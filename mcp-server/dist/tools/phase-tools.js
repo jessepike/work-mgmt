@@ -8,23 +8,20 @@ const zod_1 = require("zod");
 const axios_1 = __importDefault(require("axios"));
 const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
 function registerPhaseTools(server) {
-    server.tool("list_phases", "List all phases for a project or plan", {
-        project_id: zod_1.z.string().uuid().optional(),
-        plan_id: zod_1.z.string().uuid().optional()
-    }, async (params) => {
-        const response = await axios_1.default.get(`${API_BASE_URL}/phases`, { params });
+    server.tool("list_phases", "List all phases for a plan", {
+        plan_id: zod_1.z.string().uuid()
+    }, async ({ plan_id }) => {
+        const response = await axios_1.default.get(`${API_BASE_URL}/plans/${plan_id}/phases`);
         return {
             content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };
     });
     server.tool("create_phase", "Create a new phase within a plan", {
-        project_id: zod_1.z.string().uuid(),
         plan_id: zod_1.z.string().uuid(),
         name: zod_1.z.string(),
-        description: zod_1.z.string().optional(),
-        sort_order: zod_1.z.number().int().describe("Sequence number for this phase")
-    }, async (args) => {
-        const response = await axios_1.default.post(`${API_BASE_URL}/phases`, args);
+        description: zod_1.z.string().optional()
+    }, async ({ plan_id, ...payload }) => {
+        const response = await axios_1.default.post(`${API_BASE_URL}/plans/${plan_id}/phases`, payload);
         return {
             content: [{ type: "text", text: `Phase created successfully: ${response.data.data.id}` }]
         };

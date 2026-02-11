@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
 import { logActivity } from '@/lib/api/activity';
 import { computeProjectHealth } from '@/lib/api/health';
+import { resolveActor } from '@/lib/api/actor';
 
 // Helper to validate UUID
 function isValidUUID(uuid: string) {
@@ -20,15 +21,13 @@ export async function GET(
 
     const supabase = await createServiceClient();
 
-    // 1. Fetch project
-    // We need to fetch: project, connector (if any), current plan (if any)
-    // Supabase join syntax:
+    // 1. Fetch project.
+    // We avoid embedding phase directly because project<->phase has two FKs
+    // (project.current_phase_id and phase.project_id), which makes embedding ambiguous.
     const { data: project, error: projectError } = await supabase
         .from('project')
         .select(`
       *,
-      phases:phase(*),
-      plans:plan(*),
       owner:actor_registry!owner_id(name)
     `)
         .eq('id', id)
@@ -38,7 +37,28 @@ export async function GET(
         return NextResponse.json({ error: projectError.message }, { status: 404 });
     }
 
-    // 2. Fetch connector info if connected
+    // 2. Fetch plans and phases separately
+    const { data: plans, error: plansError } = await supabase
+        .from('plan')
+        .select('*')
+        .eq('project_id', id)
+        .order('created_at', { ascending: false });
+
+    if (plansError) {
+        return NextResponse.json({ error: plansError.message }, { status: 500 });
+    }
+
+    const { data: phases, error: phasesError } = await supabase
+        .from('phase')
+        .select('*')
+        .eq('project_id', id)
+        .order('sort_order', { ascending: true });
+
+    if (phasesError) {
+        return NextResponse.json({ error: phasesError.message }, { status: 500 });
+    }
+
+    // 3. Fetch connector info if connected
     let connectorInfo = null;
     if (project.project_type === 'connected') {
         const { data: connector } = await supabase
@@ -49,7 +69,7 @@ export async function GET(
         connectorInfo = connector;
     }
 
-    // 3. Fetch tasks for health & summary
+    // 4. Fetch tasks for health & summary
     const { data: tasks, error: tasksError } = await supabase
         .from('task')
         .select('*')
@@ -59,7 +79,7 @@ export async function GET(
         return NextResponse.json({ error: tasksError.message }, { status: 500 });
     }
 
-    // 4. Compute Health
+    // 5. Compute Health
     // TODO: Get real last activity
     const now = new Date().toISOString();
     let health = project.health_override;
@@ -71,7 +91,7 @@ export async function GET(
         healthReason = computed.reason;
     }
 
-    // 5. Summarize
+    // 6. Summarize
     const counts = {
         pending: tasks.filter(t => t.status === 'pending').length,
         in_progress: tasks.filter(t => t.status === 'in_progress').length,
@@ -88,16 +108,20 @@ export async function GET(
     // Logic: "one non-completed plan". Or specifically the one referenced by project?
     // Design says "Current plan (if planned workflow)".
     // We fetched all plans.
-    const currentPlan = project.plans?.find((p: any) => p.status !== 'completed');
+    const currentPlan = (plans || []).find((p: any) => p.status !== 'completed');
 
     return NextResponse.json({
-        ...project,
-        health,
-        health_reason: healthReason,
-        connector: connectorInfo,
-        task_summary: counts,
-        active_blockers: activeBlockers,
-        current_plan: currentPlan
+        data: {
+            ...project,
+            phases: phases || [],
+            plans: plans || [],
+            health,
+            health_reason: healthReason,
+            connector: connectorInfo,
+            task_summary: counts,
+            active_blockers: activeBlockers,
+            current_plan: currentPlan
+        }
     });
 }
 
@@ -112,6 +136,7 @@ export async function PATCH(
 
     const supabase = await createServiceClient();
     const body = await request.json();
+    const actor = await resolveActor(request, supabase);
 
     // Validate allowed fields
     // For MVP, simplistic validation.
@@ -130,8 +155,8 @@ export async function PATCH(
     await logActivity({
         entityType: 'project',
         entityId: id,
-        actorType: 'human', // Placeholder
-        actorId: 'jess', // Placeholder: needs actual user ID from context
+        actorType: actor.actorType,
+        actorId: actor.actorId,
         action: 'updated',
         detail: body
     });
@@ -149,6 +174,7 @@ export async function DELETE(
     }
 
     const supabase = await createServiceClient();
+    const actor = await resolveActor(request, supabase);
 
     // Soft delete: status = 'archived'
     const { data, error } = await supabase
@@ -165,8 +191,8 @@ export async function DELETE(
     await logActivity({
         entityType: 'project',
         entityId: id,
-        actorType: 'human',
-        actorId: 'jess',
+        actorType: actor.actorType,
+        actorId: actor.actorId,
         action: 'archived'
     });
 

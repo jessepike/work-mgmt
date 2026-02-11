@@ -12,7 +12,7 @@ export function registerPlanTools(server: McpServer) {
             project_id: z.string().uuid()
         },
         async ({ project_id }) => {
-            const response = await axios.get(`${API_BASE_URL}/plans`, { params: { project_id } });
+            const response = await axios.get(`${API_BASE_URL}/projects/${project_id}/plans`);
             return {
                 content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
             };
@@ -27,8 +27,8 @@ export function registerPlanTools(server: McpServer) {
             name: z.string(),
             description: z.string().optional()
         },
-        async (args) => {
-            const response = await axios.post(`${API_BASE_URL}/plans`, args);
+        async ({ project_id, ...payload }) => {
+            const response = await axios.post(`${API_BASE_URL}/projects/${project_id}/plans`, payload);
             return {
                 content: [{ type: "text", text: `Plan created successfully: ${response.data.data.id}` }]
             };

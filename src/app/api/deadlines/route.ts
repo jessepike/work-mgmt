@@ -13,8 +13,7 @@ export async function GET(request: NextRequest) {
             *,
             project:project_id (
                 id,
-                name,
-                display_id_prefix
+                name
             )
         `)
         .neq('status', 'done')

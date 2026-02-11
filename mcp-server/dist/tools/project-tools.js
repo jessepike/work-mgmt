@@ -43,7 +43,9 @@ function registerProjectTools(server) {
         name: zod_1.z.string(),
         description: zod_1.z.string().optional(),
         project_type: zod_1.z.enum(["connected", "native"]),
-        categories: zod_1.z.array(zod_1.z.string()).optional()
+        categories: zod_1.z.array(zod_1.z.string()).min(1),
+        workflow_type: zod_1.z.enum(["flat", "planned"]),
+        owner_id: zod_1.z.string()
     }, async (args) => {
         try {
             const response = await axios_1.default.post(`${API_BASE_URL}/projects`, args);
@@ -73,11 +75,12 @@ function registerProjectTools(server) {
     }, async ({ id }) => {
         try {
             const response = await axios_1.default.get(`${API_BASE_URL}/projects/${id}`);
+            const project = response.data?.data ?? response.data;
             return {
                 content: [
                     {
                         type: "text",
-                        text: JSON.stringify(response.data.data, null, 2)
+                        text: JSON.stringify(project, null, 2)
                     }
                 ]
             };

@@ -14,18 +14,18 @@ interface LogActivityParams {
 
 /**
  * Logs an activity to the activity_log table.
- * BUG-2: We currently manually pass actorId. In the future, we should
- * probably use a Request-scoped context or AsyncLocalStorage to avoid
- * passing it everywhere, but for now, we'll make it explicit.
+ * Actor should be resolved at the route layer and passed explicitly.
  */
 export async function logActivity(params: LogActivityParams) {
     const supabase = await createServiceClient();
 
-    // Default to 'human' / 'jess' if not provided for backward compatibility
-    // during transition, but eventually we want this to be mandatory or
-    // extracted from a context.
-    const actorType = params.actorType || 'human';
-    const actorId = params.actorId || 'jess';
+    if (!params.actorId) {
+        console.error('Skipping activity log: missing actorId', params);
+        return;
+    }
+
+    const actorType = params.actorType || 'system';
+    const actorId = params.actorId;
 
     const { error } = await supabase.from('activity_log').insert({
         entity_type: params.entityType,

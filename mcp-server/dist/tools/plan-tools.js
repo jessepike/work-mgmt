@@ -11,7 +11,7 @@ function registerPlanTools(server) {
     server.tool("list_plans", "List all plans for a project", {
         project_id: zod_1.z.string().uuid()
     }, async ({ project_id }) => {
-        const response = await axios_1.default.get(`${API_BASE_URL}/plans`, { params: { project_id } });
+        const response = await axios_1.default.get(`${API_BASE_URL}/projects/${project_id}/plans`);
         return {
             content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };
@@ -20,8 +20,8 @@ function registerPlanTools(server) {
         project_id: zod_1.z.string().uuid(),
         name: zod_1.z.string(),
         description: zod_1.z.string().optional()
-    }, async (args) => {
-        const response = await axios_1.default.post(`${API_BASE_URL}/plans`, args);
+    }, async ({ project_id, ...payload }) => {
+        const response = await axios_1.default.post(`${API_BASE_URL}/projects/${project_id}/plans`, payload);
         return {
             content: [{ type: "text", text: `Plan created successfully: ${response.data.data.id}` }]
         };

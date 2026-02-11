@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
 import { logActivity } from '@/lib/api/activity';
 import { computeProjectHealth } from '@/lib/api/health';
+import { resolveActor } from '@/lib/api/actor';
 
 
 // GET /api/projects
@@ -120,6 +121,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     const supabase = await createServiceClient();
     const body = await request.json();
+    const actor = await resolveActor(request, supabase, { actorId: body.owner_id, actorType: 'human' });
 
     // Manual validation
     if (!body.name || !body.owner_id || !body.project_type || !body.workflow_type) {
@@ -160,8 +162,8 @@ export async function POST(request: NextRequest) {
     await logActivity({
         entityType: 'project',
         entityId: data.id,
-        actorType: 'human', // validation required
-        actorId: body.owner_id, // simplistic assumption
+        actorType: actor.actorType,
+        actorId: actor.actorId,
         action: 'created',
         detail: { name: data.name }
     });

@@ -49,7 +49,9 @@ export function registerProjectTools(server: McpServer) {
             name: z.string(),
             description: z.string().optional(),
             project_type: z.enum(["connected", "native"]),
-            categories: z.array(z.string()).optional()
+            categories: z.array(z.string()).min(1),
+            workflow_type: z.enum(["flat", "planned"]),
+            owner_id: z.string()
         },
         async (args) => {
             try {
@@ -85,11 +87,12 @@ export function registerProjectTools(server: McpServer) {
         async ({ id }) => {
             try {
                 const response = await axios.get(`${API_BASE_URL}/projects/${id}`);
+                const project = response.data?.data ?? response.data;
                 return {
                     content: [
                         {
                             type: "text",
-                            text: JSON.stringify(response.data.data, null, 2)
+                            text: JSON.stringify(project, null, 2)
                         }
                     ]
                 };

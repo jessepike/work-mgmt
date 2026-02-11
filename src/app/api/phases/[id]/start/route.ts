@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
 import { logActivity } from '@/lib/api/activity';
+import { resolveActor } from '@/lib/api/actor';
 
 function isValidUUID(uuid: string) {
     const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -13,6 +14,7 @@ export async function POST(
 ) {
     const { id } = await params;
     const supabase = await createServiceClient();
+    const actor = await resolveActor(request, supabase);
 
     // Logic: promote current phase to 'active', maybe complete previous 'active' phase?
     // Or just set status.
@@ -40,6 +42,8 @@ export async function POST(
     await logActivity({
         entityType: 'phase',
         entityId: id,
+        actorType: actor.actorType,
+        actorId: actor.actorId,
         action: 'started'
     });
 

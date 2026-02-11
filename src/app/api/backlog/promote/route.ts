@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
 import { logActivity } from '@/lib/api/activity';
 import { validateWorkflowType } from '@/lib/api/validation';
+import { resolveActor } from '@/lib/api/actor';
 
 // POST /api/backlog/promote
 // Promotes a backlog item to a task
 export async function POST(request: NextRequest) {
     const supabase = await createServiceClient();
     const body = await request.json();
+    const actor = await resolveActor(request, supabase);
 
     if (!body.backlog_item_id) {
         return NextResponse.json({ error: 'backlog_item_id is required' }, { status: 400 });
@@ -77,6 +79,8 @@ export async function POST(request: NextRequest) {
     await logActivity({
         entityType: 'task',
         entityId: task.id,
+        actorType: actor.actorType,
+        actorId: actor.actorId,
         action: 'promoted_from_backlog',
         detail: { backlog_item_id: item.id }
     });

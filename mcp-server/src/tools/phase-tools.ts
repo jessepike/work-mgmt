@@ -7,13 +7,12 @@ const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
 export function registerPhaseTools(server: McpServer) {
     server.tool(
         "list_phases",
-        "List all phases for a project or plan",
+        "List all phases for a plan",
         {
-            project_id: z.string().uuid().optional(),
-            plan_id: z.string().uuid().optional()
+            plan_id: z.string().uuid()
         },
-        async (params) => {
-            const response = await axios.get(`${API_BASE_URL}/phases`, { params });
+        async ({ plan_id }) => {
+            const response = await axios.get(`${API_BASE_URL}/plans/${plan_id}/phases`);
             return {
                 content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
             };
@@ -24,14 +23,12 @@ export function registerPhaseTools(server: McpServer) {
         "create_phase",
         "Create a new phase within a plan",
         {
-            project_id: z.string().uuid(),
             plan_id: z.string().uuid(),
             name: z.string(),
-            description: z.string().optional(),
-            sort_order: z.number().int().describe("Sequence number for this phase")
+            description: z.string().optional()
         },
-        async (args) => {
-            const response = await axios.post(`${API_BASE_URL}/phases`, args);
+        async ({ plan_id, ...payload }) => {
+            const response = await axios.post(`${API_BASE_URL}/plans/${plan_id}/phases`, payload);
             return {
                 content: [{ type: "text", text: `Phase created successfully: ${response.data.data.id}` }]
             };
