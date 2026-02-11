@@ -8,8 +8,10 @@ const stdio_js_1 = require("@modelcontextprotocol/sdk/server/stdio.js");
 const sse_js_1 = require("@modelcontextprotocol/sdk/server/sse.js");
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
-const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
+// Only load dotenv for HTTP mode (stdio must keep stdout clean for JSON-RPC)
+if (process.argv[2] === 'http') {
+    import("dotenv").then(d => d.config());
+}
 const server = new mcp_js_1.McpServer({
     name: "Work Management MCP",
     version: "1.0.0",
