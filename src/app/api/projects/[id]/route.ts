@@ -4,6 +4,12 @@ import { logActivity } from '@/lib/api/activity';
 import { computeProjectHealth } from '@/lib/api/health';
 import { resolveActor } from '@/lib/api/actor';
 
+function latestIso(a: string | null, b: string | null): string | null {
+    if (!a) return b;
+    if (!b) return a;
+    return new Date(a).getTime() >= new Date(b).getTime() ? a : b;
+}
+
 // Helper to validate UUID
 function isValidUUID(uuid: string) {
     const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -80,13 +86,45 @@ export async function GET(
     }
 
     // 5. Compute Health
-    // TODO: Get real last activity
-    const now = new Date().toISOString();
+    const taskIds = tasks.map(t => t.id);
+
+    const { data: projectActivityRows, error: projectActivityError } = await supabase
+        .from('activity_log')
+        .select('created_at')
+        .eq('entity_type', 'project')
+        .eq('entity_id', id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+    if (projectActivityError) {
+        return NextResponse.json({ error: projectActivityError.message }, { status: 500 });
+    }
+
+    let latestTaskActivityAt: string | null = null;
+    if (taskIds.length > 0) {
+        const { data: taskActivityRows, error: taskActivityError } = await supabase
+            .from('activity_log')
+            .select('created_at')
+            .eq('entity_type', 'task')
+            .in('entity_id', taskIds)
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+        if (taskActivityError) {
+            return NextResponse.json({ error: taskActivityError.message }, { status: 500 });
+        }
+
+        latestTaskActivityAt = taskActivityRows?.[0]?.created_at || null;
+    }
+
+    const latestProjectActivityAt = projectActivityRows?.[0]?.created_at || null;
+    const lastActivityAt = latestIso(latestProjectActivityAt, latestTaskActivityAt);
+
     let health = project.health_override;
     let healthReason = project.health_reason;
 
     if (!health) {
-        const computed = computeProjectHealth(tasks, now); // timestamps are string in JSON response usually, but Supabase returns strings for timestamptz
+        const computed = computeProjectHealth(tasks, lastActivityAt);
         health = computed.health;
         healthReason = computed.reason;
     }

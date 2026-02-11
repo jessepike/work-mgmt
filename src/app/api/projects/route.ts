@@ -4,6 +4,11 @@ import { logActivity } from '@/lib/api/activity';
 import { computeProjectHealth } from '@/lib/api/health';
 import { resolveActor } from '@/lib/api/actor';
 
+function latestIso(a: string | null, b: string | null): string | null {
+    if (!a) return b;
+    if (!b) return a;
+    return new Date(a).getTime() >= new Date(b).getTime() ? a : b;
+}
 
 // GET /api/projects
 export async function GET(request: NextRequest) {
@@ -50,23 +55,55 @@ export async function GET(request: NextRequest) {
     // And overdue checks. overdue is active tasks with deadline < now.
     // So neq status done is good.
 
-    // We also need last activity for each project
-    const { data: activities, error: activityError } = await supabase
-        .from('activity_log')
-        .select('entity_id, created_at, project_id:entity_id') // Wait, entity_id is polymorphic.
-    // We can't join easily. We have to query by entity_id IN projectIds? 
-    // No, activity log is by entity. Project activity is entity_type='project'.
-    // But task activity also counts as project activity?
-    // The health logic says "No activity in X days". Usually implies ANY activity in the project.
-    // This is hard to query efficiently without a "last_activity_at" on the project table.
-    // RECOMMENDATION: Add last_activity_at to project table and update it via trigger.
-    // For now, I will skip the "days since activity" check in the list view to avoid massive queries,
-    // OR just verify project-level activity.
-
-    // Let's stick to the critical path.
-
     if (tasksError) {
         return NextResponse.json({ error: tasksError.message }, { status: 500 });
+    }
+
+    // Build task->project map to roll up task activity into project activity.
+    const taskToProject = (tasks || []).reduce((acc, task) => {
+        acc[task.id] = task.project_id;
+        return acc;
+    }, {} as Record<string, string>);
+
+    // Fetch direct project activity
+    let projectActivityByProject: Record<string, string | null> = {};
+    if (projectIds.length > 0) {
+        const { data: projectActivityRows, error: projectActivityError } = await supabase
+            .from('activity_log')
+            .select('entity_id, created_at')
+            .eq('entity_type', 'project')
+            .in('entity_id', projectIds);
+
+        if (projectActivityError) {
+            return NextResponse.json({ error: projectActivityError.message }, { status: 500 });
+        }
+
+        for (const row of projectActivityRows || []) {
+            const current = projectActivityByProject[row.entity_id] || null;
+            projectActivityByProject[row.entity_id] = latestIso(current, row.created_at);
+        }
+    }
+
+    // Fetch task activity and roll it up to project.
+    let taskActivityByProject: Record<string, string | null> = {};
+    const taskIds = Object.keys(taskToProject);
+    if (taskIds.length > 0) {
+        const { data: taskActivityRows, error: taskActivityError } = await supabase
+            .from('activity_log')
+            .select('entity_id, created_at')
+            .eq('entity_type', 'task')
+            .in('entity_id', taskIds);
+
+        if (taskActivityError) {
+            return NextResponse.json({ error: taskActivityError.message }, { status: 500 });
+        }
+
+        for (const row of taskActivityRows || []) {
+            const pid = taskToProject[row.entity_id];
+            if (!pid) continue;
+            const current = taskActivityByProject[pid] || null;
+            taskActivityByProject[pid] = latestIso(current, row.created_at);
+        }
     }
 
     // Group tasks by project
@@ -84,9 +121,11 @@ export async function GET(request: NextRequest) {
 
         if (!health) {
             const projectTasks = tasksByProject[project.id] || [];
-            // Mocking lastActivity for now as current time to avoid false positives on "no activity" 
-            // until we implement the last_activity_at column or complex query.
-            const computed = computeProjectHealth(projectTasks as any, new Date().toISOString());
+            const projectLastActivity = latestIso(
+                projectActivityByProject[project.id] || null,
+                taskActivityByProject[project.id] || null
+            );
+            const computed = computeProjectHealth(projectTasks as any, projectLastActivity);
             health = computed.health;
             healthReason = computed.reason;
         }
