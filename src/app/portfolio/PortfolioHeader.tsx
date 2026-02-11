@@ -5,13 +5,17 @@ import { IconPlus } from "@tabler/icons-react";
 
 interface PortfolioHeaderProps {
     categoryOptions: Array<{ label: string; value: string }>;
+    presetOptions: Array<{ label: string; value: string }>;
 }
 
-export function PortfolioHeader({ categoryOptions }: PortfolioHeaderProps) {
+export function PortfolioHeader({ categoryOptions, presetOptions }: PortfolioHeaderProps) {
     return (
         <header className="border-b border-zed-border bg-zed-header/30 backdrop-blur-md sticky top-0 z-20">
             <div className="px-8 h-14 flex items-center justify-between">
-                <FilterBar paramName="category" options={categoryOptions} />
+                <div className="flex items-center gap-3">
+                    <FilterBar paramName="preset" options={presetOptions} />
+                    <FilterBar paramName="category" options={categoryOptions} />
+                </div>
                 <div className="flex items-center gap-3">
                     <button className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase bg-primary text-white px-3 py-1.5 rounded hover:opacity-90 transition-all shadow-sm shadow-primary/20">
                         <IconPlus className="w-3.5 h-3.5" />

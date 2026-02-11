@@ -19,6 +19,7 @@ interface ProjectCardProps {
     projectType: "connected" | "native";
     connectorStatus?: "active" | "paused" | "error";
     lastSyncAt?: string | null;
+    nextTasks?: Array<{ id: string; title: string; priority: "P1" | "P2" | "P3" | null }>;
 }
 
 const healthColors = {
@@ -42,7 +43,8 @@ export function ProjectCard({
     health,
     projectType,
     connectorStatus,
-    lastSyncAt
+    lastSyncAt,
+    nextTasks = []
 }: ProjectCardProps) {
     const Wrapper = id ? Link : "div";
     const wrapperProps = id ? { href: `/projects/${id}` } : {};
@@ -102,6 +104,27 @@ export function ProjectCard({
                     <span className="text-[10px] font-bold text-text-muted tracking-wider uppercase">Focus</span>
                     <p className="text-xs text-text-primary font-medium line-clamp-1">{currentFocus}</p>
                 </div>
+                {nextTasks.length > 0 && (
+                    <div className="mt-3 space-y-1">
+                        <span className="text-[10px] font-bold text-text-muted tracking-wider uppercase">Next Up</span>
+                        <ul className="space-y-0.5">
+                            {nextTasks.map((task) => (
+                                <li key={task.id} className="text-[11px] text-text-secondary truncate flex items-center gap-2">
+                                    <span className="text-text-muted">-</span>
+                                    <span className="truncate">{task.title}</span>
+                                    {task.priority && (
+                                        <span className={cn(
+                                            "text-[9px] font-bold uppercase",
+                                            task.priority === "P1" ? "text-status-red" : task.priority === "P2" ? "text-status-yellow" : "text-text-muted"
+                                        )}>
+                                            {task.priority}
+                                        </span>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
                 <div className="mt-4 pt-3 border-t border-zed-border/40 flex items-center justify-between">
                     <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Updated {activityLabel}</span>
                     {projectType === "connected" && (

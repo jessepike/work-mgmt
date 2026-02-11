@@ -10,6 +10,7 @@ import { PhaseAccordion } from "@/components/features/PhaseAccordion";
 import { TaskDetailPanel } from "@/components/features/TaskDetailPanel";
 import { QuickAdd } from "@/components/features/QuickAdd";
 import { BacklogSection } from "@/components/features/BacklogSection";
+import { showToast } from "@/components/ui/Toast";
 import type { Task, Phase, ProjectHealth } from "@/lib/types/api";
 
 interface ProjectInfo {
@@ -42,6 +43,8 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [selectedTab, setSelectedTab] = useState<ProjectTab>("active");
     const [sortMode, setSortMode] = useState<TaskSortMode>("smart");
+    const [syncing, setSyncing] = useState(false);
+    const [lastSyncAt, setLastSyncAt] = useState<string | null>(project.connector?.last_sync_at || null);
 
     const isConnected = project.project_type === "connected";
     const isPlanned = project.workflow_type === "planned";
@@ -74,11 +77,39 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
                         {isConnected && project.connector && (
                             <SyncIndicator
                                 connectorType={project.connector.connector_type}
-                                lastSyncAt={project.connector.last_sync_at}
+                                lastSyncAt={lastSyncAt}
                             />
                         )}
                     </div>
                     <div className="flex items-center gap-3">
+                        {isConnected && project.connector && (
+                            <button
+                                onClick={async () => {
+                                    if (syncing) return;
+                                    setSyncing(true);
+                                    try {
+                                        const res = await fetch("/api/connectors/sync", {
+                                            method: "POST",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({ project_id: project.id }),
+                                        });
+                                        const body = await res.json();
+                                        if (!res.ok) throw new Error(body?.error || "Sync failed");
+                                        const nowIso = new Date().toISOString();
+                                        setLastSyncAt(nowIso);
+                                        showToast("success", `Synced ${body?.count || 0} items`);
+                                    } catch (error) {
+                                        showToast("error", error instanceof Error ? error.message : "Sync failed");
+                                    } finally {
+                                        setSyncing(false);
+                                    }
+                                }}
+                                disabled={syncing}
+                                className="px-3 py-1.5 bg-zed-active border border-zed-border text-[10px] font-bold tracking-widest uppercase hover:bg-zed-hover transition-colors rounded disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                {syncing ? "Syncing..." : "Sync Now"}
+                            </button>
+                        )}
                         {!isConnected && (
                             <button className="px-3 py-1.5 bg-zed-active border border-zed-border text-[10px] font-bold tracking-widest uppercase hover:bg-zed-hover transition-colors rounded">
                                 New Task
@@ -106,7 +137,7 @@ export function ProjectDetailClient({ project, tasks }: ProjectDetailClientProps
                         <Stat label="Blocked" value={String(project.task_summary.blocked)} alert={project.task_summary.blocked > 0} />
                         <Stat label="Overdue" value={String(overdueCount)} alert={overdueCount > 0} />
                         <Stat label="P1 Backlog" value={String(project.backlog_summary.p1_active)} alert={project.backlog_summary.p1_active > 0} />
-                        <Stat label="Last Sync" value={formatRelativeTime(project.connector?.last_sync_at)} muted={!project.connector} />
+                        <Stat label="Last Sync" value={formatRelativeTime(lastSyncAt)} muted={!project.connector} />
                     </div>
 
                     <div className="flex items-center justify-between gap-3">
