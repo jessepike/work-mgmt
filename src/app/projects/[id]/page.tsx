@@ -19,6 +19,7 @@ interface ProjectDetail {
     current_plan: { id: string; name: string } | null;
     connector: { id: string; connector_type: string; status: string; last_sync_at: string | null } | null;
     task_summary: { pending: number; in_progress: number; blocked: number; done: number; total: number };
+    backlog_summary: { active: number; completed: number; p1_active: number };
     active_blockers: { id: string; title: string; blocked_reason: string | null }[];
 }
 

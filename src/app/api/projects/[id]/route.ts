@@ -93,6 +93,15 @@ export async function GET(
         return NextResponse.json({ error: tasksError.message }, { status: 500 });
     }
 
+    const { data: backlogItems, error: backlogError } = await supabase
+        .from('backlog_item')
+        .select('status, priority')
+        .eq('project_id', id);
+
+    if (backlogError) {
+        return NextResponse.json({ error: backlogError.message }, { status: 500 });
+    }
+
     // 5. Compute Health
     const taskIds = tasks.map(t => t.id);
 
@@ -153,6 +162,11 @@ export async function GET(
     const activeBlockers = tasks
         .filter(t => t.status === 'blocked')
         .map(t => ({ id: t.id, title: t.title, blocked_reason: t.blocked_reason }));
+    const backlogSummary = {
+        active: (backlogItems || []).filter((item) => item.status !== 'promoted' && item.status !== 'archived').length,
+        completed: (backlogItems || []).filter((item) => item.status === 'promoted' || item.status === 'archived').length,
+        p1_active: (backlogItems || []).filter((item) => (item.status !== 'promoted' && item.status !== 'archived') && item.priority === 'P1').length,
+    };
 
     // Find current plan
     // Logic: "one non-completed plan". Or specifically the one referenced by project?
@@ -169,6 +183,7 @@ export async function GET(
             health_reason: healthReason,
             connector: connectorInfo,
             task_summary: counts,
+            backlog_summary: backlogSummary,
             active_blockers: activeBlockers,
             current_plan: currentPlan || null
         }

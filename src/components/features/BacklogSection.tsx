@@ -8,10 +8,18 @@ import type { BacklogItem } from "@/lib/types/api";
 
 interface BacklogSectionProps {
     projectId: string;
+    mode?: "all" | "active" | "completed";
+    initialExpanded?: boolean;
+    showHeader?: boolean;
 }
 
-export function BacklogSection({ projectId }: BacklogSectionProps) {
-    const [expanded, setExpanded] = useState(false);
+export function BacklogSection({
+    projectId,
+    mode = "all",
+    initialExpanded = false,
+    showHeader = true
+}: BacklogSectionProps) {
+    const [expanded, setExpanded] = useState(initialExpanded);
     const [showCompleted, setShowCompleted] = useState(false);
     const [items, setItems] = useState<BacklogItem[]>([]);
     const [loaded, setLoaded] = useState(false);
@@ -36,24 +44,26 @@ export function BacklogSection({ projectId }: BacklogSectionProps) {
 
     return (
         <section>
-            <button
-                onClick={() => setExpanded(!expanded)}
-                className="flex items-center gap-3 mb-4 px-2 w-full"
-            >
-                <IconChevronDown className={cn(
-                    "w-3.5 h-3.5 text-text-muted transition-transform",
-                    !expanded && "-rotate-90"
-                )} />
-                <h3 className="text-[10px] font-bold text-text-muted tracking-widest uppercase">Backlog</h3>
-                <span className="text-[10px] font-bold text-text-muted/80 tracking-widest uppercase">
-                    {activeItems.length} active
-                </span>
-                <div className="h-[1px] flex-1 bg-zed-border/50" />
-            </button>
+            {showHeader && (
+                <button
+                    onClick={() => setExpanded(!expanded)}
+                    className="flex items-center gap-3 mb-4 px-2 w-full"
+                >
+                    <IconChevronDown className={cn(
+                        "w-3.5 h-3.5 text-text-muted transition-transform",
+                        !expanded && "-rotate-90"
+                    )} />
+                    <h3 className="text-[10px] font-bold text-text-muted tracking-widest uppercase">Backlog</h3>
+                    <span className="text-[10px] font-bold text-text-muted/80 tracking-widest uppercase">
+                        {activeItems.length} active
+                    </span>
+                    <div className="h-[1px] flex-1 bg-zed-border/50" />
+                </button>
+            )}
 
             {expanded && (
                 <div>
-                    {activeItems.length === 0 ? (
+                    {(mode === "all" || mode === "active") && (activeItems.length === 0 ? (
                         <div className="h-10 px-4 flex items-center text-xs text-text-muted italic opacity-50">
                             No pending backlog items...
                         </div>
@@ -71,17 +81,19 @@ export function BacklogSection({ projectId }: BacklogSectionProps) {
                                 </div>
                             ))}
                         </div>
-                    )}
+                    ))}
 
-                    {completedItems.length > 0 && (
+                    {(mode === "all" || mode === "completed") && completedItems.length > 0 && (
                         <div className="mt-4">
-                            <button
-                                onClick={() => setShowCompleted(!showCompleted)}
-                                className="text-[10px] font-bold uppercase tracking-widest text-text-muted hover:text-text-secondary"
-                            >
-                                {showCompleted ? "Hide" : "Show"} Completed ({completedItems.length})
-                            </button>
-                            {showCompleted && (
+                            {mode === "all" ? (
+                                <button
+                                    onClick={() => setShowCompleted(!showCompleted)}
+                                    className="text-[10px] font-bold uppercase tracking-widest text-text-muted hover:text-text-secondary"
+                                >
+                                    {showCompleted ? "Hide" : "Show"} Completed ({completedItems.length})
+                                </button>
+                            ) : null}
+                            {(mode === "completed" || showCompleted) && (
                                 <div className="space-y-1 mt-2 opacity-80">
                                     {completedItems.map((item) => (
                                         <div key={item.id} className="flex items-center h-10 px-4 rounded">
@@ -96,6 +108,12 @@ export function BacklogSection({ projectId }: BacklogSectionProps) {
                                     ))}
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {mode === "completed" && completedItems.length === 0 && (
+                        <div className="h-10 px-4 flex items-center text-xs text-text-muted italic opacity-50">
+                            No completed backlog items...
                         </div>
                     )}
                 </div>
