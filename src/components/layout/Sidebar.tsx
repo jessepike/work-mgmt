@@ -5,29 +5,15 @@ import { usePathname } from "next/navigation";
 import {
     IconHome,
     IconBriefcase,
-    IconListCheck,
-    IconTimeline,
-    IconUsers,
-    IconBrush,
+    IconLayoutKanban,
     IconSettings
 } from "@tabler/icons-react";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs));
-}
+import { cn } from "@/lib/utils";
 
 const navItems = [
-    { label: "Home", href: "/", icon: IconHome },
+    { label: "Today", href: "/", icon: IconHome },
     { label: "Portfolio", href: "/portfolio", icon: IconBriefcase },
-    { label: "Tasks", href: "/tasks", icon: IconListCheck },
-    { label: "Timeline", href: "/timeline", icon: IconTimeline },
-];
-
-const teamItems = [
-    { label: "Engineering", href: "/teams/eng", icon: IconUsers },
-    { label: "Product Design", href: "/teams/design", icon: IconBrush },
+    { label: "Kanban", href: "/tasks/kanban", icon: IconLayoutKanban },
 ];
 
 export function Sidebar() {
@@ -42,34 +28,6 @@ export function Sidebar() {
             <nav className="flex-1 py-2 overflow-y-auto custom-scrollbar">
                 <div className="space-y-0.5">
                     {navItems.map((item) => {
-                        const isActive = pathname === item.href;
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={cn(
-                                    "flex items-center h-9 px-4 transition-colors group",
-                                    isActive
-                                        ? "bg-zed-active border-l-2 border-primary text-text-primary"
-                                        : "text-text-secondary hover:bg-zed-hover hover:text-text-primary"
-                                )}
-                            >
-                                <item.icon className={cn(
-                                    "w-4 h-4 mr-3 transition-colors",
-                                    isActive ? "text-primary" : "text-text-muted group-hover:text-text-secondary"
-                                )} />
-                                <span className="text-sm font-medium">{item.label}</span>
-                            </Link>
-                        );
-                    })}
-                </div>
-
-                <div className="mt-6 px-4 mb-2 text-[10px] text-text-muted font-bold tracking-widest uppercase">
-                    Teams
-                </div>
-
-                <div className="space-y-0.5">
-                    {teamItems.map((item) => {
                         const isActive = pathname === item.href;
                         return (
                             <Link

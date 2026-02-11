@@ -3,6 +3,7 @@ import { IBM_Plex_Sans, Inter } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
+import { ToastContainer } from "@/components/ui/Toast";
 
 const ibmPlexSans = IBM_Plex_Sans({
   variable: "--font-ibm-plex-sans",
@@ -37,6 +38,7 @@ export default function RootLayout({
             {children}
           </main>
         </div>
+        <ToastContainer />
       </body>
     </html>
   );

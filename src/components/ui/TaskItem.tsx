@@ -1,12 +1,7 @@
 "use client";
 
 import { IconCircle, IconCircleCheckFilled } from "@tabler/icons-react";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs));
-}
+import { cn } from "@/lib/utils";
 
 interface TaskItemProps {
     title: string;
