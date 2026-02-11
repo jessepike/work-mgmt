@@ -1,15 +1,50 @@
 ---
 project: "work-management"
 stage: "Develop"
-updated: "2026-02-10"
+updated: "2026-02-11"
 ---
 
 # Status
 
 ## Current State
 
-- **Phase:** Develop — implementation ready
-- **Focus:** Design complete (v0.4). BACKLOG.md created with 31 items across 5 phases. Ready for Phase 1: Data Foundation.
+- **Phase:** Develop — Phases 1-2 complete, Phase 3-4 partial
+- **Focus:** Backlog endpoints (B13), remaining query endpoints (B14), MCP tool coverage (B16), then Dashboard (Phase 5)
+- **Build:** Passing (Next.js build + TypeScript clean)
+- **API:** 15/25 endpoints implemented, tested against local Supabase
+- **MCP:** 11 tools implemented (project, task, search, ADF sync)
+- **Known bugs:** 3 open (see BACKLOG.md)
+
+## Implementation Progress
+
+### Phase 1: Data Foundation — Complete
+- B1 Done — Next.js 15, TypeScript, Tailwind 4, pnpm
+- B2 Done — Supabase CLI linked, 6 migrations
+- B3 Done — All 8 tables, 16 enums, indexes, RLS, FTS, display_id trigger
+- B4 Partial — 3 actors + 3 projects seeded (spec: 5-8 projects)
+- B5 Done — Service role client, anon client, SSR middleware
+
+### Phase 2: REST API — Mostly Complete
+- B6-B8 Done — Validation, activity logging, health computation
+- B9-B12 Done — Project, Plan, Phase, Task endpoints (15 route handlers)
+- B13 Pending — Backlog endpoints (0/4)
+- B14 Partial — 3/7 query endpoints (whats-next, search, activity). Missing: status, blockers, deadlines
+- B15 Pending — Connector endpoints (0/3)
+
+### Phase 3: MCP Server — Partial
+- B16 Partial — 11 tools (project CRUD, task CRUD, search, whats-next, ADF sync). Missing: plan, phase, backlog, validate tools
+- B17-B18 Done — ADF parser + sync_project tool
+- B29 Pending — Claude Desktop wiring
+- B30 Pending — ADF connector testing
+
+### Phase 4: ADF Connector — Done (via MCP)
+- Parser and sync tool built into mcp-server/src/adf/ and mcp-server/src/tools/adf-tools.ts
+
+### Phase 5: Dashboard — Not Started
+- B19-B28 all Pending
+
+### Deployment
+- B31 Pending — Vercel deploy
 
 ## Design → Develop Handoff
 
@@ -97,11 +132,13 @@ updated: "2026-02-10"
 - [x] Internal review (Ralph Loop) of design spec
 - [x] External review of design spec
 - [x] Finalization and Develop stage transition
-- [ ] **Phase 1: Data Foundation** — scaffold, migrations, seed
-- [ ] Phase 2: REST API — endpoints, validation, activity logging, health
-- [ ] Phase 3: MCP Adapter — server, tools, Claude Desktop config
-- [ ] Phase 4: ADF Connector — parser, sync_project tool
+- [x] Phase 1: Data Foundation — scaffold, migrations, seed
+- [x] Phase 2: REST API — core endpoints (projects, plans, phases, tasks, search, whats-next, activity)
+- [ ] **Phase 2 remaining: Backlog endpoints (B13), query endpoints (B14), connector endpoints (B15)**
+- [ ] **Phase 3 remaining: MCP plan/phase/backlog tools (B16), Claude Desktop wiring (B29)**
+- [x] Phase 4: ADF Connector — parser, sync_project tool
 - [ ] Phase 5: Dashboard — views, components, auth, deploy
+- [ ] Fix open bugs: actor ID hardcoding (BUG-2), data_origin enforcement (BUG-3), package name (BUG-4)
 
 ## Blockers
 
@@ -121,3 +158,5 @@ updated: "2026-02-10"
 | 2026-02-10 | **Internal review complete.** 3 cycles. 5 High issues resolved: circular FK (connector_id removed), Plan/Phase MCP tools added, one-active-plan constraint, FTS indexing, project detail connector info. 2 Low open. Design at v0.3. |
 | 2026-02-10 | **External review complete.** Gemini + GPT (Kimi timed out). 3 High resolved: DB-level one-active-plan index, RLS/service role pattern clarified, pgcrypto extension added. 1 High dismissed (false positive). 3 Medium deferred. Design at v0.4. |
 | 2026-02-10 | **Design → Develop transition.** Completed Develop Handoff, created BACKLOG.md (31 items, 5 phases), updated CLAUDE.md with stack/commands. All prerequisites met: design reviewed (8 High resolved, 0 open), BACKLOG ready, no blockers. |
+| 2026-02-10 | **Gemini development sessions.** Phase 1 (Data Foundation) + Phase 2 (REST API) + partial Phase 3-4 (MCP server + ADF connector). 15/25 API endpoints, 11 MCP tools, 6 DB migrations, Docker support. No Gemini/Codex agent config files found in repo. |
+| 2026-02-11 | **Reconciliation audit (Claude).** Reviewed all built code against design spec and BACKLOG. Fixed BUG-1 (display_id_prefix). Updated BACKLOG.md statuses (12 Done, 3 Partial, 16 Pending). Logged 3 open bugs. Verified: build passes, TypeScript clean, API functional against local Supabase. |

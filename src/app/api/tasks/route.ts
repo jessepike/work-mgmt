@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase.from('task').select(`
     *,
-    project:project_id(id, name, display_id_prefix), 
+    project:project_id(id, name),
     owner:owner_id(name)
   `);
 
