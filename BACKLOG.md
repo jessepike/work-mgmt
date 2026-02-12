@@ -64,13 +64,15 @@ updated: "2026-02-12"
 | B51 | Add theme switcher (light/dark/system) with persisted preference | New spec | Dashboard | P2 | M | Done |
 | B52 | Persist Settings filters/sort/view state and restore on return | UX | Dashboard | P2 | S | Done |
 | B53 | Show backlog identifiers in UI rows/cards (human-readable, project-scoped) | Enhancement | API/Dashboard | P1 | M | Done |
-| B54 | Define cross-project backlog identifier strategy for portfolio aggregation | New spec | Data/API | P1 | M | Partial |
+| B54 | Define cross-project backlog identifier strategy for portfolio aggregation | New spec | Data/API | P1 | M | Done |
 | B55 | Add portfolio-wide backlog view with search/filter/grouping across projects | New spec | Dashboard/API | P2 | M | Done |
 | B56 | Fix completed-task row affordance conflict (disabled checkbox + done icon) | Bug | Dashboard | P1 | S | Done |
 | B57 | Bi-directional sync architecture for ADF-governed projects (write-back + conflict handling) | New spec | API/MCP/ADF | P1 | L | Pending |
 | B58 | UI write support for synced items via governed bi-directional sync controls | New spec | Dashboard/API | P1 | L | Pending |
 | B59 | ADF spec alignment pass for tasks/backlog/status interoperability with work-management | New spec | ADF/MCP/API | P1 | L | Pending |
 | B60 | Voice/natural-language capture in UI for backlog/task commands (future) | Future feature | Dashboard/Agent | P3 | M | Pending |
+| B61 | Add `type` filter to backlog API endpoint — extend `GET /api/backlog` to accept `?type=` query parameter for filtering backlog items by type (e.g., `type=review`). Enables review queue pattern for /ingest routed items. No schema change needed — `backlog_item.type` is already freeform text. Source: CC Insights /ingest design 2026-02-12. | Enhancement | API | P2 | S | Pending |
+| B62 | Add "Findings to Review" dashboard widget — surface backlog items with `type=review` in a dedicated section, grouped by source. Enable adopt/defer/dismiss workflow directly from dashboard. Source: CC Insights /ingest design 2026-02-12. | New spec | Dashboard | P2 | M | Pending |
 
 ## Notes
 
@@ -101,13 +103,8 @@ Likely root cause: same logical task represented by divergent markdown paths/hea
 ### B39 — Health Calibration
 Current heuristic over-weights immediate blockers/deadlines and under-weights stagnant high-pending inventory; needs flow/aging signals.
 
-### B53/B54 — Partial
-DB-first foundation for this repo is implemented:
-- New `backlog_admin_item` table + RLS + indexes (`supabase/migrations/20260212162000_06_backlog_admin_item.sql`)
-- Admin API for CRUD start (`/api/admin/backlog-items`, `/api/admin/backlog-items/[id]`)
-- Markdown/DB sync tooling (`npm run sync:backlog-admin:import`, `npm run sync:backlog-admin:export`)
-
-Remaining: UI integration for identifiers and full cross-project strategy rollout.
+### B53/B54 — Done
+DB-first foundation: `backlog_admin_item` table + RLS + indexes, admin API, markdown/DB sync tooling. UI integration: identifiers shown in project detail (BacklogSection) and portfolio backlog page. Cross-project strategy: project-scoped `B#` keys, disambiguated by project name in aggregated views.
 
 ### B52 — Done
 Settings preference state now persists and restores for sync filter mode and backlog-admin status filter.
