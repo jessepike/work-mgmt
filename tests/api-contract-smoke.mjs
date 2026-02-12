@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 
 const BASE_URL = process.env.API_BASE_URL || 'http://localhost:3005/api';
+const API_SECRET = process.env.API_SECRET;
 
 async function getJson(path) {
-  const response = await fetch(`${BASE_URL}${path}`);
+  const headers = API_SECRET ? { Authorization: `Bearer ${API_SECRET}` } : {};
+  const response = await fetch(`${BASE_URL}${path}`, { headers });
   const body = await response.json().catch(() => ({}));
   return { status: response.status, body };
 }

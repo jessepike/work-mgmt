@@ -2,7 +2,7 @@
 project: "work-management"
 stage: "Develop"
 updated: "2026-02-12"
-last_session: "2026-02-12T11:18"
+last_session: "2026-02-12T13:35"
 ---
 
 # Status
@@ -11,7 +11,7 @@ last_session: "2026-02-12T11:18"
 
 - **Phase:** Develop — Phases 1-5 complete (MVP scope)
 - **Focus:** Post-backlog-admin UX/actionability pass (trust remediation, theme toggle, backlog portfolio view)
-- **Build:** Passing (Next.js build + TypeScript clean)
+- **Build:** Passing (Next.js build + TypeScript clean, local + production)
 - **API:** Core REST surface implemented (projects, plans, phases, tasks, backlog, queries, connectors)
 - **MCP:** Stdio server + tool modules wired and smoke-tested against local API
 - **Portfolio:** 5 enabled projects, 480 active tasks, 510 synced tasks, 139 synced backlog items
@@ -88,13 +88,13 @@ Status: Completed (B38, B40, B41, B43, B44, B45, B46, B47)
 - B24 Done — Kanban: 4-column status board, HTML5 drag-and-drop, project filter, synced item protection
 - B27 Done — Task detail panel: slide-out with properties, activity log, read-only for synced items
 - B28 Done — Quick-add: inline within project detail for native projects
-- B20 Deferred — Auth (single-user MVP)
+- B20 Done — Auth middleware + login/signup/callback routes active; API routes protected with API secret support for MCP/non-browser clients.
 - B25/B26 Legacy deferred IDs superseded by B46/B47 (implemented)
 - Component library: HealthBadge, PriorityChip, EmptyState, Toast, Modal, ViewSwitcher, FilterBar, StatusColumn, TaskCard, SyncIndicator
 - Shared utilities: cn(), apiFetch(), API response types
 
 ### Deployment
-- B31 Partial — automated deploy preflight wired (`npm run qa:deploy-readiness`); production migration + Vercel rollout pending execution
+- B31 Done — production deployed to Vercel (`https://work-management-kappa.vercel.app`), env configured, Supabase migrations applied, post-deploy smoke checks passing (API contract + MCP contract).
 
 ## Design → Develop Handoff
 
@@ -187,7 +187,7 @@ Status: Completed (B38, B40, B41, B43, B44, B45, B46, B47)
 - [x] **Phase 2 remaining: Connector endpoints (B15)**
 - [x] **Phase 3 remaining: Validate_task MCP parity and broader connector trials (B16/B30)**
 - [x] **Phase 5: Dashboard — views, components (MVP scope, auth deferred)**
-- [ ] **Deployment: Vercel deploy, env vars, production DB (B31)**
+- [x] **Deployment: Vercel deploy, env vars, production DB (B31)**
 - [x] Fix open bugs: actor ID hardcoding (BUG-2)
 - [x] Portfolio Status API (/api/projects/status) <!-- id: 24 -->
 
@@ -221,3 +221,4 @@ Status: Completed (B38, B40, B41, B43, B44, B45, B46, B47)
 | 2026-02-12 | **Backlog admin UI + settings persistence pass.** Added `/settings/backlog-admin` for list/create/edit on DB-backed backlog admin items, added settings nav tabs, and persisted sync-settings filter state between visits. Build/API contract checks passing. |
 | 2026-02-12 | **Backlog admin completion pass.** Added API-backed import/export action route (`/api/admin/backlog-sync`) to run markdown<->DB sync from UI, added delete support for admin items, added smoke test coverage (`npm run test:backlog-admin`) with cleanup, applied local migration (`supabase db push --local`), imported backlog seed rows into DB, and re-exported canonical queue table from DB. |
 | 2026-02-12 | **Priority UX closeout pass.** Implemented trust remediation actions in Settings (`/api/sync-quality/remediate` + per-project “why/fix” guidance), fixed completed-task row checkbox affordance bug, clarified health vs trust semantics in portfolio (legend + health filter + clickable footer chips), added persisted theme toggle (`system/light/dark`) in header, and delivered portfolio-wide backlog view (`/backlog`) with status/priority filters and backlog ID display. Validation green: build, API contract smoke, backlog-admin smoke, MCP contract/e2e smoke. |
+| 2026-02-12 | **Production rollout completion (B20/B31/B63).** Confirmed auth middleware and login routes active; added API-secret bypass path for non-browser MCP/API clients; made deploy-readiness + API contract + ADF sync scripts auth-aware; excluded `mcp-server/**` from Next app TS build scope for Vercel; moved malformed portfolio redirect guard into `src/proxy.ts` for Vercel compatibility; linked/deployed Vercel project `work-management` and aliased to `https://work-management-kappa.vercel.app`; configured production env vars; pushed Supabase migrations to `fxidgnsjhjdaunzzbxpe`; fixed auth header forwarding in `/api/portfolio-trust`; updated local MCP server config API URL to production. Validation: API contract pass; MCP contract pass; MCP e2e and ADF sync checks pass with no seeded projects/connectors (expected skip). |

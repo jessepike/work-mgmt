@@ -30,7 +30,7 @@ updated: "2026-02-12"
 | B17 | ADF connector: markdown parser for status.md, tasks.md, backlog.md | New spec | MCP | P1 | M | Done |
 | B18 | ADF connector: sync_project tool — parse, map to entities, upsert via REST (source_id) | New spec | MCP | P1 | M | Done |
 | B19 | Dashboard shell: root layout, sidebar, header, auth gate, view switcher | New spec | Dashboard | P1 | M | Done |
-| B20 | Auth pages: Supabase Auth UI login, session management. Blocker for Vercel deployment — API routes must be protected before going public. | New spec | Dashboard/API | P1 | M | Pending |
+| B20 | Auth pages: Supabase Auth UI login, session management. Blocker for Vercel deployment — API routes must be protected before going public. | New spec | Dashboard/API | P1 | M | Done |
 | B21 | Today view: whats-next data, grouped by deadline bucket, task items | New spec | Dashboard | P1 | M | Done |
 | B22 | Portfolio view: project cards, filter bar, health badges, create project modal | New spec | Dashboard | P1 | M | Done |
 | B23 | Project detail view: adaptive layout (flat vs planned), backlog section, sync indicator | New spec | Dashboard | P1 | L | Done |
@@ -41,7 +41,7 @@ updated: "2026-02-12"
 | B28 | Quick-add component: title + Enter, optional field expansion | New spec | Dashboard | P2 | S | Done |
 | B29 | Wire MCP server to Claude Desktop config, validate read + write operations | Setup | MCP | P1 | S | Done |
 | B30 | Test ADF connector against 3+ real project repos | Enhancement | MCP | P1 | M | Done |
-| B31 | Deploy to Vercel, configure environment variables, push Supabase migrations to production | Setup | App | P1 | M | Partial |
+| B31 | Deploy to Vercel, configure environment variables, push Supabase migrations to production | Setup | App | P1 | M | Done |
 | B32 | Make task properties editable in detail panel (status, priority, owner, due date) | New spec | Dashboard | P1 | L | Done |
 | B33 | Wire task creation paths end-to-end (global new task, project new task, quick add) | New spec | Dashboard | P1 | M | Done |
 | B34 | Wire task completion interaction on task rows (single-click complete with optimistic UI) | New spec | Dashboard | P1 | M | Done |
@@ -73,7 +73,7 @@ updated: "2026-02-12"
 | B60 | Voice/natural-language capture in UI for backlog/task commands (future) | Future feature | Dashboard/Agent | P3 | M | Pending |
 | B61 | Add `type` filter to backlog API endpoint — extend `GET /api/backlog` to accept `?type=` query parameter for filtering backlog items by type (e.g., `type=review`). Enables review queue pattern for /ingest routed items. No schema change needed — `backlog_item.type` is already freeform text. Source: CC Insights /ingest design 2026-02-12. | Enhancement | API | P2 | S | Pending |
 | B62 | Add "Findings to Review" dashboard widget — surface backlog items with `type=review` in a dedicated section, grouped by source. Enable adopt/defer/dismiss workflow directly from dashboard. Source: CC Insights /ingest design 2026-02-12. | New spec | Dashboard | P2 | M | Pending |
-| B63 | Post-deploy: update MCP server API_URL to production Vercel URL — change `API_URL` in `~/.claude.json` mcpServers from `http://localhost:3005/api` to production URL. Verify MCP tools load and function against remote API. Requires B20 + B31. | Ops | MCP | P1 | S | Pending |
+| B63 | Post-deploy: update MCP server API_URL to production Vercel URL — change `API_URL` in `~/.claude.json` mcpServers from `http://localhost:3005/api` to production URL. Verify MCP tools load and function against remote API. Requires B20 + B31. | Ops | MCP | P1 | S | Done |
 
 ## Notes
 
@@ -92,8 +92,8 @@ Validated on 2026-02-11 via `npm run test:adf-sync` against 3 active ADF-connect
 - `c1e73937-ebd3-46e4-b51b-25a1e7694b28` (count=16, tasks=15, backlog=0, status=true)
 - `885e0a47-1ad7-4e32-af01-02111e626a15` (count=23, tasks=7, backlog=16, status=true)
 
-### B31 — Partial
-Deployment preflight is now executable via `npm run qa:deploy-readiness` (env + migration presence + API/MCP/ADF validation gates), and rollout steps are codified in `docs/runbooks/production-rollout.md`. Remaining work is environment rollout and production migration execution.
+### B31 — Done
+Production rollout completed on 2026-02-12: Vercel project linked and deployed (`https://work-management-kappa.vercel.app`), production env vars configured, Supabase cloud migrations pushed to `fxidgnsjhjdaunzzbxpe`, and post-deploy API/MCP smoke validations executed.
 
 **Deployment path (decided 2026-02-12):** B20 (auth) → B31 (Vercel deploy) → B63 (MCP config update). Vercel is the target platform. Supabase is already cloud — no DB migration. MCP server stays local (stdio), just needs API_URL pointed at production. See global memory decision `fa7ae4b1`.
 

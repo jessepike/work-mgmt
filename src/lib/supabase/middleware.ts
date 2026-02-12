@@ -2,6 +2,15 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
+    const isApiRoute = request.nextUrl.pathname.startsWith('/api');
+    const authorization = request.headers.get('authorization');
+    const apiSecret = process.env.API_SECRET?.trim();
+
+    // Allow non-browser API clients (MCP/smoke tooling) via shared secret.
+    if (isApiRoute && apiSecret && authorization === `Bearer ${apiSecret}`) {
+        return NextResponse.next({ request });
+    }
+
     let supabaseResponse = NextResponse.next({
         request,
     })
@@ -39,7 +48,7 @@ export async function updateSession(request: NextRequest) {
 
     if (!user) {
         // API routes get 401 JSON instead of redirect
-        if (request.nextUrl.pathname.startsWith('/api')) {
+        if (isApiRoute) {
             return NextResponse.json(
                 { error: 'Unauthorized' },
                 { status: 401 }

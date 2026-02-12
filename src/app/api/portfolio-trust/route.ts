@@ -6,10 +6,18 @@ export async function GET(request: NextRequest) {
     const scope = request.nextUrl.searchParams.get('scope') || 'enabled';
     const staleHours = request.nextUrl.searchParams.get('stale_hours') || '24';
     const origin = request.nextUrl.origin;
+    const authorization = request.headers.get('authorization');
+    const forwardHeaders = authorization ? { authorization } : undefined;
 
     const [statusRes, syncRes] = await Promise.all([
-        fetch(`${origin}/api/projects/status?scope=${encodeURIComponent(scope)}`, { cache: 'no-store' }),
-        fetch(`${origin}/api/sync-quality?scope=${encodeURIComponent(scope)}&stale_hours=${encodeURIComponent(staleHours)}`, { cache: 'no-store' }),
+        fetch(`${origin}/api/projects/status?scope=${encodeURIComponent(scope)}`, {
+            cache: 'no-store',
+            headers: forwardHeaders,
+        }),
+        fetch(`${origin}/api/sync-quality?scope=${encodeURIComponent(scope)}&stale_hours=${encodeURIComponent(staleHours)}`, {
+            cache: 'no-store',
+            headers: forwardHeaders,
+        }),
     ]);
 
     if (!statusRes.ok) {

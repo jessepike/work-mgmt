@@ -1,6 +1,7 @@
 import process from 'node:process';
 
 const API_URL = process.env.API_URL || 'http://localhost:3005/api';
+const API_SECRET = process.env.API_SECRET;
 const LIMIT = Number(process.env.SYNC_LIMIT || '3');
 const ONLY_PROJECT_IDS = (process.env.SYNC_PROJECT_IDS || '')
   .split(',')
@@ -13,6 +14,7 @@ async function api(path, init = {}) {
     ...init,
     headers: {
       'content-type': 'application/json',
+      ...(API_SECRET ? { authorization: `Bearer ${API_SECRET}` } : {}),
       ...(init.headers || {})
     }
   });
