@@ -111,7 +111,20 @@ async function main() {
     const portfolioTrustRes = await callAndParse(client, 'get_portfolio_trust', { scope: 'enabled' });
     assert(portfolioTrustRes.json && typeof portfolioTrustRes.json === 'object', 'get_portfolio_trust response is not an object');
 
-    console.log('E2E smoke passed for tools: get_project, update_plan, get_task, validate_task, whats_next, search, get_activity, get_sync_quality, get_portfolio_trust.');
+    const writebackStatusRes = await callAndParse(client, 'governed_writeback_status', {
+      project_id: projectId,
+      focus: 'MCP writeback smoke dry-run',
+      dry_run: true
+    }, { allowError: !strict });
+    if (!writebackStatusRes.result?.isError) {
+      assert(writebackStatusRes.json && typeof writebackStatusRes.json === 'object', 'governed_writeback_status response is not an object');
+    } else if (strict) {
+      throw new Error(`governed_writeback_status failed: ${writebackStatusRes.text || 'unknown error'}`);
+    } else {
+      console.warn(`SKIPPED: governed_writeback_status (${writebackStatusRes.text || 'error'})`);
+    }
+
+    console.log('E2E smoke passed for tools: get_project, update_plan, get_task, validate_task, whats_next, search, get_activity, get_sync_quality, get_portfolio_trust, governed_writeback_status.');
   } finally {
     await client.stop();
   }

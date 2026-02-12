@@ -67,7 +67,7 @@ updated: "2026-02-12"
 | B54 | Define cross-project backlog identifier strategy for portfolio aggregation | New spec | Data/API | P1 | M | Done |
 | B55 | Add portfolio-wide backlog view with search/filter/grouping across projects | New spec | Dashboard/API | P2 | M | Done |
 | B56 | Fix completed-task row affordance conflict (disabled checkbox + done icon) | Bug | Dashboard | P1 | S | Done |
-| B57 | Bi-directional sync architecture for ADF-governed projects (write-back + conflict handling) | New spec | API/MCP/ADF | P1 | L | Pending |
+| B57 | Bi-directional sync architecture for ADF-governed projects (write-back + conflict handling) | New spec | API/MCP/ADF | P1 | L | Done |
 | B58 | UI write support for synced items via governed bi-directional sync controls | New spec | Dashboard/API | P1 | L | Pending |
 | B59 | ADF spec alignment pass for tasks/backlog/status interoperability with work-management | New spec | ADF/MCP/API | P1 | L | Pending |
 | B60 | Voice/natural-language capture in UI for backlog/task commands (future) | Future feature | Dashboard/Agent | P3 | M | Pending |
@@ -120,6 +120,15 @@ Theme toggle added in header with `system/light/dark` modes, persisted in local 
 
 ### B55/B56 — Done
 Added portfolio-wide backlog page (`/backlog`) with status/priority filtering and ID display. Completed task rows no longer show non-functional selection checkboxes.
+
+### B57 — Done
+Implemented governed write-back backend path for synced ADF entities:
+- New API endpoint: `POST /api/connectors/writeback` with `dry_run` + `strict_conflicts` behavior.
+- Conflict checks: entity scope validation, synced-only enforcement, `expected_updated_at` guard.
+- Write targets: synced `task`, synced `backlog_item`, and `project_status` (`status.md` current_stage/focus).
+- ADF file mutation engine: source_id resolution (`id`/`slug`), table/checkbox line patching, status key upsert.
+- MCP parity: added `governed_writeback_task`, `governed_writeback_backlog_item`, `governed_writeback_status`.
+- Validation: app build + MCP contract smoke pass. E2E/writeback smoke currently skip when no active ADF connectors are configured.
 
 ## Known Issues
 

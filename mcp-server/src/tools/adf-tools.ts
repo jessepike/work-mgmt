@@ -125,4 +125,135 @@ export function registerAdfTools(server: McpServer) {
             }
         }
     );
+
+    server.tool(
+        "governed_writeback_task",
+        "Write changes for a synced task back to its ADF source file with conflict checks. Use dry_run=true first.",
+        {
+            project_id: z.string().uuid(),
+            task_id: z.string().uuid(),
+            status: z.enum(["pending", "in_progress", "blocked", "done"]).optional(),
+            priority: z.enum(["P1", "P2", "P3"]).optional(),
+            title: z.string().optional(),
+            expected_updated_at: z.string().optional(),
+            dry_run: z.boolean().default(true),
+            strict_conflicts: z.boolean().default(true),
+        },
+        async ({ project_id, task_id, status, priority, title, expected_updated_at, dry_run, strict_conflicts }) => {
+            try {
+                const patch: Record<string, any> = {};
+                if (status) patch.status = status;
+                if (priority) patch.priority = priority;
+                if (title) patch.title = title;
+
+                const response = await apiClient.post("/connectors/writeback", {
+                    project_id,
+                    dry_run,
+                    strict_conflicts,
+                    operations: [
+                        {
+                            entity_type: "task",
+                            entity_id: task_id,
+                            expected_updated_at,
+                            patch,
+                        },
+                    ],
+                });
+
+                return {
+                    content: [{ type: "text", text: JSON.stringify(response.data?.data || response.data, null, 2) }],
+                };
+            } catch (error: any) {
+                const message = error.response?.data?.error || error.message;
+                const detail = error.response?.data ? `\n${JSON.stringify(error.response.data, null, 2)}` : "";
+                return { content: [{ type: "text", text: `Error writeback task: ${message}${detail}` }], isError: true };
+            }
+        }
+    );
+
+    server.tool(
+        "governed_writeback_backlog_item",
+        "Write changes for a synced backlog item back to ADF source with conflict checks. Use dry_run=true first.",
+        {
+            project_id: z.string().uuid(),
+            backlog_item_id: z.string().uuid(),
+            status: z.enum(["captured", "triaged", "prioritized", "promoted", "archived"]).optional(),
+            priority: z.enum(["P1", "P2", "P3"]).optional(),
+            title: z.string().optional(),
+            description: z.string().optional(),
+            expected_updated_at: z.string().optional(),
+            dry_run: z.boolean().default(true),
+            strict_conflicts: z.boolean().default(true),
+        },
+        async ({ project_id, backlog_item_id, status, priority, title, description, expected_updated_at, dry_run, strict_conflicts }) => {
+            try {
+                const patch: Record<string, any> = {};
+                if (status) patch.status = status;
+                if (priority) patch.priority = priority;
+                if (title) patch.title = title;
+                if (description !== undefined) patch.description = description;
+
+                const response = await apiClient.post("/connectors/writeback", {
+                    project_id,
+                    dry_run,
+                    strict_conflicts,
+                    operations: [
+                        {
+                            entity_type: "backlog_item",
+                            entity_id: backlog_item_id,
+                            expected_updated_at,
+                            patch,
+                        },
+                    ],
+                });
+
+                return {
+                    content: [{ type: "text", text: JSON.stringify(response.data?.data || response.data, null, 2) }],
+                };
+            } catch (error: any) {
+                const message = error.response?.data?.error || error.message;
+                const detail = error.response?.data ? `\n${JSON.stringify(error.response.data, null, 2)}` : "";
+                return { content: [{ type: "text", text: `Error writeback backlog item: ${message}${detail}` }], isError: true };
+            }
+        }
+    );
+
+    server.tool(
+        "governed_writeback_status",
+        "Write project status fields (current_stage/focus) back to status.md with conflict checks. Use dry_run=true first.",
+        {
+            project_id: z.string().uuid(),
+            current_stage: z.string().optional(),
+            focus: z.string().optional(),
+            dry_run: z.boolean().default(true),
+            strict_conflicts: z.boolean().default(true),
+        },
+        async ({ project_id, current_stage, focus, dry_run, strict_conflicts }) => {
+            try {
+                const patch: Record<string, any> = {};
+                if (current_stage) patch.current_stage = current_stage;
+                if (focus) patch.focus = focus;
+
+                const response = await apiClient.post("/connectors/writeback", {
+                    project_id,
+                    dry_run,
+                    strict_conflicts,
+                    operations: [
+                        {
+                            entity_type: "project_status",
+                            patch,
+                        },
+                    ],
+                });
+
+                return {
+                    content: [{ type: "text", text: JSON.stringify(response.data?.data || response.data, null, 2) }],
+                };
+            } catch (error: any) {
+                const message = error.response?.data?.error || error.message;
+                const detail = error.response?.data ? `\n${JSON.stringify(error.response.data, null, 2)}` : "";
+                return { content: [{ type: "text", text: `Error writeback status: ${message}${detail}` }], isError: true };
+            }
+        }
+    );
 }

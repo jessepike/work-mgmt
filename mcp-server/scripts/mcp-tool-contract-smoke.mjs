@@ -30,7 +30,10 @@ const EXPECTED_TOOLS = [
   'search',
   'get_activity',
   'get_sync_quality',
-  'get_portfolio_trust'
+  'get_portfolio_trust',
+  'governed_writeback_task',
+  'governed_writeback_backlog_item',
+  'governed_writeback_status'
 ];
 
 async function main() {
