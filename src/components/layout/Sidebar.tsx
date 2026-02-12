@@ -41,7 +41,9 @@ export function Sidebar() {
             <nav className="flex-1 py-2 overflow-y-auto custom-scrollbar">
                 <div className="space-y-0.5">
                     {navItems.map((item) => {
-                        const isActive = pathname === item.href;
+                        const isActive = item.href === "/settings"
+                            ? pathname.startsWith("/settings")
+                            : pathname === item.href;
                         return (
                             <Link
                                 key={item.href}

@@ -2,7 +2,7 @@
 project: "work-management"
 stage: "Develop"
 updated: "2026-02-12"
-last_session: "2026-02-12T10:02"
+last_session: "2026-02-12T10:20"
 ---
 
 # Status
@@ -218,3 +218,4 @@ Status: Completed (B38, B40, B41, B43, B44, B45, B46, B47)
 | 2026-02-11 | **Deployment hardening pass.** Added executable preflight gate (`npm run qa:deploy-readiness`) that validates env, migration presence, API reachability, build/API/MCP smoke, and ADF sync smoke. Added production rollout runbook for Supabase migration + Vercel deploy sequence. |
 | 2026-02-12 | **Backlog expansion pass.** Added B48-B60 to capture trust remediation actions, health/trust clarity, footer interaction consistency, theme toggle, settings state persistence, backlog identifiers/cross-project backlog strategy, completed-row affordance bug, bi-directional sync design + UI write support, ADF spec alignment, and future voice capture. |
 | 2026-02-12 | **DB-first backlog admin (phase 1).** Added `backlog_admin_item` schema migration, project-scoped admin API (`/api/admin/backlog-items`), and bidirectional markdown/DB sync tooling (`sync:backlog-admin:import|export`) for the Work Management project. Build passes. |
+| 2026-02-12 | **Backlog admin UI + settings persistence pass.** Added `/settings/backlog-admin` for list/create/edit on DB-backed backlog admin items, added settings nav tabs, and persisted sync-settings filter state between visits. Build/API contract checks passing. |

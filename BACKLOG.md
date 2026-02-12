@@ -62,7 +62,7 @@ updated: "2026-02-12"
 | B49 | Clarify health vs trust semantics in UI (labels, legend, footer consistency) | UX | Dashboard | P1 | S | Pending |
 | B50 | Make portfolio footer status chips consistently interactive (or explicitly non-interactive) | UX | Dashboard | P2 | S | Pending |
 | B51 | Add theme switcher (light/dark/system) with persisted preference | New spec | Dashboard | P2 | M | Pending |
-| B52 | Persist Settings filters/sort/view state and restore on return | UX | Dashboard | P2 | S | Pending |
+| B52 | Persist Settings filters/sort/view state and restore on return | UX | Dashboard | P2 | S | Partial |
 | B53 | Show backlog identifiers in UI rows/cards (human-readable, project-scoped) | Enhancement | API/Dashboard | P1 | M | Partial |
 | B54 | Define cross-project backlog identifier strategy for portfolio aggregation | New spec | Data/API | P1 | M | Partial |
 | B55 | Add portfolio-wide backlog view with search/filter/grouping across projects | New spec | Dashboard/API | P2 | M | Pending |
@@ -108,6 +108,9 @@ DB-first foundation for this repo is implemented:
 - Markdown/DB sync tooling (`npm run sync:backlog-admin:import`, `npm run sync:backlog-admin:export`)
 
 Remaining: UI integration for identifiers and full cross-project strategy rollout.
+
+### B52 — Partial
+Settings sync filter mode now persists via local storage on `/settings`. Remaining: persist additional settings views/sorts (including backlog admin subview preferences).
 
 ## Known Issues
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { showToast } from "@/components/ui/Toast";
 
@@ -83,6 +84,25 @@ export default function SettingsPage() {
   const [busyProject, setBusyProject] = useState<string | null>(null);
   const [pathDraft, setPathDraft] = useState<Record<string, string>>({});
   const [filterMode, setFilterMode] = useState<"all" | "attention" | "enabled">("all");
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("wm.settings.sync.filter");
+      if (raw === "all" || raw === "attention" || raw === "enabled") {
+        setFilterMode(raw);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setPrefsLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!prefsLoaded) return;
+    localStorage.setItem("wm.settings.sync.filter", filterMode);
+  }, [filterMode, prefsLoaded]);
 
   async function load() {
     setLoading(true);
@@ -228,8 +248,26 @@ export default function SettingsPage() {
     <div className="p-8 lg:p-12 bg-zed-main min-h-full">
       <div className="max-w-6xl mx-auto">
         <header className="mb-8">
-          <h2 className="text-2xl font-semibold text-text-primary tracking-tight">Settings</h2>
-          <p className="text-xs text-text-secondary mt-1">Project sync controls and connector status</p>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-semibold text-text-primary tracking-tight">Settings</h2>
+              <p className="text-xs text-text-secondary mt-1">Project sync controls and connector status</p>
+            </div>
+            <div className="flex items-center gap-1 bg-zed-active/50 p-1 rounded-sm border border-zed-border/50">
+              <Link
+                href="/settings"
+                className="px-2 py-1 text-[10px] font-bold tracking-widest uppercase bg-zed-active text-primary rounded-sm shadow-sm"
+              >
+                Sync
+              </Link>
+              <Link
+                href="/settings/backlog-admin"
+                className="px-2 py-1 text-[10px] font-bold tracking-widest uppercase text-text-muted hover:text-text-secondary"
+              >
+                Backlog Admin
+              </Link>
+            </div>
+          </div>
         </header>
 
         {loading ? (
