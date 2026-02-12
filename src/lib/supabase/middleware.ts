@@ -37,13 +37,20 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    // Auth redirect disabled for single-user MVP (B20 deferred).
-    // Re-enable when auth is implemented:
-    // if (!user && !request.nextUrl.pathname.startsWith('/auth') && !request.nextUrl.pathname.startsWith('/api')) {
-    //     const url = request.nextUrl.clone()
-    //     url.pathname = '/auth/login'
-    //     return NextResponse.redirect(url)
-    // }
+    if (!user) {
+        // API routes get 401 JSON instead of redirect
+        if (request.nextUrl.pathname.startsWith('/api')) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401 }
+            )
+        }
+
+        // Browser routes redirect to login
+        const url = request.nextUrl.clone()
+        url.pathname = '/auth/login'
+        return NextResponse.redirect(url)
+    }
 
     return supabaseResponse
 }

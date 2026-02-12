@@ -1,11 +1,9 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import axios from "axios";
+import { apiClient } from "../lib/api-client.js";
 import path from "path";
 import fs from "fs/promises";
 import { parseStatusMd, parseTasksMd, parseBacklogMd } from "../adf/parser.js";
-
-const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
 
 export function registerAdfTools(server: McpServer) {
     server.tool(
@@ -81,13 +79,10 @@ export function registerAdfTools(server: McpServer) {
         async ({ project_id, local_path }) => {
             try {
                 // Check if connector already exists
-                const existingRes = await axios.get(`${API_BASE_URL}/projects/${project_id}`);
+                const existingRes = await apiClient.get(`/projects/${project_id}`);
                 const project = existingRes.data.data;
 
-                // Create connector row via REST (B15 - implementing MVP here)
-                // Since B15 is pending, we'll implement a simple POST to a new endpoint or use direct Supabase if needed.
-                // For now, we'll assume the /api/connectors endpoint is about to be implemented.
-                const response = await axios.post(`${API_BASE_URL}/connectors`, {
+                const response = await apiClient.post("/connectors", {
                     project_id,
                     connector_type: "adf",
                     status: "active",
@@ -112,7 +107,7 @@ export function registerAdfTools(server: McpServer) {
         async ({ project_id }) => {
             try {
                 // Call the new centralized REST endpoint
-                const response = await axios.post(`${API_BASE_URL}/connectors/sync`, {
+                const response = await apiClient.post("/connectors/sync", {
                     project_id
                 });
 

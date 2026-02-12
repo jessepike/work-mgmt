@@ -1,17 +1,13 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerPlanTools = registerPlanTools;
 const zod_1 = require("zod");
-const axios_1 = __importDefault(require("axios"));
-const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
+const api_client_js_1 = require("../lib/api-client.js");
 function registerPlanTools(server) {
     server.tool("list_plans", "List all plans for a project", {
         project_id: zod_1.z.string().uuid()
     }, async ({ project_id }) => {
-        const response = await axios_1.default.get(`${API_BASE_URL}/projects/${project_id}/plans`);
+        const response = await api_client_js_1.apiClient.get(`/projects/${project_id}/plans`);
         return {
             content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };
@@ -21,7 +17,7 @@ function registerPlanTools(server) {
         name: zod_1.z.string(),
         description: zod_1.z.string().optional()
     }, async ({ project_id, ...payload }) => {
-        const response = await axios_1.default.post(`${API_BASE_URL}/projects/${project_id}/plans`, payload);
+        const response = await api_client_js_1.apiClient.post(`/projects/${project_id}/plans`, payload);
         return {
             content: [{ type: "text", text: `Plan created successfully: ${response.data.data.id}` }]
         };
@@ -34,7 +30,7 @@ function registerPlanTools(server) {
                 isError: true
             };
         }
-        const response = await axios_1.default.patch(`${API_BASE_URL}/plans/${targetId}`, updates);
+        const response = await api_client_js_1.apiClient.patch(`/plans/${targetId}`, updates);
         return {
             content: [{ type: "text", text: `Plan updated successfully: ${response.data.data.id}` }]
         };
@@ -58,7 +54,7 @@ function registerPlanTools(server) {
         id: zod_1.z.string().uuid(),
         approved_by: zod_1.z.string().describe("The ID of the actor approving the plan")
     }, async ({ id, approved_by }) => {
-        const response = await axios_1.default.post(`${API_BASE_URL}/plans/${id}/approve`, { approved_by });
+        const response = await api_client_js_1.apiClient.post(`/plans/${id}/approve`, { approved_by });
         return {
             content: [{ type: "text", text: `Plan approved successfully: ${response.data.data.id}` }]
         };

@@ -1,12 +1,8 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerTaskTools = registerTaskTools;
 const zod_1 = require("zod");
-const axios_1 = __importDefault(require("axios"));
-const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
+const api_client_js_1 = require("../lib/api-client.js");
 function registerTaskTools(server) {
     server.tool("list_tasks", "List tasks with filtering options", {
         project_id: zod_1.z.string().uuid().optional(),
@@ -19,7 +15,7 @@ function registerTaskTools(server) {
                 params.project_id = project_id;
             if (status)
                 params.status = status;
-            const response = await axios_1.default.get(`${API_BASE_URL}/tasks`, { params });
+            const response = await api_client_js_1.apiClient.get("/tasks", { params });
             const tasks = response.data.data.slice(0, limit || 50);
             return {
                 content: [
@@ -51,7 +47,7 @@ function registerTaskTools(server) {
             };
         }
         try {
-            const response = await axios_1.default.get(`${API_BASE_URL}/tasks/${targetId}`);
+            const response = await api_client_js_1.apiClient.get(`/tasks/${targetId}`);
             const task = response.data?.data ?? response.data;
             return {
                 content: [
@@ -88,7 +84,7 @@ function registerTaskTools(server) {
         owner_id: zod_1.z.string().optional()
     }, async (args) => {
         try {
-            const response = await axios_1.default.post(`${API_BASE_URL}/tasks`, args);
+            const response = await api_client_js_1.apiClient.post("/tasks", args);
             return {
                 content: [
                     {
@@ -120,7 +116,7 @@ function registerTaskTools(server) {
         priority: zod_1.z.enum(["P1", "P2", "P3"]).optional()
     }, async ({ id, ...updates }) => {
         try {
-            const response = await axios_1.default.patch(`${API_BASE_URL}/tasks/${id}`, updates);
+            const response = await api_client_js_1.apiClient.patch(`/tasks/${id}`, updates);
             return {
                 content: [
                     {
@@ -147,7 +143,7 @@ function registerTaskTools(server) {
         outcome: zod_1.z.string().optional()
     }, async ({ id, outcome }) => {
         try {
-            const response = await axios_1.default.post(`${API_BASE_URL}/tasks/${id}/complete`, { outcome });
+            const response = await api_client_js_1.apiClient.post(`/tasks/${id}/complete`, { outcome });
             return {
                 content: [
                     {
@@ -175,7 +171,7 @@ function registerTaskTools(server) {
         validated_by: zod_1.z.string().optional()
     }, async ({ id, status, validated_by }) => {
         try {
-            const response = await axios_1.default.post(`${API_BASE_URL}/tasks/${id}/validate`, {
+            const response = await api_client_js_1.apiClient.post(`/tasks/${id}/validate`, {
                 status,
                 validated_by
             });

@@ -1,8 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { IconSearch, IconPlus } from "@tabler/icons-react";
+import { IconSearch, IconPlus, IconLogout } from "@tabler/icons-react";
 import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
@@ -56,11 +57,21 @@ export function Header() {
                 <button className="w-7 h-7 flex items-center justify-center bg-primary rounded-full text-white hover:opacity-90 active:scale-95 transition-all shadow-sm shadow-primary/20">
                     <IconPlus className="w-4 h-4" />
                 </button>
-                <div className="w-7 h-7 rounded-full bg-zed-active border border-zed-border flex items-center justify-center overflow-hidden cursor-pointer hover:border-text-secondary transition-colors group">
-                    <div className="w-full h-full bg-gradient-to-br from-primary/40 to-zed-border flex items-center justify-center text-[10px] font-bold text-text-primary">
+                <button
+                    onClick={async () => {
+                        const supabase = createClient();
+                        await supabase.auth.signOut();
+                        router.push("/auth/login");
+                        router.refresh();
+                    }}
+                    title="Sign out"
+                    className="w-7 h-7 rounded-full bg-zed-active border border-zed-border flex items-center justify-center overflow-hidden cursor-pointer hover:border-text-secondary transition-colors group"
+                >
+                    <div className="w-full h-full bg-gradient-to-br from-primary/40 to-zed-border flex items-center justify-center text-[10px] font-bold text-text-primary group-hover:hidden">
                         JP
                     </div>
-                </div>
+                    <IconLogout className="w-3.5 h-3.5 text-text-secondary hidden group-hover:block" />
+                </button>
             </div>
         </header>
     );

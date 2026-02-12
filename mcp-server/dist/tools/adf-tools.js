@@ -5,10 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerAdfTools = registerAdfTools;
 const zod_1 = require("zod");
-const axios_1 = __importDefault(require("axios"));
+const api_client_js_1 = require("../lib/api-client.js");
 const path_1 = __importDefault(require("path"));
 const promises_1 = __importDefault(require("fs/promises"));
-const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
 function registerAdfTools(server) {
     server.tool("discover_local_projects", "Scan a directory for ADF projects (look for status.md files)", {
         base_dir: zod_1.z.string().describe("The root directory to scan (e.g. /Users/jessepike/code/_shared)")
@@ -82,12 +81,9 @@ function registerAdfTools(server) {
     }, async ({ project_id, local_path }) => {
         try {
             // Check if connector already exists
-            const existingRes = await axios_1.default.get(`${API_BASE_URL}/projects/${project_id}`);
+            const existingRes = await api_client_js_1.apiClient.get(`/projects/${project_id}`);
             const project = existingRes.data.data;
-            // Create connector row via REST (B15 - implementing MVP here)
-            // Since B15 is pending, we'll implement a simple POST to a new endpoint or use direct Supabase if needed.
-            // For now, we'll assume the /api/connectors endpoint is about to be implemented.
-            const response = await axios_1.default.post(`${API_BASE_URL}/connectors`, {
+            const response = await api_client_js_1.apiClient.post("/connectors", {
                 project_id,
                 connector_type: "adf",
                 status: "active",
@@ -106,7 +102,7 @@ function registerAdfTools(server) {
     }, async ({ project_id }) => {
         try {
             // Call the new centralized REST endpoint
-            const response = await axios_1.default.post(`${API_BASE_URL}/connectors/sync`, {
+            const response = await api_client_js_1.apiClient.post("/connectors/sync", {
                 project_id
             });
             return {

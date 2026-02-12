@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { updateSession } from "@/lib/supabase/middleware";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Defensive redirect for accidentally pasted route labels like:
@@ -13,9 +14,33 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  // Skip auth for auth pages and static assets
+  if (
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon") ||
+    pathname.match(/\.(svg|png|jpg|jpeg|gif|ico)$/)
+  ) {
+    return NextResponse.next();
+  }
+
+  // API routes: check API_SECRET bearer token first
+  if (pathname.startsWith("/api")) {
+    const authHeader = request.headers.get("authorization");
+    const apiSecret = process.env.API_SECRET;
+
+    if (apiSecret && authHeader === `Bearer ${apiSecret}`) {
+      return NextResponse.next();
+    }
+    // Fall through to session check below
+  }
+
+  // All routes: validate Supabase session
+  return updateSession(request);
 }
 
 export const config = {
-  matcher: ["/:path*"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
 };

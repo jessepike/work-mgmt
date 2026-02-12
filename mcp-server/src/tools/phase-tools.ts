@@ -1,8 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import axios from "axios";
-
-const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
+import { apiClient } from "../lib/api-client.js";
 
 export function registerPhaseTools(server: McpServer) {
     server.tool(
@@ -12,7 +10,7 @@ export function registerPhaseTools(server: McpServer) {
             plan_id: z.string().uuid()
         },
         async ({ plan_id }) => {
-            const response = await axios.get(`${API_BASE_URL}/plans/${plan_id}/phases`);
+            const response = await apiClient.get(`/plans/${plan_id}/phases`);
             return {
                 content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
             };
@@ -28,7 +26,7 @@ export function registerPhaseTools(server: McpServer) {
             description: z.string().optional()
         },
         async ({ plan_id, ...payload }) => {
-            const response = await axios.post(`${API_BASE_URL}/plans/${plan_id}/phases`, payload);
+            const response = await apiClient.post(`/plans/${plan_id}/phases`, payload);
             return {
                 content: [{ type: "text", text: `Phase created successfully: ${response.data.data.id}` }]
             };
@@ -56,7 +54,7 @@ export function registerPhaseTools(server: McpServer) {
                 isError: true
             };
         }
-        const response = await axios.patch(`${API_BASE_URL}/phases/${targetId}`, updates);
+        const response = await apiClient.patch(`/phases/${targetId}`, updates);
         return {
             content: [{ type: "text", text: `Phase updated successfully: ${response.data.data.id}` }]
         };
@@ -102,7 +100,7 @@ export function registerPhaseTools(server: McpServer) {
             id: z.string().uuid()
         },
         async ({ id }) => {
-            const response = await axios.post(`${API_BASE_URL}/phases/${id}/start`);
+            const response = await apiClient.post(`/phases/${id}/start`);
             return {
                 content: [{ type: "text", text: `Phase started successfully: ${response.data.data.id}` }]
             };
@@ -117,7 +115,7 @@ export function registerPhaseTools(server: McpServer) {
             handoff_notes: z.string().optional().describe("Outcome and handoff details")
         },
         async ({ id, handoff_notes }) => {
-            const response = await axios.post(`${API_BASE_URL}/phases/${id}/complete`, { handoff_notes });
+            const response = await apiClient.post(`/phases/${id}/complete`, { handoff_notes });
             return {
                 content: [{ type: "text", text: `Phase completed successfully: ${response.data.data.id}` }]
             };

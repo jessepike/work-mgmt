@@ -1,12 +1,8 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerProjectTools = registerProjectTools;
 const zod_1 = require("zod");
-const axios_1 = __importDefault(require("axios"));
-const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
+const api_client_js_1 = require("../lib/api-client.js");
 function registerProjectTools(server) {
     server.tool("list_projects", "List all projects, optionally filtered by status", {
         status: zod_1.z.enum(["active", "archived", "paused", "completed"]).optional(),
@@ -16,7 +12,7 @@ function registerProjectTools(server) {
             const params = {};
             if (status)
                 params.status = status;
-            const response = await axios_1.default.get(`${API_BASE_URL}/projects`, { params });
+            const response = await api_client_js_1.apiClient.get("/projects", { params });
             const projects = response.data.data.slice(0, limit || 50);
             return {
                 content: [
@@ -48,7 +44,7 @@ function registerProjectTools(server) {
         owner_id: zod_1.z.string()
     }, async (args) => {
         try {
-            const response = await axios_1.default.post(`${API_BASE_URL}/projects`, args);
+            const response = await api_client_js_1.apiClient.post("/projects", args);
             return {
                 content: [
                     {
@@ -79,7 +75,7 @@ function registerProjectTools(server) {
             };
         }
         try {
-            const response = await axios_1.default.get(`${API_BASE_URL}/projects/${targetId}`);
+            const response = await api_client_js_1.apiClient.get(`/projects/${targetId}`);
             const project = response.data?.data ?? response.data;
             return {
                 content: [
@@ -118,7 +114,7 @@ function registerProjectTools(server) {
         status: zod_1.z.enum(["active", "archived", "paused", "completed"]).optional()
     }, async ({ id, ...updates }) => {
         try {
-            const response = await axios_1.default.patch(`${API_BASE_URL}/projects/${id}`, updates);
+            const response = await api_client_js_1.apiClient.patch(`/projects/${id}`, updates);
             return {
                 content: [
                     {

@@ -1,8 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import axios from "axios";
-
-const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
+import { apiClient } from "../lib/api-client.js";
 
 export function registerTaskTools(server: McpServer) {
     server.tool(
@@ -19,7 +17,7 @@ export function registerTaskTools(server: McpServer) {
                 if (project_id) params.project_id = project_id;
                 if (status) params.status = status;
 
-                const response = await axios.get(`${API_BASE_URL}/tasks`, { params });
+                const response = await apiClient.get("/tasks", { params });
                 const tasks = response.data.data.slice(0, limit || 50);
 
                 return {
@@ -53,7 +51,7 @@ export function registerTaskTools(server: McpServer) {
             };
         }
         try {
-            const response = await axios.get(`${API_BASE_URL}/tasks/${targetId}`);
+            const response = await apiClient.get(`/tasks/${targetId}`);
             const task = response.data?.data ?? response.data;
             return {
                 content: [
@@ -100,7 +98,7 @@ export function registerTaskTools(server: McpServer) {
         },
         async (args) => {
             try {
-                const response = await axios.post(`${API_BASE_URL}/tasks`, args);
+                const response = await apiClient.post("/tasks", args);
                 return {
                     content: [
                         {
@@ -137,7 +135,7 @@ export function registerTaskTools(server: McpServer) {
         },
         async ({ id, ...updates }) => {
             try {
-                const response = await axios.patch(`${API_BASE_URL}/tasks/${id}`, updates);
+                const response = await apiClient.patch(`/tasks/${id}`, updates);
                 return {
                     content: [
                         {
@@ -169,7 +167,7 @@ export function registerTaskTools(server: McpServer) {
         },
         async ({ id, outcome }) => {
             try {
-                const response = await axios.post(`${API_BASE_URL}/tasks/${id}/complete`, { outcome });
+                const response = await apiClient.post(`/tasks/${id}/complete`, { outcome });
                 return {
                     content: [
                         {
@@ -202,7 +200,7 @@ export function registerTaskTools(server: McpServer) {
         },
         async ({ id, status, validated_by }) => {
             try {
-                const response = await axios.post(`${API_BASE_URL}/tasks/${id}/validate`, {
+                const response = await apiClient.post(`/tasks/${id}/validate`, {
                     status,
                     validated_by
                 });

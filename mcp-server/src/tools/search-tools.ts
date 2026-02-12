@@ -1,13 +1,11 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import axios from "axios";
-
-const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
+import { apiClient } from "../lib/api-client.js";
 
 export function registerSearchTools(server: McpServer) {
     const searchHandler = async ({ query, limit }: { query: string; limit?: number }): Promise<any> => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/search`, { params: { q: query } });
+            const response = await apiClient.get("/search", { params: { q: query } });
             const results = response.data?.data ?? [];
             return {
                 content: [
@@ -53,7 +51,7 @@ export function registerSearchTools(server: McpServer) {
 
     const whatsNextHandler = async ({ limit }: { limit?: number }): Promise<any> => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/whats-next`);
+            const response = await apiClient.get("/whats-next");
             const items = response.data?.data ?? [];
             return {
                 content: [

@@ -16,7 +16,8 @@
     "qa:sync-quality": "node scripts/sync-quality-report.mjs",
     "qa:sync-quality:json": "node scripts/sync-quality-report.mjs --json",
     "cleanup:smoke-data": "node scripts/cleanup-smoke-data.mjs --apply",
-    "cleanup:smoke-data:dry": "node scripts/cleanup-smoke-data.mjs"
+    "cleanup:smoke-data:dry": "node scripts/cleanup-smoke-data.mjs",
+    "test:auth": "node scripts/auth-smoke-test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",

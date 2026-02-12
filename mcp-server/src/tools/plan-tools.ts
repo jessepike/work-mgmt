@@ -1,8 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import axios from "axios";
-
-const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
+import { apiClient } from "../lib/api-client.js";
 
 export function registerPlanTools(server: McpServer) {
     server.tool(
@@ -12,7 +10,7 @@ export function registerPlanTools(server: McpServer) {
             project_id: z.string().uuid()
         },
         async ({ project_id }) => {
-            const response = await axios.get(`${API_BASE_URL}/projects/${project_id}/plans`);
+            const response = await apiClient.get(`/projects/${project_id}/plans`);
             return {
                 content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
             };
@@ -28,7 +26,7 @@ export function registerPlanTools(server: McpServer) {
             description: z.string().optional()
         },
         async ({ project_id, ...payload }) => {
-            const response = await axios.post(`${API_BASE_URL}/projects/${project_id}/plans`, payload);
+            const response = await apiClient.post(`/projects/${project_id}/plans`, payload);
             return {
                 content: [{ type: "text", text: `Plan created successfully: ${response.data.data.id}` }]
             };
@@ -53,7 +51,7 @@ export function registerPlanTools(server: McpServer) {
                 isError: true
             };
         }
-        const response = await axios.patch(`${API_BASE_URL}/plans/${targetId}`, updates);
+        const response = await apiClient.patch(`/plans/${targetId}`, updates);
         return {
             content: [{ type: "text", text: `Plan updated successfully: ${response.data.data.id}` }]
         };
@@ -94,7 +92,7 @@ export function registerPlanTools(server: McpServer) {
             approved_by: z.string().describe("The ID of the actor approving the plan")
         },
         async ({ id, approved_by }) => {
-            const response = await axios.post(`${API_BASE_URL}/plans/${id}/approve`, { approved_by });
+            const response = await apiClient.post(`/plans/${id}/approve`, { approved_by });
             return {
                 content: [{ type: "text", text: `Plan approved successfully: ${response.data.data.id}` }]
             };

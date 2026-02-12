@@ -1,8 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import axios from "axios";
-
-const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
+import { apiClient } from "../lib/api-client.js";
 
 export function registerBacklogTools(server: McpServer) {
     server.tool(
@@ -12,7 +10,7 @@ export function registerBacklogTools(server: McpServer) {
             project_id: z.string().uuid()
         },
         async ({ project_id }) => {
-            const response = await axios.get(`${API_BASE_URL}/backlog`, { params: { project_id } });
+            const response = await apiClient.get("/backlog", { params: { project_id } });
             return {
                 content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
             };
@@ -31,7 +29,7 @@ export function registerBacklogTools(server: McpServer) {
             source_id: z.string().optional()
         },
         async (args) => {
-            const response = await axios.post(`${API_BASE_URL}/backlog`, args);
+            const response = await apiClient.post("/backlog", args);
             return {
                 content: [{ type: "text", text: `Backlog item created successfully: ${response.data.data.id}` }]
             };
@@ -55,7 +53,7 @@ export function registerBacklogTools(server: McpServer) {
         }
         const { backlog_item_id: _drop, backlog_id: _drop2, ...rest } = args;
         const payload = { backlog_item_id: backlogItemId, ...rest };
-        const response = await axios.post(`${API_BASE_URL}/backlog/promote`, payload);
+        const response = await apiClient.post("/backlog/promote", payload);
         return {
             content: [{ type: "text", text: `Backlog item promoted successfully to Task: ${response.data.data.id}` }]
         };

@@ -1,15 +1,11 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerQueryTools = registerQueryTools;
 const zod_1 = require("zod");
-const axios_1 = __importDefault(require("axios"));
-const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
+const api_client_js_1 = require("../lib/api-client.js");
 function registerQueryTools(server) {
     const getStatusHandler = async () => {
-        const response = await axios_1.default.get(`${API_BASE_URL}/projects/status`);
+        const response = await api_client_js_1.apiClient.get("/projects/status");
         return {
             content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };
@@ -20,7 +16,7 @@ function registerQueryTools(server) {
         project_id: zod_1.z.string().uuid().optional()
     }, async () => getStatusHandler());
     const getBlockersHandler = async ({ project_id }) => {
-        const response = await axios_1.default.get(`${API_BASE_URL}/blockers`);
+        const response = await api_client_js_1.apiClient.get("/blockers");
         const blockers = response.data?.data ?? [];
         const filtered = project_id
             ? blockers.filter((item) => item.project_id === project_id || item.project?.id === project_id)
@@ -35,7 +31,7 @@ function registerQueryTools(server) {
         project_id: zod_1.z.string().uuid().optional()
     }, getBlockersHandler);
     const getDeadlinesHandler = async () => {
-        const response = await axios_1.default.get(`${API_BASE_URL}/deadlines`);
+        const response = await api_client_js_1.apiClient.get("/deadlines");
         return {
             content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };
@@ -45,7 +41,7 @@ function registerQueryTools(server) {
     server.tool("get_deadlines", "List upcoming task deadlines across all projects", {
         limit: zod_1.z.number().int().positive().max(200).optional()
     }, async ({ limit }) => {
-        const response = await axios_1.default.get(`${API_BASE_URL}/deadlines`);
+        const response = await api_client_js_1.apiClient.get("/deadlines");
         const items = response.data?.data ?? [];
         return {
             content: [{ type: "text", text: JSON.stringify(limit ? items.slice(0, limit) : items, null, 2) }]
@@ -58,7 +54,7 @@ function registerQueryTools(server) {
         const params = { entity_id: project_id };
         if (limit)
             params.limit = limit;
-        const response = await axios_1.default.get(`${API_BASE_URL}/activity`, { params });
+        const response = await api_client_js_1.apiClient.get("/activity", { params });
         return {
             content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };
@@ -76,7 +72,7 @@ function registerQueryTools(server) {
             params.entity_id = entity_id;
         if (limit)
             params.limit = limit;
-        const response = await axios_1.default.get(`${API_BASE_URL}/activity`, { params });
+        const response = await api_client_js_1.apiClient.get("/activity", { params });
         return {
             content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };
@@ -96,7 +92,7 @@ function registerQueryTools(server) {
             params.stale_hours = stale_hours;
         if (include_unconfigured)
             params.include_unconfigured = 1;
-        const response = await axios_1.default.get(`${API_BASE_URL}/sync-quality`, { params });
+        const response = await api_client_js_1.apiClient.get("/sync-quality", { params });
         return {
             content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };
@@ -110,7 +106,7 @@ function registerQueryTools(server) {
             params.scope = scope;
         if (stale_hours)
             params.stale_hours = stale_hours;
-        const response = await axios_1.default.get(`${API_BASE_URL}/portfolio-trust`, { params });
+        const response = await api_client_js_1.apiClient.get("/portfolio-trust", { params });
         return {
             content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };

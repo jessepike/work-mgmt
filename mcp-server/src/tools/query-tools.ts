@@ -1,12 +1,10 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import axios from "axios";
-
-const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
+import { apiClient } from "../lib/api-client.js";
 
 export function registerQueryTools(server: McpServer) {
     const getStatusHandler = async (): Promise<any> => {
-        const response = await axios.get(`${API_BASE_URL}/projects/status`);
+        const response = await apiClient.get("/projects/status");
         return {
             content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };
@@ -30,7 +28,7 @@ export function registerQueryTools(server: McpServer) {
     );
 
     const getBlockersHandler = async ({ project_id }: { project_id?: string }): Promise<any> => {
-        const response = await axios.get(`${API_BASE_URL}/blockers`);
+        const response = await apiClient.get("/blockers");
         const blockers = response.data?.data ?? [];
         const filtered = project_id
             ? blockers.filter((item: any) => item.project_id === project_id || item.project?.id === project_id)
@@ -58,7 +56,7 @@ export function registerQueryTools(server: McpServer) {
     );
 
     const getDeadlinesHandler = async (): Promise<any> => {
-        const response = await axios.get(`${API_BASE_URL}/deadlines`);
+        const response = await apiClient.get("/deadlines");
         return {
             content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };
@@ -79,7 +77,7 @@ export function registerQueryTools(server: McpServer) {
             limit: z.number().int().positive().max(200).optional()
         },
         async ({ limit }): Promise<any> => {
-            const response = await axios.get(`${API_BASE_URL}/deadlines`);
+            const response = await apiClient.get("/deadlines");
             const items = response.data?.data ?? [];
             return {
                 content: [{ type: "text", text: JSON.stringify(limit ? items.slice(0, limit) : items, null, 2) }]
@@ -97,7 +95,7 @@ export function registerQueryTools(server: McpServer) {
         async ({ project_id, limit }): Promise<any> => {
             const params: Record<string, string | number> = { entity_id: project_id };
             if (limit) params.limit = limit;
-            const response = await axios.get(`${API_BASE_URL}/activity`, { params });
+            const response = await apiClient.get("/activity", { params });
             return {
                 content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
             };
@@ -119,7 +117,7 @@ export function registerQueryTools(server: McpServer) {
             if (entity_id) params.entity_id = entity_id;
             if (limit) params.limit = limit;
 
-            const response = await axios.get(`${API_BASE_URL}/activity`, { params });
+            const response = await apiClient.get("/activity", { params });
             return {
                 content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
             };
@@ -142,7 +140,7 @@ export function registerQueryTools(server: McpServer) {
             if (stale_hours) params.stale_hours = stale_hours;
             if (include_unconfigured) params.include_unconfigured = 1;
 
-            const response = await axios.get(`${API_BASE_URL}/sync-quality`, { params });
+            const response = await apiClient.get("/sync-quality", { params });
             return {
                 content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
             };
@@ -160,7 +158,7 @@ export function registerQueryTools(server: McpServer) {
             const params: Record<string, string | number> = {};
             if (scope) params.scope = scope;
             if (stale_hours) params.stale_hours = stale_hours;
-            const response = await axios.get(`${API_BASE_URL}/portfolio-trust`, { params });
+            const response = await apiClient.get("/portfolio-trust", { params });
             return {
                 content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
             };

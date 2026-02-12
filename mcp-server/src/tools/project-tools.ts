@@ -1,8 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import axios from "axios";
-
-const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
+import { apiClient } from "../lib/api-client.js";
 
 export function registerProjectTools(server: McpServer) {
     server.tool(
@@ -17,7 +15,7 @@ export function registerProjectTools(server: McpServer) {
                 const params: any = {};
                 if (status) params.status = status;
 
-                const response = await axios.get(`${API_BASE_URL}/projects`, { params });
+                const response = await apiClient.get("/projects", { params });
                 const projects = response.data.data.slice(0, limit || 50);
 
                 return {
@@ -55,7 +53,7 @@ export function registerProjectTools(server: McpServer) {
         },
         async (args) => {
             try {
-                const response = await axios.post(`${API_BASE_URL}/projects`, args);
+                const response = await apiClient.post("/projects", args);
                 return {
                     content: [
                         {
@@ -87,7 +85,7 @@ export function registerProjectTools(server: McpServer) {
             };
         }
         try {
-            const response = await axios.get(`${API_BASE_URL}/projects/${targetId}`);
+            const response = await apiClient.get(`/projects/${targetId}`);
             const project = response.data?.data ?? response.data;
             return {
                 content: [
@@ -142,7 +140,7 @@ export function registerProjectTools(server: McpServer) {
         },
         async ({ id, ...updates }) => {
             try {
-                const response = await axios.patch(`${API_BASE_URL}/projects/${id}`, updates);
+                const response = await apiClient.patch(`/projects/${id}`, updates);
                 return {
                     content: [
                         {

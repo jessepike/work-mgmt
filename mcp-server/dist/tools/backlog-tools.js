@@ -1,17 +1,13 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerBacklogTools = registerBacklogTools;
 const zod_1 = require("zod");
-const axios_1 = __importDefault(require("axios"));
-const API_BASE_URL = process.env.API_URL || "http://localhost:3005/api";
+const api_client_js_1 = require("../lib/api-client.js");
 function registerBacklogTools(server) {
     server.tool("list_backlog", "List all backlog items for a project", {
         project_id: zod_1.z.string().uuid()
     }, async ({ project_id }) => {
-        const response = await axios_1.default.get(`${API_BASE_URL}/backlog`, { params: { project_id } });
+        const response = await api_client_js_1.apiClient.get("/backlog", { params: { project_id } });
         return {
             content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };
@@ -24,7 +20,7 @@ function registerBacklogTools(server) {
         size: zod_1.z.enum(["S", "M", "L"]).optional(),
         source_id: zod_1.z.string().optional()
     }, async (args) => {
-        const response = await axios_1.default.post(`${API_BASE_URL}/backlog`, args);
+        const response = await api_client_js_1.apiClient.post("/backlog", args);
         return {
             content: [{ type: "text", text: `Backlog item created successfully: ${response.data.data.id}` }]
         };
@@ -39,7 +35,7 @@ function registerBacklogTools(server) {
         }
         const { backlog_item_id: _drop, backlog_id: _drop2, ...rest } = args;
         const payload = { backlog_item_id: backlogItemId, ...rest };
-        const response = await axios_1.default.post(`${API_BASE_URL}/backlog/promote`, payload);
+        const response = await api_client_js_1.apiClient.post("/backlog/promote", payload);
         return {
             content: [{ type: "text", text: `Backlog item promoted successfully to Task: ${response.data.data.id}` }]
         };
