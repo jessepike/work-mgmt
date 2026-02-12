@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${ibmPlexSans.variable} ${inter.variable} antialiased bg-zed-main text-text-primary selection:bg-primary/30 selection:text-text-primary overflow-hidden h-screen flex`}
       >
