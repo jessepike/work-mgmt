@@ -30,7 +30,7 @@ updated: "2026-02-12"
 | B17 | ADF connector: markdown parser for status.md, tasks.md, backlog.md | New spec | MCP | P1 | M | Done |
 | B18 | ADF connector: sync_project tool — parse, map to entities, upsert via REST (source_id) | New spec | MCP | P1 | M | Done |
 | B19 | Dashboard shell: root layout, sidebar, header, auth gate, view switcher | New spec | Dashboard | P1 | M | Done |
-| B20 | Auth pages: Supabase Auth UI login, session management | New spec | Dashboard | P1 | S | Deferred |
+| B20 | Auth pages: Supabase Auth UI login, session management. Blocker for Vercel deployment — API routes must be protected before going public. | New spec | Dashboard/API | P1 | M | Pending |
 | B21 | Today view: whats-next data, grouped by deadline bucket, task items | New spec | Dashboard | P1 | M | Done |
 | B22 | Portfolio view: project cards, filter bar, health badges, create project modal | New spec | Dashboard | P1 | M | Done |
 | B23 | Project detail view: adaptive layout (flat vs planned), backlog section, sync indicator | New spec | Dashboard | P1 | L | Done |
@@ -73,6 +73,7 @@ updated: "2026-02-12"
 | B60 | Voice/natural-language capture in UI for backlog/task commands (future) | Future feature | Dashboard/Agent | P3 | M | Pending |
 | B61 | Add `type` filter to backlog API endpoint — extend `GET /api/backlog` to accept `?type=` query parameter for filtering backlog items by type (e.g., `type=review`). Enables review queue pattern for /ingest routed items. No schema change needed — `backlog_item.type` is already freeform text. Source: CC Insights /ingest design 2026-02-12. | Enhancement | API | P2 | S | Pending |
 | B62 | Add "Findings to Review" dashboard widget — surface backlog items with `type=review` in a dedicated section, grouped by source. Enable adopt/defer/dismiss workflow directly from dashboard. Source: CC Insights /ingest design 2026-02-12. | New spec | Dashboard | P2 | M | Pending |
+| B63 | Post-deploy: update MCP server API_URL to production Vercel URL — change `API_URL` in `~/.claude.json` mcpServers from `http://localhost:3005/api` to production URL. Verify MCP tools load and function against remote API. Requires B20 + B31. | Ops | MCP | P1 | S | Pending |
 
 ## Notes
 
@@ -93,6 +94,8 @@ Validated on 2026-02-11 via `npm run test:adf-sync` against 3 active ADF-connect
 
 ### B31 — Partial
 Deployment preflight is now executable via `npm run qa:deploy-readiness` (env + migration presence + API/MCP/ADF validation gates), and rollout steps are codified in `docs/runbooks/production-rollout.md`. Remaining work is environment rollout and production migration execution.
+
+**Deployment path (decided 2026-02-12):** B20 (auth) → B31 (Vercel deploy) → B63 (MCP config update). Vercel is the target platform. Supabase is already cloud — no DB migration. MCP server stays local (stdio), just needs API_URL pointed at production. See global memory decision `fa7ae4b1`.
 
 ### B32-B35 — CRUD Enablement Track (Critical)
 These items are the primary blockers for shifting the dashboard from read-only to active work management.
