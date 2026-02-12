@@ -2,7 +2,7 @@
 project: "work-management"
 stage: "Develop"
 updated: "2026-02-12"
-last_session: "2026-02-12T14:05"
+last_session: "2026-02-12T14:28"
 ---
 
 # Status
@@ -10,7 +10,7 @@ last_session: "2026-02-12T14:05"
 ## Current State
 
 - **Phase:** Develop — Phases 1-5 complete (MVP scope)
-- **Focus:** B57 governed write-back completion (backend + MCP), then B58 UI wiring
+- **Focus:** B58 governed synced-item UI controls complete; next is B59 ADF spec alignment
 - **Build:** Passing (Next.js build + TypeScript clean, local + production)
 - **API:** Core REST surface implemented (projects, plans, phases, tasks, backlog, queries, connectors)
 - **MCP:** Stdio server + tool modules wired; governed write-back tools added for synced ADF entities
@@ -223,3 +223,4 @@ Status: Completed (B38, B40, B41, B43, B44, B45, B46, B47)
 | 2026-02-12 | **Priority UX closeout pass.** Implemented trust remediation actions in Settings (`/api/sync-quality/remediate` + per-project “why/fix” guidance), fixed completed-task row checkbox affordance bug, clarified health vs trust semantics in portfolio (legend + health filter + clickable footer chips), added persisted theme toggle (`system/light/dark`) in header, and delivered portfolio-wide backlog view (`/backlog`) with status/priority filters and backlog ID display. Validation green: build, API contract smoke, backlog-admin smoke, MCP contract/e2e smoke. |
 | 2026-02-12 | **Production rollout completion (B20/B31/B63).** Confirmed auth middleware and login routes active; added API-secret bypass path for non-browser MCP/API clients; made deploy-readiness + API contract + ADF sync scripts auth-aware; excluded `mcp-server/**` from Next app TS build scope for Vercel; moved malformed portfolio redirect guard into `src/proxy.ts` for Vercel compatibility; linked/deployed Vercel project `work-management` and aliased to `https://work-management-kappa.vercel.app`; configured production env vars; pushed Supabase migrations to `fxidgnsjhjdaunzzbxpe`; fixed auth header forwarding in `/api/portfolio-trust`; updated local MCP server config API URL to production. Validation: API contract pass; MCP contract pass; MCP e2e and ADF sync checks pass with no seeded projects/connectors (expected skip). |
 | 2026-02-12 | **B57 governed write-back completion.** Added `POST /api/connectors/writeback` for synced ADF entities with dry-run mode, strict conflict behavior, expected timestamp checks, and source_id-based markdown write-back. Added write-back engine in `src/lib/adf/writeback.ts` (table/checkbox/status-key updates). Added MCP tools: `governed_writeback_task`, `governed_writeback_backlog_item`, `governed_writeback_status`, and expanded MCP contract smoke expectations. Added `npm run test:writeback` dry-run smoke. Validation: app build + MCP contract pass; e2e/writeback smoke currently skip when no active ADF connectors are configured. |
+| 2026-02-12 | **B58 UI governed-edit completion.** Added synced-item governed edit flows in `TaskDetailPanel` and `BacklogSection`: dry-run preview, conflict messaging, explicit apply confirmation, and post-apply refresh/update behavior. Validation: app build pass, API contract smoke pass, MCP contract smoke pass. |

@@ -34,6 +34,9 @@ export function TaskDetailPanel({ task, projectName, phaseName, onClose, onTaskU
     const [commentDraft, setCommentDraft] = useState("");
     const [commentBusy, setCommentBusy] = useState(false);
     const [savingField, setSavingField] = useState<string | null>(null);
+    const [governedBusy, setGovernedBusy] = useState<"dry_run" | "apply" | null>(null);
+    const [governedPreview, setGovernedPreview] = useState<Array<{ file_path: string; line: number; before: string; after: string }>>([]);
+    const [governedConflicts, setGovernedConflicts] = useState<Array<{ error: string }>>([]);
     const [draft, setDraft] = useState({
         status: task.status,
         priority: task.priority,
@@ -44,6 +47,12 @@ export function TaskDetailPanel({ task, projectName, phaseName, onClose, onTaskU
     });
     const isReadOnly = task.data_origin === "synced";
     const isDone = draft.status === "done";
+    const governedPatch = useMemo(() => ({
+        status: draft.status,
+        priority: draft.priority,
+        title: task.title,
+        description: draft.description.trim() || null,
+    }), [draft.description, draft.priority, draft.status, task.title]);
 
     useEffect(() => {
         setDraft({
@@ -54,6 +63,8 @@ export function TaskDetailPanel({ task, projectName, phaseName, onClose, onTaskU
             description: task.description || "",
             notes: task.notes || "",
         });
+        setGovernedPreview([]);
+        setGovernedConflicts([]);
     }, [task]);
 
     useEffect(() => {
@@ -127,6 +138,58 @@ export function TaskDetailPanel({ task, projectName, phaseName, onClose, onTaskU
         }
     }
 
+    async function runGovernedWriteback(apply: boolean) {
+        if (governedBusy) return;
+        setGovernedBusy(apply ? "apply" : "dry_run");
+        setGovernedConflicts([]);
+        if (!apply) setGovernedPreview([]);
+        try {
+            const res = await fetch("/api/connectors/writeback", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    project_id: task.project_id,
+                    dry_run: !apply,
+                    strict_conflicts: true,
+                    operations: [
+                        {
+                            entity_type: "task",
+                            entity_id: task.id,
+                            expected_updated_at: task.updated_at,
+                            patch: governedPatch,
+                        },
+                    ],
+                }),
+            });
+            const body = await res.json();
+            if (!res.ok) {
+                if (res.status === 409 && Array.isArray(body?.conflicts)) {
+                    setGovernedConflicts(body.conflicts);
+                    showToast("error", "Writeback conflict. Refresh task and try again.");
+                    return;
+                }
+                throw new Error(body?.error || "Governed writeback failed");
+            }
+            if (!apply) {
+                const previews = (body?.data?.previews || [])
+                    .flatMap((p: any) => p?.changes || [])
+                    .filter((c: any) => c?.before !== undefined && c?.after !== undefined);
+                setGovernedPreview(previews);
+                showToast("success", "Dry-run preview ready");
+                return;
+            }
+            const refresh = await fetch(`/api/tasks/${task.id}`);
+            const refreshedBody = await refresh.json();
+            if (refresh.ok && refreshedBody?.data) onTaskUpdated?.(refreshedBody.data);
+            setGovernedPreview([]);
+            showToast("success", "Governed writeback applied");
+        } catch (error) {
+            showToast("error", error instanceof Error ? error.message : "Governed writeback failed");
+        } finally {
+            setGovernedBusy(null);
+        }
+    }
+
     return (
         <div className="w-[400px] flex-shrink-0 flex flex-col bg-zed-sidebar/30 border-l border-zed-border">
             <header className="px-6 h-14 flex items-center justify-between border-b border-zed-border">
@@ -178,8 +241,55 @@ export function TaskDetailPanel({ task, projectName, phaseName, onClose, onTaskU
                 </div>
                 {isReadOnly && (
                     <div className="mb-4 rounded border border-zed-border/50 bg-zed-main/40 px-3 py-2 text-[11px] text-text-secondary">
-                        This task is synced from source files and can only be updated in the source project.
+                        This task is synced from source files. Use Governed Edit to preview and apply safe write-back.
                     </div>
+                )}
+                {isReadOnly && (
+                    <section className="mb-6">
+                        <h4 className="text-[10px] font-bold text-text-muted tracking-widest uppercase mb-3">Governed Edit (Synced)</h4>
+                        <div className="flex items-center gap-2 mb-3">
+                            <button
+                                onClick={() => void runGovernedWriteback(false)}
+                                disabled={governedBusy !== null}
+                                className="px-3 py-1.5 bg-zed-active border border-zed-border text-[10px] font-bold tracking-widest uppercase hover:bg-zed-hover transition-colors rounded disabled:opacity-40"
+                            >
+                                {governedBusy === "dry_run" ? "Checking..." : "Dry Run"}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (!governedPreview.length) {
+                                        showToast("error", "Run dry-run first");
+                                        return;
+                                    }
+                                    const confirmed = window.confirm("Apply this write-back to source files and DB?");
+                                    if (!confirmed) return;
+                                    void runGovernedWriteback(true);
+                                }}
+                                disabled={governedBusy !== null || governedPreview.length === 0}
+                                className="px-3 py-1.5 bg-primary/20 border border-primary/40 text-primary text-[10px] font-bold tracking-widest uppercase hover:bg-primary/30 transition-colors rounded disabled:opacity-40"
+                            >
+                                {governedBusy === "apply" ? "Applying..." : "Apply Writeback"}
+                            </button>
+                        </div>
+                        {governedConflicts.length > 0 && (
+                            <div className="mb-3 rounded border border-status-red/30 bg-status-red/10 px-3 py-2 text-[11px] text-status-red">
+                                {governedConflicts.map((c, idx) => (
+                                    <div key={`${idx}-${c.error}`}>{c.error}</div>
+                                ))}
+                            </div>
+                        )}
+                        {governedPreview.length > 0 && (
+                            <div className="space-y-2">
+                                {governedPreview.map((change, idx) => (
+                                    <div key={`${change.file_path}-${change.line}-${idx}`} className="rounded border border-zed-border/60 bg-zed-main/40 px-3 py-2">
+                                        <div className="text-[10px] font-mono text-text-muted mb-2">{change.file_path}:{change.line}</div>
+                                        <div className="text-[11px] text-status-red line-through break-all">{change.before}</div>
+                                        <div className="text-[11px] text-status-green break-all">{change.after}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
                 )}
 
                 <section className="mb-6">
