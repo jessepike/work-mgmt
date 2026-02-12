@@ -71,6 +71,7 @@ export function BacklogSection({
                         <div className="space-y-1">
                             {activeItems.map((item) => (
                                 <div key={item.id} className="flex items-center h-10 px-4 hover:bg-zed-hover rounded transition-colors">
+                                    <span className="text-[10px] font-mono text-text-muted/60 mr-3 shrink-0 w-14">{displayBacklogId(item)}</span>
                                     <span className="text-xs text-text-secondary flex-1 truncate">{item.title}</span>
                                     <div className="flex items-center gap-3 ml-4">
                                         <PriorityChip priority={item.priority} />
@@ -97,6 +98,7 @@ export function BacklogSection({
                                 <div className="space-y-1 mt-2 opacity-80">
                                     {completedItems.map((item) => (
                                         <div key={item.id} className="flex items-center h-10 px-4 rounded">
+                                            <span className="text-[10px] font-mono text-text-muted/40 mr-3 shrink-0 w-14">{displayBacklogId(item)}</span>
                                             <span className="text-xs text-text-muted line-through flex-1 truncate">{item.title}</span>
                                             <div className="flex items-center gap-3 ml-4">
                                                 <PriorityChip priority={item.priority} />
@@ -120,6 +122,12 @@ export function BacklogSection({
             )}
         </section>
     );
+}
+
+function displayBacklogId(item: Pick<BacklogItem, "source_id" | "id">): string {
+    const match = (item.source_id || "").match(/(?:^|:)(B\d+)(?:$|:)/i);
+    if (match) return match[1].toUpperCase();
+    return `BL-${item.id.slice(0, 6)}`;
 }
 
 function compareBacklogItems(a: BacklogItem, b: BacklogItem): number {

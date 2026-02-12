@@ -63,7 +63,7 @@ updated: "2026-02-12"
 | B50 | Make portfolio footer status chips consistently interactive (or explicitly non-interactive) | UX | Dashboard | P2 | S | Done |
 | B51 | Add theme switcher (light/dark/system) with persisted preference | New spec | Dashboard | P2 | M | Done |
 | B52 | Persist Settings filters/sort/view state and restore on return | UX | Dashboard | P2 | S | Done |
-| B53 | Show backlog identifiers in UI rows/cards (human-readable, project-scoped) | Enhancement | API/Dashboard | P1 | M | Partial |
+| B53 | Show backlog identifiers in UI rows/cards (human-readable, project-scoped) | Enhancement | API/Dashboard | P1 | M | Done |
 | B54 | Define cross-project backlog identifier strategy for portfolio aggregation | New spec | Data/API | P1 | M | Partial |
 | B55 | Add portfolio-wide backlog view with search/filter/grouping across projects | New spec | Dashboard/API | P2 | M | Done |
 | B56 | Fix completed-task row affordance conflict (disabled checkbox + done icon) | Bug | Dashboard | P1 | S | Done |
