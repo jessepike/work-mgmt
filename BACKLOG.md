@@ -63,8 +63,8 @@ updated: "2026-02-12"
 | B50 | Make portfolio footer status chips consistently interactive (or explicitly non-interactive) | UX | Dashboard | P2 | S | Pending |
 | B51 | Add theme switcher (light/dark/system) with persisted preference | New spec | Dashboard | P2 | M | Pending |
 | B52 | Persist Settings filters/sort/view state and restore on return | UX | Dashboard | P2 | S | Pending |
-| B53 | Show backlog identifiers in UI rows/cards (human-readable, project-scoped) | Enhancement | API/Dashboard | P1 | M | Pending |
-| B54 | Define cross-project backlog identifier strategy for portfolio aggregation | New spec | Data/API | P1 | M | Pending |
+| B53 | Show backlog identifiers in UI rows/cards (human-readable, project-scoped) | Enhancement | API/Dashboard | P1 | M | Partial |
+| B54 | Define cross-project backlog identifier strategy for portfolio aggregation | New spec | Data/API | P1 | M | Partial |
 | B55 | Add portfolio-wide backlog view with search/filter/grouping across projects | New spec | Dashboard/API | P2 | M | Pending |
 | B56 | Fix completed-task row affordance conflict (disabled checkbox + done icon) | Bug | Dashboard | P1 | S | Pending |
 | B57 | Bi-directional sync architecture for ADF-governed projects (write-back + conflict handling) | New spec | API/MCP/ADF | P1 | L | Pending |
@@ -100,6 +100,14 @@ Likely root cause: same logical task represented by divergent markdown paths/hea
 
 ### B39 — Health Calibration
 Current heuristic over-weights immediate blockers/deadlines and under-weights stagnant high-pending inventory; needs flow/aging signals.
+
+### B53/B54 — Partial
+DB-first foundation for this repo is implemented:
+- New `backlog_admin_item` table + RLS + indexes (`supabase/migrations/20260212162000_06_backlog_admin_item.sql`)
+- Admin API for CRUD start (`/api/admin/backlog-items`, `/api/admin/backlog-items/[id]`)
+- Markdown/DB sync tooling (`npm run sync:backlog-admin:import`, `npm run sync:backlog-admin:export`)
+
+Remaining: UI integration for identifiers and full cross-project strategy rollout.
 
 ## Known Issues
 

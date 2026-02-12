@@ -9,6 +9,8 @@
     "lint": "eslint",
     "test:api-contract": "node tests/api-contract-smoke.mjs",
     "test:adf-sync": "node scripts/adf-sync-validation.mjs",
+    "sync:backlog-admin:import": "node scripts/backlog-admin-sync.mjs import",
+    "sync:backlog-admin:export": "node scripts/backlog-admin-sync.mjs export",
     "qa:deploy-readiness": "node scripts/deploy-readiness.mjs",
     "qa:sync-quality": "node scripts/sync-quality-report.mjs",
     "qa:sync-quality:json": "node scripts/sync-quality-report.mjs --json",
