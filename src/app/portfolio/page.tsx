@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api/fetch";
+import { cn } from "@/lib/utils";
 import { ProjectCard } from "@/components/ui/ProjectCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PortfolioHeader } from "./PortfolioHeader";
@@ -183,23 +184,23 @@ export default async function PortfolioPage({ searchParams }: PortfolioPageProps
 
             <footer className="mt-auto h-8 bg-zed-header border-t border-zed-border flex items-center justify-between px-8 text-[9px] font-bold tracking-[0.15em] text-text-muted uppercase">
                 <div className="flex items-center gap-6">
-                    <Link href="/portfolio" className="flex items-center gap-2 hover:underline decoration-dotted">
+                    <Link href="/portfolio" className={cn("flex items-center gap-2 hover:underline decoration-dotted", !healthFilter && !trustFilter && "text-text-primary underline decoration-dotted")}>
                         <span className="w-1.5 h-1.5 rounded-full bg-text-muted opacity-30" />
                         {status.total_projects} Total Projects
                     </Link>
-                    <Link href="/portfolio?health=red" className="flex items-center gap-2 text-status-red hover:underline decoration-dotted">
+                    <Link href={healthFilter === "red" ? "/portfolio" : "/portfolio?health=red"} className={cn("flex items-center gap-2 hover:underline decoration-dotted", status.by_health.unhealthy === 0 ? "opacity-30" : "text-status-red", healthFilter === "red" && "underline decoration-dotted brightness-125")}>
                         <span className="w-1.5 h-1.5 rounded-full bg-status-red" />
                         {status.by_health.unhealthy} Health Red
                     </Link>
-                    <Link href="/portfolio?health=yellow" className="flex items-center gap-2 text-status-yellow hover:underline decoration-dotted">
+                    <Link href={healthFilter === "yellow" ? "/portfolio" : "/portfolio?health=yellow"} className={cn("flex items-center gap-2 hover:underline decoration-dotted", status.by_health.at_risk === 0 ? "opacity-30" : "text-status-yellow", healthFilter === "yellow" && "underline decoration-dotted brightness-125")}>
                         <span className="w-1.5 h-1.5 rounded-full bg-status-yellow" />
                         {status.by_health.at_risk} Health Yellow
                     </Link>
-                    <Link href="/portfolio?trust=red" className="flex items-center gap-2 text-status-red hover:underline decoration-dotted">
+                    <Link href={trustFilter === "red" ? "/portfolio" : "/portfolio?trust=red"} className={cn("flex items-center gap-2 hover:underline decoration-dotted", trust.highlights.sync_red_projects === 0 ? "opacity-30" : "text-status-red", trustFilter === "red" && "underline decoration-dotted brightness-125")}>
                         <span className="w-1.5 h-1.5 rounded-full bg-status-red" />
                         {trust.highlights.sync_red_projects} Sync Red
                     </Link>
-                    <Link href="/portfolio?trust=yellow" className="flex items-center gap-2 text-status-yellow hover:underline decoration-dotted">
+                    <Link href={trustFilter === "yellow" ? "/portfolio" : "/portfolio?trust=yellow"} className={cn("flex items-center gap-2 hover:underline decoration-dotted", trust.highlights.sync_yellow_projects === 0 ? "opacity-30" : "text-status-yellow", trustFilter === "yellow" && "underline decoration-dotted brightness-125")}>
                         <span className="w-1.5 h-1.5 rounded-full bg-status-yellow" />
                         {trust.highlights.sync_yellow_projects} Sync Yellow
                     </Link>
