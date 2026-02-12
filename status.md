@@ -2,7 +2,7 @@
 project: "work-management"
 stage: "Develop"
 updated: "2026-02-11"
-last_session: "2026-02-11T15:56"
+last_session: "2026-02-11T16:07"
 ---
 
 # Status
@@ -61,7 +61,7 @@ Status: Completed (B38, B40, B41, B43, B44, B45, B46, B47)
 - B1 Done — Next.js 15, TypeScript, Tailwind 4, pnpm
 - B2 Done — Supabase CLI linked, 6 migrations
 - B3 Done — All 8 tables, 16 enums, indexes, RLS, FTS, display_id trigger
-- B4 Partial — 3 actors + 3 projects seeded (spec: 5-8 projects)
+- B4 Done — 3 actors + 7 projects seeded (mix of connected/native)
 - B5 Done — Service role client, anon client, SSR middleware
 
 ### Phase 2: REST API — Complete (MVP Scope)
@@ -94,7 +94,7 @@ Status: Completed (B38, B40, B41, B43, B44, B45, B46, B47)
 - Shared utilities: cn(), apiFetch(), API response types
 
 ### Deployment
-- B31 Pending — Vercel deploy
+- B31 Partial — automated deploy preflight wired (`npm run qa:deploy-readiness`); production migration + Vercel rollout pending execution
 
 ## Design → Develop Handoff
 
@@ -215,3 +215,4 @@ Status: Completed (B38, B40, B41, B43, B44, B45, B46, B47)
 | 2026-02-11 | **Wave 2 + Wave 3 (high-impact) closeout pass.** Completed trust-quality backend hardening and UI wiring: sync quality endpoint + portfolio trust aggregate + MCP tools, smoke-data cleanup utility, source_id normalization and stale-row cleanup, health calibration for stalled high-volume queues. Delivered Wave 3 subset: sidebar project quick-nav, kanban default project scoping with high-volume card cap controls, improved Today scoring (blocked visibility + flow tie-breaks), and project activity readability with entity labels. Added trust drill-through filters on Portfolio (`trust=red|yellow|green`) and trust badges in Portfolio/Settings. Validation green: Next build, API contracts, MCP contract/e2e, dev server on :3005. |
 | 2026-02-11 | **Wave 3 completion pass.** Completed remaining backlog: B42 task detail depth (comments endpoint + comments UI + richer task context/activity snippets), B45 dedicated `/search` experience wired from header with enabled-scope results, B46 `/projects/:id/priority` board, and B47 `/projects/:id/deadlines` view. Validation green: Next build, API contracts, MCP contract/e2e, dev server reachable on :3005. |
 | 2026-02-11 | **MCP parity + connector trial closeout.** Updated MCP e2e smoke to assert `validate_task` behavior, then ran connector validation against 3 active ADF projects via `npm run test:adf-sync` (all pass). Marked B16/B30 complete across tracking artifacts. |
+| 2026-02-11 | **Deployment hardening pass.** Added executable preflight gate (`npm run qa:deploy-readiness`) that validates env, migration presence, API reachability, build/API/MCP smoke, and ADF sync smoke. Added production rollout runbook for Supabase migration + Vercel deploy sequence. |

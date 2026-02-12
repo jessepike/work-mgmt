@@ -77,7 +77,7 @@ Validated on 2026-02-11 via `npm run test:adf-sync` against 3 active ADF-connect
 - `885e0a47-1ad7-4e32-af01-02111e626a15` (count=23, tasks=7, backlog=16, status=true)
 
 ### B31 — Partial
-Deployment checklist and validation gates are documented. Remaining work is environment rollout and production migration execution.
+Deployment preflight is now executable via `npm run qa:deploy-readiness` (env + migration presence + API/MCP/ADF validation gates), and rollout steps are codified in `docs/runbooks/production-rollout.md`. Remaining work is environment rollout and production migration execution.
 
 ### B32-B35 — CRUD Enablement Track (Critical)
 These items are the primary blockers for shifting the dashboard from read-only to active work management.

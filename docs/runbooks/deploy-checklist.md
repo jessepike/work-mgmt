@@ -9,6 +9,8 @@ Production readiness checklist for Work Management backend + MCP integration.
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `API_URL` for MCP runtime (points to deployed `/api`)
 - `MCP_PORT` (if SSE mode is used)
+- Run automated preflight:
+  - `npm run qa:deploy-readiness`
 
 ## 2) Database
 - Apply all migrations in `supabase/migrations`.
@@ -40,3 +42,6 @@ Production readiness checklist for Work Management backend + MCP integration.
 - No migration errors.
 - UI team confirms API contract unchanged for active endpoints.
 - Rollback plan defined (previous deploy + DB backup checkpoint).
+
+## 7) Rollout Execution
+- Follow `/docs/runbooks/production-rollout.md` for production migration + Vercel release steps.
