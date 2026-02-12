@@ -61,3 +61,42 @@ export async function PATCH(
 
     return NextResponse.json({ data });
 }
+
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const { id } = await params;
+    if (!isValidUUID(id)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+
+    const supabase = await createServiceClient();
+    const actor = await resolveActor(request, supabase);
+    const projectId = await resolveBacklogAdminProjectId(supabase);
+
+    const { data: existing, error: existingErr } = await supabase
+        .from("backlog_admin_item" as any)
+        .select("id, backlog_key, title")
+        .eq("id", id)
+        .eq("project_id", projectId)
+        .maybeSingle();
+    if (existingErr) return NextResponse.json({ error: existingErr.message }, { status: 500 });
+    if (!existing) return NextResponse.json({ error: "Item not found" }, { status: 404 });
+
+    const { error } = await supabase
+        .from("backlog_admin_item" as any)
+        .delete()
+        .eq("id", id)
+        .eq("project_id", projectId);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    await logActivity({
+        entityType: "project",
+        entityId: projectId,
+        actorType: actor.actorType,
+        actorId: actor.actorId,
+        action: "backlog_admin_item_deleted",
+        detail: { id, backlog_key: (existing as any).backlog_key, title: (existing as any).title }
+    });
+
+    return NextResponse.json({ data: { id } });
+}

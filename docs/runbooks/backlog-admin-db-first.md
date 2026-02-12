@@ -9,6 +9,10 @@ Phase 1 is intentionally scoped to the **Work Management** project only.
   - `GET /api/admin/backlog-items`
   - `POST /api/admin/backlog-items`
   - `PATCH /api/admin/backlog-items/:id`
+  - `DELETE /api/admin/backlog-items/:id`
+  - `POST /api/admin/backlog-sync` (`action=import|export`)
+- UI:
+  - `/settings/backlog-admin`
 - Sync scripts:
   - `npm run sync:backlog-admin:import` (BACKLOG.md -> DB)
   - `npm run sync:backlog-admin:export` (DB -> BACKLOG.md)

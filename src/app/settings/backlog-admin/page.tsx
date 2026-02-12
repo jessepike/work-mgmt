@@ -38,7 +38,9 @@ export default function BacklogAdminSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [createBusy, setCreateBusy] = useState(false);
+  const [syncBusy, setSyncBusy] = useState<"import" | "export" | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | ItemStatus>("all");
   const [createDraft, setCreateDraft] = useState({
     title: "",
     priority: "P2" as "P1" | "P2" | "P3",
@@ -51,6 +53,25 @@ export default function BacklogAdminSettingsPage() {
     () => rows.find((row) => row.id === selectedId) || null,
     [rows, selectedId]
   );
+  const filteredRows = useMemo(
+    () => (statusFilter === "all" ? rows : rows.filter((row) => row.status === statusFilter)),
+    [rows, statusFilter]
+  );
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("wm.settings.backlog.statusFilter");
+      if (raw === "all" || STATUS_OPTIONS.includes(raw as ItemStatus)) {
+        setStatusFilter(raw as "all" | ItemStatus);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("wm.settings.backlog.statusFilter", statusFilter);
+  }, [statusFilter]);
 
   async function load() {
     setLoading(true);
@@ -148,6 +169,46 @@ export default function BacklogAdminSettingsPage() {
     }
   }
 
+  async function deleteSelected() {
+    if (!selected || busy) return;
+    const confirmed = window.confirm(`Delete ${selected.backlog_key}? This removes it from DB backlog admin.`);
+    if (!confirmed) return;
+    setBusy(selected.id);
+    try {
+      const res = await fetch(`/api/admin/backlog-items/${selected.id}`, { method: "DELETE" });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body?.error || "Delete failed");
+      const nextRows = rows.filter((row) => row.id !== selected.id);
+      setRows(nextRows);
+      setSelectedId(nextRows[0]?.id || null);
+      showToast("success", `${selected.backlog_key} deleted`);
+    } catch (error) {
+      showToast("error", error instanceof Error ? error.message : "Delete failed");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function runSync(action: "import" | "export") {
+    if (syncBusy) return;
+    setSyncBusy(action);
+    try {
+      const res = await fetch("/api/admin/backlog-sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body?.error || `${action} failed`);
+      await load();
+      showToast("success", action === "import" ? `Imported ${body?.data?.imported || 0} rows` : `Exported ${body?.data?.exported || 0} rows`);
+    } catch (error) {
+      showToast("error", error instanceof Error ? error.message : `${action} failed`);
+    } finally {
+      setSyncBusy(null);
+    }
+  }
+
   return (
     <div className="p-8 lg:p-12 bg-zed-main min-h-full">
       <div className="max-w-6xl mx-auto">
@@ -210,6 +271,20 @@ export default function BacklogAdminSettingsPage() {
                 >
                   {createBusy ? "Creating..." : "Add Item"}
                 </button>
+                <button
+                  onClick={() => void runSync("import")}
+                  disabled={syncBusy !== null}
+                  className="px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase rounded border border-zed-border text-text-secondary disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zed-hover"
+                >
+                  {syncBusy === "import" ? "Importing..." : "Import MD -> DB"}
+                </button>
+                <button
+                  onClick={() => void runSync("export")}
+                  disabled={syncBusy !== null}
+                  className="px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase rounded border border-zed-border text-text-secondary disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zed-hover"
+                >
+                  {syncBusy === "export" ? "Exporting..." : "Export DB -> MD"}
+                </button>
               </div>
             </div>
 
@@ -225,12 +300,23 @@ export default function BacklogAdminSettingsPage() {
                       <th className="px-3 py-2">ID</th>
                       <th className="px-3 py-2">Item</th>
                       <th className="px-3 py-2">Pri</th>
-                      <th className="px-3 py-2">Status</th>
+                      <th className="px-3 py-2">
+                        <select
+                          value={statusFilter}
+                          onChange={(e) => setStatusFilter(e.target.value as "all" | ItemStatus)}
+                          className="bg-zed-main border border-zed-border rounded px-2 py-1 text-[10px] text-text-primary"
+                        >
+                          <option value="all">All</option>
+                          {STATUS_OPTIONS.map((status) => (
+                            <option key={status} value={status}>{status}</option>
+                          ))}
+                        </select>
+                      </th>
                       <th className="px-3 py-2">Sync</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map((row) => (
+                    {filteredRows.map((row) => (
                       <tr
                         key={row.id}
                         className={`border-b border-zed-border/50 cursor-pointer ${selectedId === row.id ? "bg-zed-active/40" : "hover:bg-zed-hover/50"}`}
@@ -340,13 +426,22 @@ export default function BacklogAdminSettingsPage() {
                 </Field>
                 <div className="pt-2 flex items-center justify-between">
                   <div className="text-[11px] text-text-muted">Sync state: <span className="text-text-secondary">{selected.sync_state}</span></div>
-                  <button
-                    onClick={() => void saveSelected()}
-                    disabled={busy === selected.id}
-                    className="px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase rounded bg-zed-active border border-zed-border text-text-secondary disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zed-hover"
-                  >
-                    {busy === selected.id ? "Saving..." : "Save Changes"}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => void deleteSelected()}
+                      disabled={busy === selected.id}
+                      className="px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase rounded border border-status-red/40 text-status-red disabled:opacity-40 disabled:cursor-not-allowed hover:bg-status-red/10"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      onClick={() => void saveSelected()}
+                      disabled={busy === selected.id}
+                      className="px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase rounded bg-zed-active border border-zed-border text-text-secondary disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zed-hover"
+                    >
+                      {busy === selected.id ? "Saving..." : "Save Changes"}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

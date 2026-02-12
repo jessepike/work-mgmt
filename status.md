@@ -2,7 +2,7 @@
 project: "work-management"
 stage: "Develop"
 updated: "2026-02-12"
-last_session: "2026-02-12T10:20"
+last_session: "2026-02-12T10:48"
 ---
 
 # Status
@@ -10,7 +10,7 @@ last_session: "2026-02-12T10:20"
 ## Current State
 
 - **Phase:** Develop — Phases 1-5 complete (MVP scope)
-- **Focus:** DB-first backlog admin foundation (work-management project scope) + sync contract groundwork
+- **Focus:** Backlog admin feature completion for manual usage (UI + sync actions + smoke coverage)
 - **Build:** Passing (Next.js build + TypeScript clean)
 - **API:** Core REST surface implemented (projects, plans, phases, tasks, backlog, queries, connectors)
 - **MCP:** Stdio server + tool modules wired and smoke-tested against local API
@@ -219,3 +219,4 @@ Status: Completed (B38, B40, B41, B43, B44, B45, B46, B47)
 | 2026-02-12 | **Backlog expansion pass.** Added B48-B60 to capture trust remediation actions, health/trust clarity, footer interaction consistency, theme toggle, settings state persistence, backlog identifiers/cross-project backlog strategy, completed-row affordance bug, bi-directional sync design + UI write support, ADF spec alignment, and future voice capture. |
 | 2026-02-12 | **DB-first backlog admin (phase 1).** Added `backlog_admin_item` schema migration, project-scoped admin API (`/api/admin/backlog-items`), and bidirectional markdown/DB sync tooling (`sync:backlog-admin:import|export`) for the Work Management project. Build passes. |
 | 2026-02-12 | **Backlog admin UI + settings persistence pass.** Added `/settings/backlog-admin` for list/create/edit on DB-backed backlog admin items, added settings nav tabs, and persisted sync-settings filter state between visits. Build/API contract checks passing. |
+| 2026-02-12 | **Backlog admin completion pass.** Added API-backed import/export action route (`/api/admin/backlog-sync`) to run markdown<->DB sync from UI, added delete support for admin items, added smoke test coverage (`npm run test:backlog-admin`) with cleanup, applied local migration (`supabase db push --local`), imported backlog seed rows into DB, and re-exported canonical queue table from DB. |

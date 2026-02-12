@@ -8,6 +8,7 @@
     "start": "next start -p 3005",
     "lint": "eslint",
     "test:api-contract": "node tests/api-contract-smoke.mjs",
+    "test:backlog-admin": "node tests/backlog-admin-smoke.mjs",
     "test:adf-sync": "node scripts/adf-sync-validation.mjs",
     "sync:backlog-admin:import": "node scripts/backlog-admin-sync.mjs import",
     "sync:backlog-admin:export": "node scripts/backlog-admin-sync.mjs export",

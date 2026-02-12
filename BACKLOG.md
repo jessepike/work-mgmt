@@ -109,8 +109,8 @@ DB-first foundation for this repo is implemented:
 
 Remaining: UI integration for identifiers and full cross-project strategy rollout.
 
-### B52 — Partial
-Settings sync filter mode now persists via local storage on `/settings`. Remaining: persist additional settings views/sorts (including backlog admin subview preferences).
+### B52 — Done
+Settings preference state now persists and restores for sync filter mode and backlog-admin status filter.
 
 ## Known Issues
 
