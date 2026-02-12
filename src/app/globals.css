@@ -2,17 +2,17 @@
 
 @theme {
   --color-primary: #5b94cd;
-  
-  --color-zed-main: #1A1D23;
-  --color-zed-sidebar: #1E2127;
-  --color-zed-header: #212429;
-  --color-zed-border: #262930;
-  --color-zed-hover: #262930;
-  --color-zed-active: #2A2D34;
-  
-  --color-text-primary: #C8CCD2;
-  --color-text-secondary: #7D8490;
-  --color-text-muted: #4D525C;
+
+  --color-zed-main: var(--app-zed-main);
+  --color-zed-sidebar: var(--app-zed-sidebar);
+  --color-zed-header: var(--app-zed-header);
+  --color-zed-border: var(--app-zed-border);
+  --color-zed-hover: var(--app-zed-hover);
+  --color-zed-active: var(--app-zed-active);
+
+  --color-text-primary: var(--app-text-primary);
+  --color-text-secondary: var(--app-text-secondary);
+  --color-text-muted: var(--app-text-muted);
   
   --color-status-red: #A85D61;
   --color-status-green: #8BA876;
@@ -22,8 +22,41 @@
 }
 
 :root {
-  --background: #1A1D23;
-  --foreground: #C8CCD2;
+  --app-zed-main: #1A1D23;
+  --app-zed-sidebar: #1E2127;
+  --app-zed-header: #212429;
+  --app-zed-border: #262930;
+  --app-zed-hover: #262930;
+  --app-zed-active: #2A2D34;
+  --app-text-primary: #C8CCD2;
+  --app-text-secondary: #7D8490;
+  --app-text-muted: #4D525C;
+  --background: var(--app-zed-main);
+  --foreground: var(--app-text-primary);
+}
+
+html.theme-dark {
+  --app-zed-main: #1A1D23;
+  --app-zed-sidebar: #1E2127;
+  --app-zed-header: #212429;
+  --app-zed-border: #262930;
+  --app-zed-hover: #262930;
+  --app-zed-active: #2A2D34;
+  --app-text-primary: #C8CCD2;
+  --app-text-secondary: #7D8490;
+  --app-text-muted: #4D525C;
+}
+
+html.theme-light {
+  --app-zed-main: #f5f7fb;
+  --app-zed-sidebar: #ffffff;
+  --app-zed-header: #eef2f8;
+  --app-zed-border: #d6dde9;
+  --app-zed-hover: #e8edf6;
+  --app-zed-active: #dde6f4;
+  --app-text-primary: #1d2736;
+  --app-text-secondary: #4f5f76;
+  --app-text-muted: #7b8799;
 }
 
 body {
@@ -41,9 +74,9 @@ body {
     height: 4px;
   }
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: #1A1D23;
+    background: var(--app-zed-main);
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #262930;
+    background: var(--app-zed-border);
   }
 }

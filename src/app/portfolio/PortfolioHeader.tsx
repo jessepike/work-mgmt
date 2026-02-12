@@ -9,6 +9,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 interface PortfolioHeaderProps {
     categoryOptions: Array<{ label: string; value: string }>;
     presetOptions: Array<{ label: string; value: string }>;
+    healthOptions: Array<{ label: string; value: string }>;
     trustOptions: Array<{ label: string; value: string }>;
     projectOptions: Array<{ id: string; name: string }>;
     trustHighlights?: {
@@ -20,7 +21,7 @@ interface PortfolioHeaderProps {
     };
 }
 
-export function PortfolioHeader({ categoryOptions, presetOptions, trustOptions, projectOptions, trustHighlights }: PortfolioHeaderProps) {
+export function PortfolioHeader({ categoryOptions, presetOptions, healthOptions, trustOptions, projectOptions, trustHighlights }: PortfolioHeaderProps) {
     const [newTaskOpen, setNewTaskOpen] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
@@ -39,6 +40,7 @@ export function PortfolioHeader({ categoryOptions, presetOptions, trustOptions, 
                 <div className="flex items-center gap-3">
                     <FilterBar paramName="preset" options={presetOptions} />
                     <FilterBar paramName="category" options={categoryOptions} />
+                    <FilterBar paramName="health" options={healthOptions} />
                     <FilterBar paramName="trust" options={trustOptions} />
                 </div>
                 <div className="flex items-center gap-3">
@@ -78,6 +80,8 @@ export function PortfolioHeader({ categoryOptions, presetOptions, trustOptions, 
                         <div><span className="font-bold uppercase text-text-muted">Open:</span> Active tasks (`pending`, `in_progress`, `blocked`).</div>
                         <div><span className="font-bold uppercase text-text-muted">Backlog:</span> Unpromoted backlog items (`captured`, `triaged`, `prioritized`).</div>
                         <div><span className="font-bold uppercase text-text-muted">P1:</span> High-priority backlog count.</div>
+                        <div><span className="font-bold uppercase text-text-muted">Health Dot:</span> Execution health signal (blocked/overdue/stale execution).</div>
+                        <div><span className="font-bold uppercase text-text-muted">Trust Badge:</span> Sync data quality signal (connector freshness + source ID integrity).</div>
                         <div><span className="font-bold uppercase text-text-muted">Sync:</span> Last connector sync freshness and connector status.</div>
                         <div><span className="font-bold uppercase text-text-muted">Stale:</span> No project activity for 7+ days.</div>
                     </div>

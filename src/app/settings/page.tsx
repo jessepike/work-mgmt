@@ -244,6 +244,25 @@ export default function SettingsPage() {
     }
   }
 
+  async function remediate(project: ProjectRow, action: "normalize_absolute_source_ids" | "dedupe_source_ids" | "activate_connector") {
+    setBusyProject(project.id);
+    try {
+      const res = await fetch("/api/sync-quality/remediate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ project_id: project.id, action }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body?.error || "Remediation failed");
+      showToast("success", `${project.name}: ${action.replaceAll("_", " ")} complete`);
+      await load();
+    } catch (e) {
+      showToast("error", e instanceof Error ? e.message : "Remediation failed");
+    } finally {
+      setBusyProject(null);
+    }
+  }
+
   return (
     <div className="p-8 lg:p-12 bg-zed-main min-h-full">
       <div className="max-w-6xl mx-auto">
@@ -402,6 +421,15 @@ export default function SettingsPage() {
                             <span className="text-[10px] text-text-muted">
                               dup-title {syncQuality.duplicate_titles} • dup-id {syncQuality.duplicate_source_ids}
                             </span>
+                            {(syncQuality.severity === "red" || syncQuality.severity === "yellow") && (
+                              <div className="text-[10px] text-text-secondary mt-1 space-y-1">
+                                {connector?.status !== "active" && <div>Connector inactive {"->"} activate connector.</div>}
+                                {(syncQuality.last_sync_age_hours ?? 999) > 24 && <div>Sync stale {"->"} run sync now.</div>}
+                                {syncQuality.absolute_source_ids > 0 && <div>Absolute source paths {"->"} normalize source IDs.</div>}
+                                {syncQuality.duplicate_source_ids > 0 && <div>Duplicate source IDs {"->"} dedupe synced rows.</div>}
+                                {syncQuality.synced_without_source > 0 && <div>Missing source IDs {"->"} resync from source files.</div>}
+                              </div>
+                            )}
                           </div>
                         )}
                       </td>
@@ -424,13 +452,46 @@ export default function SettingsPage() {
                       </td>
                       <td className="px-4 py-3">
                         {isConnected ? (
-                          <button
-                            onClick={() => syncNow(project)}
-                            disabled={!connector || busy || connector.status === "paused" || !connector.config?.path}
-                            className="px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase rounded bg-zed-active border border-zed-border text-text-secondary disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zed-hover"
-                          >
-                            Sync now
-                          </button>
+                          <div className="flex flex-col gap-1">
+                            <button
+                              onClick={() => syncNow(project)}
+                              disabled={!connector || busy || connector.status === "paused" || !connector.config?.path}
+                              className="px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase rounded bg-zed-active border border-zed-border text-text-secondary disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zed-hover"
+                            >
+                              Sync now
+                            </button>
+                            {syncQuality && syncQuality.severity !== "green" && (
+                              <>
+                                {connector?.status !== "active" && (
+                                  <button
+                                    onClick={() => remediate(project, "activate_connector")}
+                                    disabled={busy}
+                                    className="px-3 py-1 text-[10px] font-bold tracking-widest uppercase rounded border border-zed-border text-text-secondary disabled:opacity-40"
+                                  >
+                                    Activate
+                                  </button>
+                                )}
+                                {syncQuality.absolute_source_ids > 0 && (
+                                  <button
+                                    onClick={() => remediate(project, "normalize_absolute_source_ids")}
+                                    disabled={busy}
+                                    className="px-3 py-1 text-[10px] font-bold tracking-widest uppercase rounded border border-zed-border text-text-secondary disabled:opacity-40"
+                                  >
+                                    Normalize Paths
+                                  </button>
+                                )}
+                                {syncQuality.duplicate_source_ids > 0 && (
+                                  <button
+                                    onClick={() => remediate(project, "dedupe_source_ids")}
+                                    disabled={busy}
+                                    className="px-3 py-1 text-[10px] font-bold tracking-widest uppercase rounded border border-zed-border text-text-secondary disabled:opacity-40"
+                                  >
+                                    Dedupe IDs
+                                  </button>
+                                )}
+                              </>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-text-muted">-</span>
                         )}

@@ -693,9 +693,7 @@ export function ProjectDetailClient({ project, tasks, returnHref, returnLabel, i
                                     <TaskListFlat
                                         tasks={completedTasks}
                                         onTaskClick={setSelectedTask}
-                                        selectionEnabled={true}
-                                        selectedTaskIds={selectedTaskIds}
-                                        onToggleTaskSelection={toggleTaskSelection}
+                                        selectionEnabled={false}
                                         onToggleComplete={toggleTaskComplete}
                                     />
                                 ) : (

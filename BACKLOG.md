@@ -58,15 +58,15 @@ updated: "2026-02-12"
 | B45 | Search validation + dedicated search result UX for portfolio-scale datasets | Enhancement | Dashboard | P2 | M | Done |
 | B46 | Implement Priority Board view (`/projects/:id/priority`) | Deferred scope | Dashboard | P2 | M | Done |
 | B47 | Implement Deadline View (`/projects/:id/deadlines`) | Deferred scope | Dashboard | P2 | M | Done |
-| B48 | Add trust remediation UX (per-project "why yellow/red" + "fix now" actions) | Enhancement | Dashboard/API | P1 | M | Pending |
-| B49 | Clarify health vs trust semantics in UI (labels, legend, footer consistency) | UX | Dashboard | P1 | S | Pending |
+| B48 | Add trust remediation UX (per-project "why yellow/red" + "fix now" actions) | Enhancement | Dashboard/API | P1 | M | Done |
+| B49 | Clarify health vs trust semantics in UI (labels, legend, footer consistency) | UX | Dashboard | P1 | S | Done |
 | B50 | Make portfolio footer status chips consistently interactive (or explicitly non-interactive) | UX | Dashboard | P2 | S | Pending |
-| B51 | Add theme switcher (light/dark/system) with persisted preference | New spec | Dashboard | P2 | M | Pending |
+| B51 | Add theme switcher (light/dark/system) with persisted preference | New spec | Dashboard | P2 | M | Done |
 | B52 | Persist Settings filters/sort/view state and restore on return | UX | Dashboard | P2 | S | Partial |
 | B53 | Show backlog identifiers in UI rows/cards (human-readable, project-scoped) | Enhancement | API/Dashboard | P1 | M | Partial |
 | B54 | Define cross-project backlog identifier strategy for portfolio aggregation | New spec | Data/API | P1 | M | Partial |
-| B55 | Add portfolio-wide backlog view with search/filter/grouping across projects | New spec | Dashboard/API | P2 | M | Pending |
-| B56 | Fix completed-task row affordance conflict (disabled checkbox + done icon) | Bug | Dashboard | P1 | S | Pending |
+| B55 | Add portfolio-wide backlog view with search/filter/grouping across projects | New spec | Dashboard/API | P2 | M | Done |
+| B56 | Fix completed-task row affordance conflict (disabled checkbox + done icon) | Bug | Dashboard | P1 | S | Done |
 | B57 | Bi-directional sync architecture for ADF-governed projects (write-back + conflict handling) | New spec | API/MCP/ADF | P1 | L | Pending |
 | B58 | UI write support for synced items via governed bi-directional sync controls | New spec | Dashboard/API | P1 | L | Pending |
 | B59 | ADF spec alignment pass for tasks/backlog/status interoperability with work-management | New spec | ADF/MCP/API | P1 | L | Pending |
@@ -111,6 +111,15 @@ Remaining: UI integration for identifiers and full cross-project strategy rollou
 
 ### B52 — Done
 Settings preference state now persists and restores for sync filter mode and backlog-admin status filter.
+
+### B48/B49 — Done
+Settings sync table now includes remediation guidance and one-click trust actions (`activate`, `normalize paths`, `dedupe IDs`) for non-green projects. Portfolio now distinguishes health vs trust explicitly (legend + dedicated health filter and clickable footer chips).
+
+### B51 — Done
+Theme toggle added in header with `system/light/dark` modes, persisted in local storage and applied at app shell level.
+
+### B55/B56 — Done
+Added portfolio-wide backlog page (`/backlog`) with status/priority filtering and ID display. Completed task rows no longer show non-functional selection checkboxes.
 
 ## Known Issues
 

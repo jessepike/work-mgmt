@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { IconSearch, IconPlus } from "@tabler/icons-react";
 import { usePathname, useRouter } from "next/navigation";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
     const router = useRouter();
@@ -51,6 +52,7 @@ export function Header() {
             </div>
 
             <div className="flex items-center gap-3">
+                <ThemeToggle />
                 <button className="w-7 h-7 flex items-center justify-center bg-primary rounded-full text-white hover:opacity-90 active:scale-95 transition-all shadow-sm shadow-primary/20">
                     <IconPlus className="w-4 h-4" />
                 </button>

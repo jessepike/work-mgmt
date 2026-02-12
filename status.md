@@ -2,7 +2,7 @@
 project: "work-management"
 stage: "Develop"
 updated: "2026-02-12"
-last_session: "2026-02-12T10:48"
+last_session: "2026-02-12T11:18"
 ---
 
 # Status
@@ -10,7 +10,7 @@ last_session: "2026-02-12T10:48"
 ## Current State
 
 - **Phase:** Develop — Phases 1-5 complete (MVP scope)
-- **Focus:** Backlog admin feature completion for manual usage (UI + sync actions + smoke coverage)
+- **Focus:** Post-backlog-admin UX/actionability pass (trust remediation, theme toggle, backlog portfolio view)
 - **Build:** Passing (Next.js build + TypeScript clean)
 - **API:** Core REST surface implemented (projects, plans, phases, tasks, backlog, queries, connectors)
 - **MCP:** Stdio server + tool modules wired and smoke-tested against local API
@@ -220,3 +220,4 @@ Status: Completed (B38, B40, B41, B43, B44, B45, B46, B47)
 | 2026-02-12 | **DB-first backlog admin (phase 1).** Added `backlog_admin_item` schema migration, project-scoped admin API (`/api/admin/backlog-items`), and bidirectional markdown/DB sync tooling (`sync:backlog-admin:import|export`) for the Work Management project. Build passes. |
 | 2026-02-12 | **Backlog admin UI + settings persistence pass.** Added `/settings/backlog-admin` for list/create/edit on DB-backed backlog admin items, added settings nav tabs, and persisted sync-settings filter state between visits. Build/API contract checks passing. |
 | 2026-02-12 | **Backlog admin completion pass.** Added API-backed import/export action route (`/api/admin/backlog-sync`) to run markdown<->DB sync from UI, added delete support for admin items, added smoke test coverage (`npm run test:backlog-admin`) with cleanup, applied local migration (`supabase db push --local`), imported backlog seed rows into DB, and re-exported canonical queue table from DB. |
+| 2026-02-12 | **Priority UX closeout pass.** Implemented trust remediation actions in Settings (`/api/sync-quality/remediate` + per-project “why/fix” guidance), fixed completed-task row checkbox affordance bug, clarified health vs trust semantics in portfolio (legend + health filter + clickable footer chips), added persisted theme toggle (`system/light/dark`) in header, and delivered portfolio-wide backlog view (`/backlog`) with status/priority filters and backlog ID display. Validation green: build, API contract smoke, backlog-admin smoke, MCP contract/e2e smoke. |

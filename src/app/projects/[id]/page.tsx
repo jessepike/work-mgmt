@@ -25,7 +25,7 @@ interface ProjectDetail {
 
 interface ProjectDetailPageProps {
     params: Promise<{ id: string }>;
-    searchParams: Promise<{ from?: string; category?: string; preset?: string; trust?: string; task?: string }>;
+    searchParams: Promise<{ from?: string; category?: string; preset?: string; health?: string; trust?: string; task?: string }>;
 }
 
 export default async function ProjectDetailPage({ params, searchParams }: ProjectDetailPageProps) {
@@ -66,9 +66,10 @@ export default async function ProjectDetailPage({ params, searchParams }: Projec
     );
 }
 
-function buildReturnHref(query: { from?: string; category?: string; preset?: string; trust?: string }): string | undefined {
+function buildReturnHref(query: { from?: string; category?: string; preset?: string; health?: string; trust?: string }): string | undefined {
     if (query.from === "today") return "/";
     if (query.from === "kanban") return "/tasks/kanban";
+    if (query.from === "backlog") return "/backlog";
     if (query.from === "search") return "/search";
     if (query.from === "priority") return undefined;
     if (query.from === "deadlines") return undefined;
@@ -76,6 +77,7 @@ function buildReturnHref(query: { from?: string; category?: string; preset?: str
         const params = new URLSearchParams();
         if (query.category) params.set("category", query.category);
         if (query.preset) params.set("preset", query.preset);
+        if (query.health) params.set("health", query.health);
         if (query.trust) params.set("trust", query.trust);
         const suffix = params.toString();
         return suffix ? `/portfolio?${suffix}` : "/portfolio";
@@ -86,6 +88,7 @@ function buildReturnHref(query: { from?: string; category?: string; preset?: str
 function buildReturnLabel(query: { from?: string }): string | undefined {
     if (query.from === "today") return "Back to Today";
     if (query.from === "kanban") return "Back to Kanban";
+    if (query.from === "backlog") return "Back to Backlog";
     if (query.from === "search") return "Back to Search";
     if (query.from === "portfolio") return "Back to Portfolio";
     return undefined;
