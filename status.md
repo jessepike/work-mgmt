@@ -1,8 +1,8 @@
 ---
 project: "work-management"
 stage: "Develop"
-updated: "2026-02-11"
-last_session: "2026-02-11T16:07"
+updated: "2026-02-12"
+last_session: "2026-02-12T09:20"
 ---
 
 # Status
@@ -10,7 +10,7 @@ last_session: "2026-02-11T16:07"
 ## Current State
 
 - **Phase:** Develop — Phases 1-5 complete (MVP scope)
-- **Focus:** Wave 2 + Wave 3 closeout complete (search UX, priority/deadline views, task detail comments/context)
+- **Focus:** Post-wave backlog shaping: trust remediation UX, settings persistence, theme toggle, backlog identity strategy
 - **Build:** Passing (Next.js build + TypeScript clean)
 - **API:** Core REST surface implemented (projects, plans, phases, tasks, backlog, queries, connectors)
 - **MCP:** Stdio server + tool modules wired and smoke-tested against local API
@@ -216,3 +216,4 @@ Status: Completed (B38, B40, B41, B43, B44, B45, B46, B47)
 | 2026-02-11 | **Wave 3 completion pass.** Completed remaining backlog: B42 task detail depth (comments endpoint + comments UI + richer task context/activity snippets), B45 dedicated `/search` experience wired from header with enabled-scope results, B46 `/projects/:id/priority` board, and B47 `/projects/:id/deadlines` view. Validation green: Next build, API contracts, MCP contract/e2e, dev server reachable on :3005. |
 | 2026-02-11 | **MCP parity + connector trial closeout.** Updated MCP e2e smoke to assert `validate_task` behavior, then ran connector validation against 3 active ADF projects via `npm run test:adf-sync` (all pass). Marked B16/B30 complete across tracking artifacts. |
 | 2026-02-11 | **Deployment hardening pass.** Added executable preflight gate (`npm run qa:deploy-readiness`) that validates env, migration presence, API reachability, build/API/MCP smoke, and ADF sync smoke. Added production rollout runbook for Supabase migration + Vercel deploy sequence. |
+| 2026-02-12 | **Backlog expansion pass.** Added B48-B60 to capture trust remediation actions, health/trust clarity, footer interaction consistency, theme toggle, settings state persistence, backlog identifiers/cross-project backlog strategy, completed-row affordance bug, bi-directional sync design + UI write support, ADF spec alignment, and future voice capture. |

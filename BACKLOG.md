@@ -2,7 +2,7 @@
 type: "tracking"
 project: "Work Management"
 created: "2026-02-10"
-updated: "2026-02-11"
+updated: "2026-02-12"
 ---
 
 # Backlog
@@ -58,6 +58,19 @@ updated: "2026-02-11"
 | B45 | Search validation + dedicated search result UX for portfolio-scale datasets | Enhancement | Dashboard | P2 | M | Done |
 | B46 | Implement Priority Board view (`/projects/:id/priority`) | Deferred scope | Dashboard | P2 | M | Done |
 | B47 | Implement Deadline View (`/projects/:id/deadlines`) | Deferred scope | Dashboard | P2 | M | Done |
+| B48 | Add trust remediation UX (per-project "why yellow/red" + "fix now" actions) | Enhancement | Dashboard/API | P1 | M | Pending |
+| B49 | Clarify health vs trust semantics in UI (labels, legend, footer consistency) | UX | Dashboard | P1 | S | Pending |
+| B50 | Make portfolio footer status chips consistently interactive (or explicitly non-interactive) | UX | Dashboard | P2 | S | Pending |
+| B51 | Add theme switcher (light/dark/system) with persisted preference | New spec | Dashboard | P2 | M | Pending |
+| B52 | Persist Settings filters/sort/view state and restore on return | UX | Dashboard | P2 | S | Pending |
+| B53 | Show backlog identifiers in UI rows/cards (human-readable, project-scoped) | Enhancement | API/Dashboard | P1 | M | Pending |
+| B54 | Define cross-project backlog identifier strategy for portfolio aggregation | New spec | Data/API | P1 | M | Pending |
+| B55 | Add portfolio-wide backlog view with search/filter/grouping across projects | New spec | Dashboard/API | P2 | M | Pending |
+| B56 | Fix completed-task row affordance conflict (disabled checkbox + done icon) | Bug | Dashboard | P1 | S | Pending |
+| B57 | Bi-directional sync architecture for ADF-governed projects (write-back + conflict handling) | New spec | API/MCP/ADF | P1 | L | Pending |
+| B58 | UI write support for synced items via governed bi-directional sync controls | New spec | Dashboard/API | P1 | L | Pending |
+| B59 | ADF spec alignment pass for tasks/backlog/status interoperability with work-management | New spec | ADF/MCP/API | P1 | L | Pending |
+| B60 | Voice/natural-language capture in UI for backlog/task commands (future) | Future feature | Dashboard/Agent | P3 | M | Pending |
 
 ## Notes
 
