@@ -31,6 +31,11 @@ const EXPECTED_TOOLS = [
   'get_activity',
   'get_sync_quality',
   'get_portfolio_trust',
+  'discover_local_projects',
+  'connect_local_project',
+  'sync_adf_project',
+  'sync_adf_projects',
+  'sync_enabled_adf_projects',
   'governed_writeback_task',
   'governed_writeback_backlog_item',
   'governed_writeback_status'

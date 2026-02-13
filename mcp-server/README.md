@@ -88,6 +88,7 @@ The MCP server supports prod-safe ADF sync without requiring Vercel to read your
 
 - `sync_adf_project`: sync one project from local path -> `/api/connectors/ingest`
 - `sync_adf_projects`: batch sync projects from connector `config.path` and/or `SYNC_INGEST_TARGETS`
+- `sync_enabled_adf_projects`: one-call sync for all enabled connected projects in the app (no args)
 
 Recommended MCP env (production API):
 
@@ -102,6 +103,11 @@ Recommended MCP env (production API):
 `SYNC_INGEST_TARGETS` format:
 - `Project Name=/absolute/path;Project Name 2=/absolute/path2`
 - The left side can be a project name or project ID.
+
+### Recommended Daily Command
+
+Use `sync_enabled_adf_projects` as the default sync action from agents.
+It reads enabled project scope from the app and syncs only connected ADF projects.
 
 ## CI
 

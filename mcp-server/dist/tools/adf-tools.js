@@ -341,6 +341,72 @@ function registerAdfTools(server) {
             return { content: [{ type: "text", text: `Error batch syncing projects: ${message}` }], isError: true };
         }
     });
+    server.tool("sync_enabled_adf_projects", "Sync all enabled connected ADF projects (as configured in the app) using local connector paths/environment mappings.", {}, async () => {
+        try {
+            const projectsRes = await api_client_js_1.apiClient.get("/projects", {
+                params: { status: "active", scope: "enabled" },
+            });
+            const projects = (projectsRes.data?.data || []);
+            const enabledConnected = projects.filter((p) => p.project_type === "connected");
+            const connectorsRes = await api_client_js_1.apiClient.get("/connectors", { params: { connector_type: "adf" } });
+            const connectors = (connectorsRes.data?.data || []);
+            const activeConnectors = connectors.filter((c) => c.status === "active");
+            const connectorPathByProjectId = new Map();
+            for (const c of activeConnectors) {
+                const pathValue = c.config?.path?.trim();
+                if (pathValue)
+                    connectorPathByProjectId.set(c.project_id, pathValue);
+            }
+            const envTargets = parseTargetsFromEnv();
+            const envPathByProjectId = new Map();
+            for (const target of envTargets) {
+                const projectId = resolveProjectId(projects, target.projectKey);
+                if (projectId)
+                    envPathByProjectId.set(projectId, path_1.default.resolve(target.localPath));
+            }
+            const results = [];
+            const failures = [];
+            for (const project of enabledConnected) {
+                const localRepoPath = connectorPathByProjectId.get(project.id) || envPathByProjectId.get(project.id);
+                if (!localRepoPath) {
+                    failures.push({
+                        project_id: project.id,
+                        project_name: project.name,
+                        error: "No local path found for enabled connected project",
+                    });
+                    continue;
+                }
+                try {
+                    const result = await syncProjectViaIngest(project.id, localRepoPath);
+                    results.push({ ...result, project_name: project.name });
+                }
+                catch (error) {
+                    failures.push({
+                        project_id: project.id,
+                        project_name: project.name,
+                        error: error.response?.data?.error || error.message || String(error),
+                    });
+                }
+            }
+            return {
+                content: [{
+                        type: "text",
+                        text: JSON.stringify({
+                            enabled_connected_projects: enabledConnected.length,
+                            synced: results.length,
+                            failed: failures.length,
+                            results,
+                            failures,
+                        }, null, 2),
+                    }],
+                isError: failures.length > 0,
+            };
+        }
+        catch (error) {
+            const message = error.response?.data?.error || error.message;
+            return { content: [{ type: "text", text: `Error syncing enabled projects: ${message}` }], isError: true };
+        }
+    });
     server.tool("governed_writeback_task", "Write changes for a synced task back to its ADF source file with conflict checks. Use dry_run=true first.", {
         project_id: zod_1.z.string().uuid(),
         task_id: zod_1.z.string().uuid(),
