@@ -3,11 +3,19 @@ import { cookies, headers } from "next/headers";
 const API_BASE = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3005";
 
 function normalizeBase(input: string): string {
-    return input
-        .trim()
-        .replace(/^['"]|['"]$/g, "")
-        .replace(/\/+$/, "")
-        .replace(/\/api$/i, "");
+    const trimmed = input.trim().replace(/^['"]|['"]$/g, "");
+    const withProtocol = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(trimmed)
+        ? trimmed
+        : `https://${trimmed}`;
+
+    try {
+        // Always reduce to origin so accidental path values (e.g. /portfolio) don't break API routing.
+        return new URL(withProtocol).origin;
+    } catch {
+        return trimmed
+            .replace(/\/+$/, "")
+            .replace(/\/api$/i, "");
+    }
 }
 
 function buildApiUrl(baseUrl: string, path: string): string {
