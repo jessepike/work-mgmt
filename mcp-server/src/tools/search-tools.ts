@@ -29,17 +29,6 @@ export function registerSearchTools(server: McpServer) {
     };
 
     server.tool(
-        "search_work",
-        "Search for tasks and backlog items using full text search",
-        {
-            query: z.string().min(1),
-            limit: z.number().int().positive().max(200).optional()
-        },
-        searchHandler
-    );
-
-    // Alias for design parity naming.
-    server.tool(
         "search",
         "Search for tasks and backlog items using full text search",
         {
@@ -74,16 +63,6 @@ export function registerSearchTools(server: McpServer) {
         }
     };
 
-    server.tool(
-        "get_whats_next",
-        "Get the ranked list of most important tasks to work on next",
-        {
-            limit: z.number().int().positive().max(200).optional()
-        },
-        whatsNextHandler
-    );
-
-    // Alias for design parity naming.
     server.tool(
         "whats_next",
         "Get the ranked list of most important tasks to work on next",

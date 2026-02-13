@@ -40,15 +40,6 @@ function registerBacklogTools(server) {
             content: [{ type: "text", text: `Backlog item promoted successfully to Task: ${response.data.data.id}` }]
         };
     };
-    server.tool("promote_backlog_item", "Promote a backlog item to an official task", {
-        backlog_item_id: zod_1.z.string().uuid().optional(),
-        backlog_id: zod_1.z.string().uuid().optional(),
-        plan_id: zod_1.z.string().uuid().optional().describe("Link to a plan if project uses 'planned' workflow"),
-        phase_id: zod_1.z.string().uuid().optional().describe("Link to a phase if project uses 'planned' workflow"),
-        priority: zod_1.z.enum(["P1", "P2", "P3"]).optional(),
-        size: zod_1.z.enum(["S", "M", "L"]).optional()
-    }, promoteBacklogHandler);
-    // Alias for design parity naming.
     server.tool("promote_backlog", "Promote a backlog item to an official task", {
         backlog_item_id: zod_1.z.string().uuid().optional(),
         backlog_id: zod_1.z.string().uuid().optional(),

@@ -29,11 +29,6 @@ function registerSearchTools(server) {
             };
         }
     };
-    server.tool("search_work", "Search for tasks and backlog items using full text search", {
-        query: zod_1.z.string().min(1),
-        limit: zod_1.z.number().int().positive().max(200).optional()
-    }, searchHandler);
-    // Alias for design parity naming.
     server.tool("search", "Search for tasks and backlog items using full text search", {
         query: zod_1.z.string().min(1),
         limit: zod_1.z.number().int().positive().max(200).optional()
@@ -63,10 +58,6 @@ function registerSearchTools(server) {
             };
         }
     };
-    server.tool("get_whats_next", "Get the ranked list of most important tasks to work on next", {
-        limit: zod_1.z.number().int().positive().max(200).optional()
-    }, whatsNextHandler);
-    // Alias for design parity naming.
     server.tool("whats_next", "Get the ranked list of most important tasks to work on next", {
         limit: zod_1.z.number().int().positive().max(200).optional()
     }, whatsNextHandler);

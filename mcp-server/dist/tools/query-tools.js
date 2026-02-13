@@ -10,8 +10,6 @@ function registerQueryTools(server) {
             content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };
     };
-    server.tool("get_portfolio_status", "Get a high-level summary of all active projects, health signals, and upcoming deadlines across the portfolio", {}, getStatusHandler);
-    // Alias for design parity naming.
     server.tool("get_status", "Get a high-level summary of all active projects, health signals, and upcoming deadlines across the portfolio", {
         project_id: zod_1.z.string().uuid().optional()
     }, async () => getStatusHandler());
@@ -25,8 +23,6 @@ function registerQueryTools(server) {
             content: [{ type: "text", text: JSON.stringify(filtered, null, 2) }]
         };
     };
-    server.tool("list_blockers", "List all blocked tasks across all active projects", {}, async () => getBlockersHandler({}));
-    // Alias for design parity naming.
     server.tool("get_blockers", "List all blocked tasks across all active projects", {
         project_id: zod_1.z.string().uuid().optional()
     }, getBlockersHandler);
@@ -36,8 +32,6 @@ function registerQueryTools(server) {
             content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };
     };
-    server.tool("list_deadlines", "List upcoming task deadlines across all projects", {}, getDeadlinesHandler);
-    // Alias for design parity naming.
     server.tool("get_deadlines", "List upcoming task deadlines across all projects", {
         limit: zod_1.z.number().int().positive().max(200).optional()
     }, async ({ limit }) => {
@@ -45,18 +39,6 @@ function registerQueryTools(server) {
         const items = response.data?.data ?? [];
         return {
             content: [{ type: "text", text: JSON.stringify(limit ? items.slice(0, limit) : items, null, 2) }]
-        };
-    });
-    server.tool("get_activity_by_project", "Get activity log entries filtered by project id when possible", {
-        project_id: zod_1.z.string().uuid(),
-        limit: zod_1.z.number().int().positive().max(200).optional()
-    }, async ({ project_id, limit }) => {
-        const params = { entity_id: project_id };
-        if (limit)
-            params.limit = limit;
-        const response = await api_client_js_1.apiClient.get("/activity", { params });
-        return {
-            content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };
     });
     server.tool("get_activity", "Get activity log entries, optionally filtered by actor or entity", {

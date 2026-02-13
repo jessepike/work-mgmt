@@ -109,17 +109,6 @@ export function registerProjectTools(server: McpServer) {
     };
 
     server.tool(
-        "get_project_details",
-        "Get detailed information about a specific project including current plan and health",
-        {
-            id: z.string().uuid().optional(),
-            project_id: z.string().uuid().optional()
-        },
-        getProjectHandler
-    );
-
-    // Alias for interface parity with original design naming.
-    server.tool(
         "get_project",
         "Get detailed information about a specific project including current plan and health",
         {

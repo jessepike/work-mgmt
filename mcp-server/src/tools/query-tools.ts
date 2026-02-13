@@ -11,14 +11,6 @@ export function registerQueryTools(server: McpServer) {
     };
 
     server.tool(
-        "get_portfolio_status",
-        "Get a high-level summary of all active projects, health signals, and upcoming deadlines across the portfolio",
-        {},
-        getStatusHandler
-    );
-
-    // Alias for design parity naming.
-    server.tool(
         "get_status",
         "Get a high-level summary of all active projects, health signals, and upcoming deadlines across the portfolio",
         {
@@ -39,14 +31,6 @@ export function registerQueryTools(server: McpServer) {
     };
 
     server.tool(
-        "list_blockers",
-        "List all blocked tasks across all active projects",
-        {},
-        async (): Promise<any> => getBlockersHandler({})
-    );
-
-    // Alias for design parity naming.
-    server.tool(
         "get_blockers",
         "List all blocked tasks across all active projects",
         {
@@ -63,14 +47,6 @@ export function registerQueryTools(server: McpServer) {
     };
 
     server.tool(
-        "list_deadlines",
-        "List upcoming task deadlines across all projects",
-        {},
-        getDeadlinesHandler
-    );
-
-    // Alias for design parity naming.
-    server.tool(
         "get_deadlines",
         "List upcoming task deadlines across all projects",
         {
@@ -81,23 +57,6 @@ export function registerQueryTools(server: McpServer) {
             const items = response.data?.data ?? [];
             return {
                 content: [{ type: "text", text: JSON.stringify(limit ? items.slice(0, limit) : items, null, 2) }]
-            };
-        }
-    );
-
-    server.tool(
-        "get_activity_by_project",
-        "Get activity log entries filtered by project id when possible",
-        {
-            project_id: z.string().uuid(),
-            limit: z.number().int().positive().max(200).optional()
-        },
-        async ({ project_id, limit }): Promise<any> => {
-            const params: Record<string, string | number> = { entity_id: project_id };
-            if (limit) params.limit = limit;
-            const response = await apiClient.get("/activity", { params });
-            return {
-                content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
             };
         }
     );

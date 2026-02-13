@@ -35,14 +35,6 @@ function registerPlanTools(server) {
             content: [{ type: "text", text: `Plan updated successfully: ${response.data.data.id}` }]
         };
     };
-    server.tool("patch_plan", "Update an existing plan", {
-        id: zod_1.z.string().uuid().optional(),
-        plan_id: zod_1.z.string().uuid().optional(),
-        name: zod_1.z.string().optional(),
-        description: zod_1.z.string().optional(),
-        status: zod_1.z.enum(["draft", "approved", "in_progress", "completed"]).optional()
-    }, updatePlanHandler);
-    // Alias for design parity naming.
     server.tool("update_plan", "Update an existing plan", {
         id: zod_1.z.string().uuid().optional(),
         plan_id: zod_1.z.string().uuid().optional(),

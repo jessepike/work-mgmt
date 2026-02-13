@@ -35,17 +35,6 @@ function registerPhaseTools(server) {
             content: [{ type: "text", text: `Phase updated successfully: ${response.data.data.id}` }]
         };
     };
-    server.tool("patch_phase", "Update an existing phase", {
-        id: zod_1.z.string().uuid().optional(),
-        phase_id: zod_1.z.string().uuid().optional(),
-        name: zod_1.z.string().optional(),
-        description: zod_1.z.string().optional(),
-        sort_order: zod_1.z.number().optional(),
-        deadline_at: zod_1.z.string().optional(),
-        status: zod_1.z.enum(["pending", "active", "completed"]).optional(),
-        handoff_notes: zod_1.z.string().optional()
-    }, updatePhaseHandler);
-    // Alias for design parity naming.
     server.tool("update_phase", "Update an existing phase", {
         id: zod_1.z.string().uuid().optional(),
         phase_id: zod_1.z.string().uuid().optional(),

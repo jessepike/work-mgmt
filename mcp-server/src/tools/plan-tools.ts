@@ -58,20 +58,6 @@ export function registerPlanTools(server: McpServer) {
     };
 
     server.tool(
-        "patch_plan",
-        "Update an existing plan",
-        {
-            id: z.string().uuid().optional(),
-            plan_id: z.string().uuid().optional(),
-            name: z.string().optional(),
-            description: z.string().optional(),
-            status: z.enum(["draft", "approved", "in_progress", "completed"]).optional()
-        },
-        updatePlanHandler
-    );
-
-    // Alias for design parity naming.
-    server.tool(
         "update_plan",
         "Update an existing plan",
         {

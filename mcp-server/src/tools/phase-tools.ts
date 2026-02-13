@@ -61,23 +61,6 @@ export function registerPhaseTools(server: McpServer) {
     };
 
     server.tool(
-        "patch_phase",
-        "Update an existing phase",
-        {
-            id: z.string().uuid().optional(),
-            phase_id: z.string().uuid().optional(),
-            name: z.string().optional(),
-            description: z.string().optional(),
-            sort_order: z.number().optional(),
-            deadline_at: z.string().optional(),
-            status: z.enum(["pending", "active", "completed"]).optional(),
-            handoff_notes: z.string().optional()
-        },
-        updatePhaseHandler
-    );
-
-    // Alias for design parity naming.
-    server.tool(
         "update_phase",
         "Update an existing phase",
         {

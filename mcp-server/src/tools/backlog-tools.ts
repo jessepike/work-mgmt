@@ -60,21 +60,6 @@ export function registerBacklogTools(server: McpServer) {
     };
 
     server.tool(
-        "promote_backlog_item",
-        "Promote a backlog item to an official task",
-        {
-            backlog_item_id: z.string().uuid().optional(),
-            backlog_id: z.string().uuid().optional(),
-            plan_id: z.string().uuid().optional().describe("Link to a plan if project uses 'planned' workflow"),
-            phase_id: z.string().uuid().optional().describe("Link to a phase if project uses 'planned' workflow"),
-            priority: z.enum(["P1", "P2", "P3"]).optional(),
-            size: z.enum(["S", "M", "L"]).optional()
-        },
-        promoteBacklogHandler
-    );
-
-    // Alias for design parity naming.
-    server.tool(
         "promote_backlog",
         "Promote a backlog item to an official task",
         {
