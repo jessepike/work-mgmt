@@ -4,11 +4,15 @@ const API_BASE = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3005";
 
 function buildApiUrl(path: string): string {
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-    const base = API_BASE.replace(/\/+$/, "");
+    const rawBase = API_BASE.trim().replace(/^['"]|['"]$/g, "");
+    let base = rawBase.replace(/\/+$/, "");
 
-    // Support both NEXT_PUBLIC_APP_URL=https://host and https://host/api
-    if (base.endsWith("/api") && normalizedPath.startsWith("/api/")) {
-        return `${base}${normalizedPath.slice(4)}`;
+    // Canonicalize to host root if env includes /api, so path controls API prefix.
+    base = base.replace(/\/api$/i, "");
+
+    // Collapse accidental duplicate /api prefixes.
+    if (normalizedPath.startsWith("/api/")) {
+        return `${base}${normalizedPath}`;
     }
     return `${base}${normalizedPath}`;
 }
