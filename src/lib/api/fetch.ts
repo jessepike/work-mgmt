@@ -1,14 +1,18 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 const API_BASE = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3005";
 
-function buildApiUrl(path: string): string {
-    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-    const rawBase = API_BASE.trim().replace(/^['"]|['"]$/g, "");
-    let base = rawBase.replace(/\/+$/, "");
+function normalizeBase(input: string): string {
+    return input
+        .trim()
+        .replace(/^['"]|['"]$/g, "")
+        .replace(/\/+$/, "")
+        .replace(/\/api$/i, "");
+}
 
-    // Canonicalize to host root if env includes /api, so path controls API prefix.
-    base = base.replace(/\/api$/i, "");
+function buildApiUrl(baseUrl: string, path: string): string {
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    const base = normalizeBase(baseUrl);
 
     // Collapse accidental duplicate /api prefixes.
     if (normalizedPath.startsWith("/api/")) {
@@ -18,8 +22,14 @@ function buildApiUrl(path: string): string {
 }
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+    const headerStore = await headers();
+    const forwardedHost = headerStore.get("x-forwarded-host");
+    const host = forwardedHost || headerStore.get("host");
+    const proto = headerStore.get("x-forwarded-proto") || "https";
+    const runtimeBase = host ? `${proto}://${host}` : API_BASE;
+
     const cookieStore = await cookies();
-    const res = await fetch(buildApiUrl(path), {
+    const res = await fetch(buildApiUrl(runtimeBase, path), {
         ...init,
         cache: "no-store",
         headers: {
