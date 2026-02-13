@@ -82,6 +82,27 @@ npm run smoke:e2e
 - If no project context can be resolved, script exits as `SKIPPED` (exit 0). Set `SMOKE_STRICT=1` to make that a failure.
 - Any MCP tool/API error now fails the run immediately.
 
+## ADF Sync (MCP-first)
+
+The MCP server supports prod-safe ADF sync without requiring Vercel to read your laptop filesystem.
+
+- `sync_adf_project`: sync one project from local path -> `/api/connectors/ingest`
+- `sync_adf_projects`: batch sync projects from connector `config.path` and/or `SYNC_INGEST_TARGETS`
+
+Recommended MCP env (production API):
+
+```json
+{
+  "API_URL": "https://work-management-kappa.vercel.app/api",
+  "API_SECRET": "<secret>",
+  "SYNC_INGEST_TARGETS": "Work Management=/Users/jessepike/code/_shared/work-management;Krypton=/Users/jessepike/code/_shared/krypton"
+}
+```
+
+`SYNC_INGEST_TARGETS` format:
+- `Project Name=/absolute/path;Project Name 2=/absolute/path2`
+- The left side can be a project name or project ID.
+
 ## CI
 
 - GitHub Actions workflow: `.github/workflows/mcp-smoke.yml`

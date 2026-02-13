@@ -5,12 +5,162 @@ import path from "path";
 import fs from "fs/promises";
 import { parseStatusMd, parseTasksMd, parseBacklogMd } from "../adf/parser.js";
 
+type ProjectRow = {
+    id: string;
+    name: string;
+};
+
+type ConnectorRow = {
+    project_id: string;
+    connector_type: string;
+    status: "active" | "paused" | "error";
+    config?: { path?: string } | null;
+    last_sync_at?: string | null;
+};
+
+type SyncResult = {
+    project_id: string;
+    project_name?: string;
+    local_path: string;
+    parsed_tasks: number;
+    parsed_backlog: number;
+    synced_tasks: number;
+    synced_backlog: number;
+    status_synced: boolean;
+};
+
+async function findFile(projectPath: string, candidates: string[]): Promise<string> {
+    for (const rel of candidates) {
+        const full = path.join(projectPath, rel);
+        try {
+            await fs.access(full);
+            return full;
+        } catch {
+            // continue
+        }
+    }
+    return "";
+}
+
+async function parseIntentSummary(filePath: string): Promise<string | null> {
+    if (!filePath) return null;
+    try {
+        const content = (await fs.readFile(filePath, "utf-8")).replace(/\r/g, "");
+        const lines = content.split("\n");
+        let inFrontmatter = false;
+        for (const rawLine of lines) {
+            const line = rawLine.trim();
+            if (!line) continue;
+            if (line === "---") {
+                inFrontmatter = !inFrontmatter;
+                continue;
+            }
+            if (inFrontmatter) continue;
+            if (line.startsWith("#")) continue;
+            const cleaned = line.replace(/^[-*]\s+/, "").trim();
+            if (/^[a-z0-9_]+\s*:/i.test(cleaned)) continue;
+            if (cleaned.length >= 24) return cleaned.slice(0, 220);
+        }
+    } catch {
+        return null;
+    }
+    return null;
+}
+
+function parseTargetsFromEnv(): Array<{ projectKey: string; localPath: string }> {
+    const raw = process.env.SYNC_INGEST_TARGETS || "";
+    if (!raw.trim()) return [];
+    return raw
+        .split(";")
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .map((item) => {
+            const idx = item.indexOf("=");
+            if (idx === -1) return null;
+            return {
+                projectKey: item.slice(0, idx).trim(),
+                localPath: item.slice(idx + 1).trim(),
+            };
+        })
+        .filter((v): v is { projectKey: string; localPath: string } => !!v && !!v.projectKey && !!v.localPath);
+}
+
+function resolveProjectId(projects: ProjectRow[], key: string): string | null {
+    const byId = projects.find((p) => p.id === key);
+    if (byId) return byId.id;
+    const lower = key.toLowerCase();
+    const byName = projects.find((p) => (p.name || "").toLowerCase() === lower);
+    return byName?.id || null;
+}
+
+async function syncProjectViaIngest(projectId: string, localPath: string): Promise<SyncResult> {
+    const resolvedPath = path.resolve(localPath);
+    const tasksFile = await findFile(resolvedPath, [
+        "tasks.md",
+        "task.md",
+        "docs/tasks.md",
+        "docs/task.md",
+        "docs/adf/tasks.md",
+        "docs/adf/task.md",
+    ]);
+    const backlogFile = await findFile(resolvedPath, [
+        "BACKLOG.md",
+        "backlog.md",
+        "docs/BACKLOG.md",
+        "docs/backlog.md",
+        "docs/adf/BACKLOG.md",
+        "docs/adf/backlog.md",
+    ]);
+    const statusFile = await findFile(resolvedPath, [
+        "status.md",
+        "docs/status.md",
+        "docs/adf/status.md",
+    ]);
+    const intentFile = await findFile(resolvedPath, [
+        "intent.md",
+        "docs/intent.md",
+        "docs/adf/intent.md",
+    ]);
+
+    const tasks = tasksFile ? await parseTasksMd(tasksFile) : [];
+    const backlog = backlogFile ? await parseBacklogMd(backlogFile) : [];
+    const status = statusFile ? await parseStatusMd(statusFile) : null;
+    const intentSummary = await parseIntentSummary(intentFile);
+
+    await apiClient.post("/connectors", {
+        project_id: projectId,
+        connector_type: "adf",
+        status: "active",
+        config: { path: resolvedPath },
+    });
+
+    const response = await apiClient.post("/connectors/ingest", {
+        project_id: projectId,
+        repo_path: resolvedPath,
+        tasks,
+        backlog,
+        status,
+        intent_summary: intentSummary,
+    });
+
+    const data = response.data || {};
+    return {
+        project_id: projectId,
+        local_path: resolvedPath,
+        parsed_tasks: tasks.length,
+        parsed_backlog: backlog.length,
+        synced_tasks: data.tasks_count || 0,
+        synced_backlog: data.backlog_count || 0,
+        status_synced: !!data.status_synced,
+    };
+}
+
 export function registerAdfTools(server: McpServer) {
     server.tool(
         "discover_local_projects",
         "Scan a directory for ADF projects (look for status.md files)",
         {
-            base_dir: z.string().describe("The root directory to scan (e.g. /Users/jessepike/code/_shared)")
+            base_dir: z.string().describe("The root directory to scan (e.g. /Users/jessepike/code/_shared)"),
         },
         async ({ base_dir }) => {
             try {
@@ -18,50 +168,59 @@ export function registerAdfTools(server: McpServer) {
                 const projects = [];
 
                 for (const entry of entries) {
-                    if (entry.isDirectory()) {
-                        const projectPath = path.join(base_dir, entry.name);
+                    if (!entry.isDirectory()) continue;
 
-                        // ADF Signal Check
-                        const hasAdfFolder = (await fs.readdir(projectPath)).some(f => f === "adf" || f === "docs");
-                        const statusPath = path.join(projectPath, "status.md");
-                        const docsStatusPath = path.join(projectPath, "docs", "status.md");
-                        const adfDocsStatusPath = path.join(projectPath, "docs", "adf", "status.md");
+                    const projectPath = path.join(base_dir, entry.name);
+                    const statusPath = path.join(projectPath, "status.md");
+                    const docsStatusPath = path.join(projectPath, "docs", "status.md");
+                    const adfDocsStatusPath = path.join(projectPath, "docs", "adf", "status.md");
 
-                        let finalStatusPath = "";
-                        try { await fs.access(adfDocsStatusPath); finalStatusPath = adfDocsStatusPath; } catch {
-                            try { await fs.access(docsStatusPath); finalStatusPath = docsStatusPath; } catch {
-                                try { await fs.access(statusPath); finalStatusPath = statusPath; } catch { }
+                    let finalStatusPath = "";
+                    try {
+                        await fs.access(adfDocsStatusPath);
+                        finalStatusPath = adfDocsStatusPath;
+                    } catch {
+                        try {
+                            await fs.access(docsStatusPath);
+                            finalStatusPath = docsStatusPath;
+                        } catch {
+                            try {
+                                await fs.access(statusPath);
+                                finalStatusPath = statusPath;
+                            } catch {
+                                // no status file
                             }
                         }
-
-                        if (finalStatusPath) {
-                            let initialization_status = "legacy";
-                            try {
-                                const content = await fs.readFile(finalStatusPath, "utf-8");
-                                if (content.includes('type: "status"') || content.includes('type: "brief"')) {
-                                    initialization_status = "adf-initialized";
-                                } else if (finalStatusPath.includes("adf")) {
-                                    initialization_status = "adf-partial";
-                                }
-                            } catch { }
-
-                            projects.push({
-                                name: entry.name,
-                                path: projectPath,
-                                initialization_status,
-                                status_file: path.relative(projectPath, finalStatusPath)
-                            });
-                        }
                     }
+
+                    if (!finalStatusPath) continue;
+                    let initializationStatus = "legacy";
+                    try {
+                        const content = await fs.readFile(finalStatusPath, "utf-8");
+                        if (content.includes('type: "status"') || content.includes('type: "brief"')) {
+                            initializationStatus = "adf-initialized";
+                        } else if (finalStatusPath.includes("adf")) {
+                            initializationStatus = "adf-partial";
+                        }
+                    } catch {
+                        // ignore
+                    }
+
+                    projects.push({
+                        name: entry.name,
+                        path: projectPath,
+                        initialization_status: initializationStatus,
+                        status_file: path.relative(projectPath, finalStatusPath),
+                    });
                 }
 
                 return {
-                    content: [
-                        {
-                            type: "text",
-                            text: `Found ${projects.length} potential projects:\n\n${projects.map(p => `- [${p.initialization_status.toUpperCase()}] ${p.name} (${p.path})`).join("\n")}`
-                        }
-                    ]
+                    content: [{
+                        type: "text",
+                        text: `Found ${projects.length} potential projects:\n\n${projects
+                            .map((p) => `- [${p.initialization_status.toUpperCase()}] ${p.name} (${p.path})`)
+                            .join("\n")}`,
+                    }],
                 };
             } catch (error: any) {
                 return { content: [{ type: "text", text: `Error scanning directory: ${error.message}` }], isError: true };
@@ -71,14 +230,13 @@ export function registerAdfTools(server: McpServer) {
 
     server.tool(
         "connect_local_project",
-        "Bind a local directory to a project in the database. Creates an 'adf' connector.",
+        "Bind a local directory to a project in the database. Creates/updates an 'adf' connector.",
         {
             project_id: z.string().uuid(),
-            local_path: z.string().describe("Absolute path to the project root")
+            local_path: z.string().describe("Absolute path to the project root"),
         },
         async ({ project_id, local_path }) => {
             try {
-                // Check if connector already exists
                 const existingRes = await apiClient.get(`/projects/${project_id}`);
                 const project = existingRes.data.data;
 
@@ -86,11 +244,11 @@ export function registerAdfTools(server: McpServer) {
                     project_id,
                     connector_type: "adf",
                     status: "active",
-                    config: { path: local_path }
+                    config: { path: path.resolve(local_path) },
                 });
 
                 return {
-                    content: [{ type: "text", text: `Successfully connected ${project.name} to ${local_path}. Connector ID: ${response.data.data.id}` }]
+                    content: [{ type: "text", text: `Connected ${project.name} -> ${local_path}. Connector ID: ${response.data.data.id}` }],
                 };
             } catch (error: any) {
                 return { content: [{ type: "text", text: `Error connecting project: ${error.message}` }], isError: true };
@@ -100,28 +258,134 @@ export function registerAdfTools(server: McpServer) {
 
     server.tool(
         "sync_adf_project",
-        "Sync a local project's ADF files (status.md, tasks.md, BACKLOG.md) to the database via REST API",
+        "Parse local ADF files for one project and ingest to API (prod-safe). Uses connector config.path unless local_path is provided.",
         {
-            project_id: z.string().uuid().describe("The ID of the project in the database to sync to")
+            project_id: z.string().uuid().describe("Project ID to sync"),
+            local_path: z.string().optional().describe("Optional absolute path override; otherwise uses connector config.path"),
         },
-        async ({ project_id }) => {
+        async ({ project_id, local_path }) => {
             try {
-                // Call the new centralized REST endpoint
-                const response = await apiClient.post("/connectors/sync", {
-                    project_id
-                });
+                let effectivePath = local_path?.trim() || "";
+                if (!effectivePath) {
+                    const connectorsRes = await apiClient.get("/connectors", { params: { project_id, connector_type: "adf" } });
+                    const connector = (connectorsRes.data?.data || [])[0] as ConnectorRow | undefined;
+                    effectivePath = connector?.config?.path?.trim() || "";
+                }
 
-                return {
-                    content: [
-                        {
+                if (!effectivePath) {
+                    return {
+                        content: [{
                             type: "text",
-                            text: `Sync complete for project ${project_id}. ${response.data.count} items upserted.`
-                        }
-                    ]
+                            text: "Error syncing project: no local path found. Set connector config.path via connect_local_project or pass local_path.",
+                        }],
+                        isError: true,
+                    };
+                }
+
+                const result = await syncProjectViaIngest(project_id, effectivePath);
+                return {
+                    content: [{
+                        type: "text",
+                        text: `Sync complete for ${project_id} from ${result.local_path}. tasks=${result.synced_tasks}, backlog=${result.synced_backlog}, status=${result.status_synced}`,
+                    }],
                 };
             } catch (error: any) {
                 const message = error.response?.data?.error || error.message;
                 return { content: [{ type: "text", text: `Error syncing project: ${message}` }], isError: true };
+            }
+        }
+    );
+
+    server.tool(
+        "sync_adf_projects",
+        "Batch sync multiple ADF projects using local paths from connector config.path or SYNC_INGEST_TARGETS.",
+        {
+            project_ids: z.array(z.string().uuid()).optional().describe("Optional explicit project IDs to sync"),
+            project_names: z.array(z.string()).optional().describe("Optional explicit project names to sync"),
+            limit: z.number().int().min(1).max(100).default(25),
+        },
+        async ({ project_ids, project_names, limit }) => {
+            try {
+                const projectsRes = await apiClient.get("/projects");
+                const projects = (projectsRes.data?.data || []) as ProjectRow[];
+
+                const connectorsRes = await apiClient.get("/connectors", { params: { connector_type: "adf" } });
+                const connectors = (connectorsRes.data?.data || []) as ConnectorRow[];
+                const activeConnectors = connectors.filter((c) => c.status === "active");
+                const connectorPathByProjectId = new Map<string, string>();
+                for (const c of activeConnectors) {
+                    const pathValue = c.config?.path?.trim();
+                    if (pathValue) connectorPathByProjectId.set(c.project_id, pathValue);
+                }
+
+                const envTargets = parseTargetsFromEnv();
+                const envPathByProjectId = new Map<string, string>();
+                for (const target of envTargets) {
+                    const projectId = resolveProjectId(projects, target.projectKey);
+                    if (projectId) envPathByProjectId.set(projectId, path.resolve(target.localPath));
+                }
+
+                let selectedProjectIds: string[] = [];
+                if ((project_ids || []).length > 0) {
+                    selectedProjectIds = [...(project_ids || [])];
+                } else if ((project_names || []).length > 0) {
+                    selectedProjectIds = (project_names || [])
+                        .map((name) => resolveProjectId(projects, name))
+                        .filter((v): v is string => !!v);
+                } else {
+                    selectedProjectIds = Array.from(new Set([...connectorPathByProjectId.keys(), ...envPathByProjectId.keys()]));
+                }
+
+                selectedProjectIds = selectedProjectIds.slice(0, limit);
+
+                if (selectedProjectIds.length === 0) {
+                    return {
+                        content: [{
+                            type: "text",
+                            text: "No sync targets resolved. Provide project_ids/project_names or configure connector paths/SYNC_INGEST_TARGETS.",
+                        }],
+                    };
+                }
+
+                const results: SyncResult[] = [];
+                const failures: Array<{ project_id: string; error: string }> = [];
+
+                for (const projectId of selectedProjectIds) {
+                    const projectName = projects.find((p) => p.id === projectId)?.name;
+                    const localRepoPath = connectorPathByProjectId.get(projectId) || envPathByProjectId.get(projectId);
+                    if (!localRepoPath) {
+                        failures.push({ project_id: projectId, error: "No local path found" });
+                        continue;
+                    }
+
+                    try {
+                        const result = await syncProjectViaIngest(projectId, localRepoPath);
+                        results.push({ ...result, project_name: projectName });
+                    } catch (error: any) {
+                        const message = error.response?.data?.error || error.message || String(error);
+                        failures.push({ project_id: projectId, error: message });
+                    }
+                }
+
+                return {
+                    content: [{
+                        type: "text",
+                        text: JSON.stringify(
+                            {
+                                synced: results.length,
+                                failed: failures.length,
+                                results,
+                                failures,
+                            },
+                            null,
+                            2
+                        ),
+                    }],
+                    isError: failures.length > 0,
+                };
+            } catch (error: any) {
+                const message = error.response?.data?.error || error.message;
+                return { content: [{ type: "text", text: `Error batch syncing projects: ${message}` }], isError: true };
             }
         }
     );
