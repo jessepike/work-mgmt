@@ -2,7 +2,7 @@
 type: "tracking"
 project: "Work Management"
 created: "2026-02-10"
-updated: "2026-02-12"
+updated: "2026-02-13"
 ---
 
 # Backlog
@@ -74,6 +74,9 @@ updated: "2026-02-12"
 | B61 | Add `type` filter to backlog API endpoint — extend `GET /api/backlog` to accept `?type=` query parameter for filtering backlog items by type (e.g., `type=review`). Enables review queue pattern for /ingest routed items. No schema change needed — `backlog_item.type` is already freeform text. Source: CC Insights /ingest design 2026-02-12. | Enhancement | API | P2 | S | Pending |
 | B62 | Add "Findings to Review" dashboard widget — surface backlog items with `type=review` in a dedicated section, grouped by source. Enable adopt/defer/dismiss workflow directly from dashboard. Source: CC Insights /ingest design 2026-02-12. | New spec | Dashboard | P2 | M | Pending |
 | B63 | Post-deploy: update MCP server API_URL to production Vercel URL — change `API_URL` in `~/.claude.json` mcpServers from `http://localhost:3005/api` to production URL. Verify MCP tools load and function against remote API. Requires B20 + B31. | Ops | MCP | P1 | S | Done |
+| B64 | Implement automated local->cloud ADF ingest runner (Mac launchd/cron) with per-project mapping, cadence, retries, and logging so Vercel dashboard stays current without manual sync. | New spec | Sync/Ops | P1 | M | Pending |
+| B65 | Finalize sync architecture decision doc: laptop parser + API ingest vs git-based server pull; define source-of-truth, failure modes, and security model (API secret + scoped auth). | Design | Sync/Architecture | P1 | M | Pending |
+| B66 | Add sync observability: last successful ingest per project, last error, stale-sync alerts, and dashboard remediation actions. | Enhancement | API/Dashboard | P2 | M | Pending |
 
 ## Notes
 
