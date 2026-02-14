@@ -299,7 +299,8 @@ export function BacklogSection({
     );
 }
 
-function displayBacklogId(item: Pick<BacklogItem, "source_id" | "id">): string {
+function displayBacklogId(item: Pick<BacklogItem, "source_id" | "id" | "display_id">): string {
+    if (item.display_id) return `BL-${item.display_id}`;
     const match = (item.source_id || "").match(/(?:^|:)(B\d+)(?:$|:)/i);
     if (match) return match[1].toUpperCase();
     return `BL-${item.id.slice(0, 6)}`;

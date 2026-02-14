@@ -112,6 +112,7 @@ export type Database = {
           created_at: string
           data_origin: Database["public"]["Enums"]["data_origin"]
           description: string | null
+          display_id: number
           id: string
           notes: string | null
           priority: Database["public"]["Enums"]["priority_level"] | null
@@ -131,6 +132,7 @@ export type Database = {
           created_at?: string
           data_origin?: Database["public"]["Enums"]["data_origin"]
           description?: string | null
+          display_id?: number
           id?: string
           notes?: string | null
           priority?: Database["public"]["Enums"]["priority_level"] | null
@@ -150,6 +152,7 @@ export type Database = {
           created_at?: string
           data_origin?: Database["public"]["Enums"]["data_origin"]
           description?: string | null
+          display_id?: number
           id?: string
           notes?: string | null
           priority?: Database["public"]["Enums"]["priority_level"] | null
