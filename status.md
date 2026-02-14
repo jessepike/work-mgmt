@@ -1,8 +1,8 @@
 ---
 project: "work-management"
 stage: "Develop"
-updated: "2026-02-12"
-last_session: "2026-02-12T14:28"
+updated: "2026-02-13"
+last_session: "2026-02-13T19:49"
 ---
 
 # Status
@@ -10,12 +10,12 @@ last_session: "2026-02-12T14:28"
 ## Current State
 
 - **Phase:** Develop — Phases 1-5 complete (MVP scope)
-- **Focus:** B58 governed synced-item UI controls complete; next is B59 ADF spec alignment
+- **Focus:** Inbox/Ideas system implemented — proper routing for ideas and low-confidence items
 - **Build:** Passing (Next.js build + TypeScript clean, local + production)
 - **API:** Core REST surface implemented (projects, plans, phases, tasks, backlog, queries, connectors)
 - **MCP:** Stdio server + tool modules wired; governed write-back tools added for synced ADF entities
 - **Portfolio:** 5 enabled projects, 480 active tasks, 510 synced tasks, 139 synced backlog items
-- **Dashboard:** All 4 views verified working (Today, Portfolio, Kanban, Project Detail)
+- **Dashboard:** 6 views working (Today, Portfolio, Kanban, Project Detail, Inbox, Ideas)
 - **Known bugs:** 0 open (see BACKLOG.md)
 
 ## Review Response Plan (2026-02-11 Browser Audit)
@@ -224,3 +224,5 @@ Status: Completed (B38, B40, B41, B43, B44, B45, B46, B47)
 | 2026-02-12 | **Production rollout completion (B20/B31/B63).** Confirmed auth middleware and login routes active; added API-secret bypass path for non-browser MCP/API clients; made deploy-readiness + API contract + ADF sync scripts auth-aware; excluded `mcp-server/**` from Next app TS build scope for Vercel; moved malformed portfolio redirect guard into `src/proxy.ts` for Vercel compatibility; linked/deployed Vercel project `work-management` and aliased to `https://work-management-kappa.vercel.app`; configured production env vars; pushed Supabase migrations to `fxidgnsjhjdaunzzbxpe`; fixed auth header forwarding in `/api/portfolio-trust`; updated local MCP server config API URL to production. Validation: API contract pass; MCP contract pass; MCP e2e and ADF sync checks pass with no seeded projects/connectors (expected skip). |
 | 2026-02-12 | **B57 governed write-back completion.** Added `POST /api/connectors/writeback` for synced ADF entities with dry-run mode, strict conflict behavior, expected timestamp checks, and source_id-based markdown write-back. Added write-back engine in `src/lib/adf/writeback.ts` (table/checkbox/status-key updates). Added MCP tools: `governed_writeback_task`, `governed_writeback_backlog_item`, `governed_writeback_status`, and expanded MCP contract smoke expectations. Added `npm run test:writeback` dry-run smoke. Validation: app build + MCP contract pass; e2e/writeback smoke currently skip when no active ADF connectors are configured. |
 | 2026-02-12 | **B58 UI governed-edit completion.** Added synced-item governed edit flows in `TaskDetailPanel` and `BacklogSection`: dry-run preview, conflict messaging, explicit apply confirmation, and post-apply refresh/update behavior. Validation: app build pass, API contract smoke pass, MCP contract smoke pass. |
+| 2026-02-13 | **Ideas handling design discussion.** /krypton:ingest created full projects for ideas — need to reclassify. Proposed approach: dedicated Ideas project + backlog items with type=idea, leveraging existing B61/B62 review queue pattern. Pending user decision. |
+| 2026-02-13 | **Inbox/Ideas implementation.** B61/B67-B69 done. Inbox project, type-based backlog routing, /inbox and /ideas views, sidebar nav, /ingest routing update, 6 idea-projects archived and re-captured. |

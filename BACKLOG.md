@@ -71,8 +71,12 @@ updated: "2026-02-13"
 | B58 | UI write support for synced items via governed bi-directional sync controls | New spec | Dashboard/API | P1 | L | Done |
 | B59 | ADF spec alignment pass for tasks/backlog/status interoperability with work-management | New spec | ADF/MCP/API | P1 | L | Pending |
 | B60 | Voice/natural-language capture in UI for backlog/task commands (future) | Future feature | Dashboard/Agent | P3 | M | Pending |
-| B61 | Add `type` filter to backlog API endpoint — extend `GET /api/backlog` to accept `?type=` query parameter for filtering backlog items by type (e.g., `type=review`). Enables review queue pattern for /ingest routed items. No schema change needed — `backlog_item.type` is already freeform text. Source: CC Insights /ingest design 2026-02-12. | Enhancement | API | P2 | S | Pending |
+| B61 | Add `type` support to backlog API + MCP — `GET /api/backlog?type=`, `POST` accepts `type` field, MCP `create_backlog_item` and `list_backlog` support `type` param. Enables Inbox/Ideas routing. | Enhancement | API/MCP | P2 | S | Done |
 | B62 | Add "Findings to Review" dashboard widget — surface backlog items with `type=review` in a dedicated section, grouped by source. Enable adopt/defer/dismiss workflow directly from dashboard. Source: CC Insights /ingest design 2026-02-12. | New spec | Dashboard | P2 | M | Pending |
+| B67 | Inbox project + dashboard view — catch-all project for untriaged items, ideas, and low-confidence ingest results. Dashboard page at `/inbox` with triage actions. | New spec | Dashboard/API | P1 | M | Done |
+| B68 | Ideas view — cross-project dashboard page at `/ideas` showing all `type=idea` backlog items across enabled projects. | New spec | Dashboard | P2 | M | Done |
+| B69 | Krypton /ingest routing update — `project-seed` type now routes to Inbox as `type=idea` backlog items instead of creating full projects. Low-confidence items route to Inbox with no type. | Enhancement | Krypton | P1 | S | Done |
+| B70 | Inbox triage UX — add interactive actions to Inbox view: set type, move to project, archive. Currently read-only table. | Enhancement | Dashboard | P2 | M | Pending |
 | B63 | Post-deploy: update MCP server API_URL to production Vercel URL — change `API_URL` in `~/.claude.json` mcpServers from `http://localhost:3005/api` to production URL. Verify MCP tools load and function against remote API. Requires B20 + B31. | Ops | MCP | P1 | S | Done |
 | B64 | Implement automated local->cloud ADF ingest runner (Mac launchd/cron) with per-project mapping, cadence, retries, and logging so Vercel dashboard stays current without manual sync. | New spec | Sync/Ops | P1 | M | Pending |
 | B65 | Finalize sync architecture decision doc: laptop parser + API ingest vs git-based server pull; define source-of-truth, failure modes, and security model (API secret + scoped auth). | Design | Sync/Architecture | P1 | M | Pending |
@@ -144,6 +148,9 @@ Implemented synced-item UI write support using governed controls:
   - dry-run preview,
   - conflict feedback,
   - explicit apply confirmation.
+
+### B61/B67/B68/B69 — Done (Inbox & Ideas)
+Inbox project created in production (`ce973e7b-f899-46ec-9ac9-cffa31b56d1a`). Backlog API and MCP tools support `type` filtering. Dashboard views at `/inbox` and `/ideas`. Krypton `/ingest` updated to route `project-seed` as Inbox ideas. 6 wrongly-created idea-projects archived and re-captured as idea backlog items.
 
 ## Known Issues
 
