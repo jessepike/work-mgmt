@@ -44,6 +44,7 @@ export function registerProjectTools(server: McpServer) {
         "create_project",
         "Create a new project",
         {
+            id: z.string().uuid().optional().describe("Fixed UUID for the project. Auto-generated if omitted."),
             name: z.string(),
             description: z.string().optional(),
             project_type: z.enum(["connected", "native"]),

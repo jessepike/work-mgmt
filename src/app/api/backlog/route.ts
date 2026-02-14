@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
     const projectId = searchParams.get('project_id');
     const statuses = searchParams.get('status')?.split(',').map((s) => s.trim()).filter(Boolean) || [];
     const scope = searchParams.get('scope');
+    const type = searchParams.get('type');
 
     let query = supabase.from('backlog_item').select(`
         *,
@@ -18,6 +19,7 @@ export async function GET(request: NextRequest) {
     `);
     if (projectId) query = query.eq('project_id', projectId);
     if (statuses.length > 0) query = query.in('status', statuses as any);
+    if (type) query = query.eq('type', type);
 
     const { data, error } = await query.order('updated_at', { ascending: false });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -49,6 +51,7 @@ export async function POST(request: NextRequest) {
             description: body.description,
             priority: body.priority,
             size: body.size,
+            type: body.type,
             data_origin: body.data_origin || 'native',
             source_id: body.source_id,
             status: 'captured'

@@ -233,6 +233,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
         .from('project')
         .insert({
+            ...(body.id ? { id: body.id } : {}),
             name: body.name,
             description: body.description,
             project_type: body.project_type,
@@ -242,7 +243,7 @@ export async function POST(request: NextRequest) {
             owner_id: body.owner_id,
             status: body.status || 'active',
             focus: body.focus
-        })
+        } as any)
         .select()
         .single();
 

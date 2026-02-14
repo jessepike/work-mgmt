@@ -5,12 +5,18 @@ import { apiClient } from "../lib/api-client.js";
 export function registerBacklogTools(server: McpServer) {
     server.tool(
         "list_backlog",
-        "List all backlog items for a project",
+        "List all backlog items for a project. Optionally filter by type.",
         {
-            project_id: z.string().uuid()
+            project_id: z.string().uuid().optional(),
+            type: z.string().optional().describe("Filter by item type (e.g. 'idea', 'task', 'review')"),
+            scope: z.enum(["enabled"]).optional().describe("Set to 'enabled' to scope to enabled projects only")
         },
-        async ({ project_id }) => {
-            const response = await apiClient.get("/backlog", { params: { project_id } });
+        async ({ project_id, type, scope }) => {
+            const params: Record<string, string> = {};
+            if (project_id) params.project_id = project_id;
+            if (type) params.type = type;
+            if (scope) params.scope = scope;
+            const response = await apiClient.get("/backlog", { params });
             return {
                 content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
             };
@@ -26,6 +32,7 @@ export function registerBacklogTools(server: McpServer) {
             description: z.string().optional(),
             priority: z.enum(["P1", "P2", "P3"]).optional(),
             size: z.enum(["S", "M", "L"]).optional(),
+            type: z.string().optional().describe("Item type (e.g. 'idea', 'task', 'review'). Freeform text."),
             source_id: z.string().optional()
         },
         async (args) => {

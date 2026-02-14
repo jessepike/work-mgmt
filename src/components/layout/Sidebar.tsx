@@ -8,14 +8,18 @@ import {
     IconBriefcase,
     IconLayoutKanban,
     IconListCheck,
+    IconInbox,
+    IconBulb,
     IconSettings
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
     { label: "Today", href: "/", icon: IconHome },
+    { label: "Inbox", href: "/inbox", icon: IconInbox },
     { label: "Portfolio", href: "/portfolio", icon: IconBriefcase },
     { label: "Backlog", href: "/backlog", icon: IconListCheck },
+    { label: "Ideas", href: "/ideas", icon: IconBulb },
     { label: "Kanban", href: "/tasks/kanban", icon: IconLayoutKanban },
     { label: "Settings", href: "/settings", icon: IconSettings },
 ];

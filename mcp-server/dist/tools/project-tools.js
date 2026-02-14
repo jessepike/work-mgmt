@@ -36,6 +36,7 @@ function registerProjectTools(server) {
         }
     });
     server.tool("create_project", "Create a new project", {
+        id: zod_1.z.string().uuid().optional().describe("Fixed UUID for the project. Auto-generated if omitted."),
         name: zod_1.z.string(),
         description: zod_1.z.string().optional(),
         project_type: zod_1.z.enum(["connected", "native"]),

@@ -4,10 +4,19 @@ exports.registerBacklogTools = registerBacklogTools;
 const zod_1 = require("zod");
 const api_client_js_1 = require("../lib/api-client.js");
 function registerBacklogTools(server) {
-    server.tool("list_backlog", "List all backlog items for a project", {
-        project_id: zod_1.z.string().uuid()
-    }, async ({ project_id }) => {
-        const response = await api_client_js_1.apiClient.get("/backlog", { params: { project_id } });
+    server.tool("list_backlog", "List all backlog items for a project. Optionally filter by type.", {
+        project_id: zod_1.z.string().uuid().optional(),
+        type: zod_1.z.string().optional().describe("Filter by item type (e.g. 'idea', 'task', 'review')"),
+        scope: zod_1.z.enum(["enabled"]).optional().describe("Set to 'enabled' to scope to enabled projects only")
+    }, async ({ project_id, type, scope }) => {
+        const params = {};
+        if (project_id)
+            params.project_id = project_id;
+        if (type)
+            params.type = type;
+        if (scope)
+            params.scope = scope;
+        const response = await api_client_js_1.apiClient.get("/backlog", { params });
         return {
             content: [{ type: "text", text: JSON.stringify(response.data.data, null, 2) }]
         };
@@ -18,6 +27,7 @@ function registerBacklogTools(server) {
         description: zod_1.z.string().optional(),
         priority: zod_1.z.enum(["P1", "P2", "P3"]).optional(),
         size: zod_1.z.enum(["S", "M", "L"]).optional(),
+        type: zod_1.z.string().optional().describe("Item type (e.g. 'idea', 'task', 'review'). Freeform text."),
         source_id: zod_1.z.string().optional()
     }, async (args) => {
         const response = await api_client_js_1.apiClient.post("/backlog", args);
